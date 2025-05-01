@@ -1,17 +1,19 @@
-# accounts/admin.py
-
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from .models import User
 from employee.models import Employee
 
-class UserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(admin.ModelAdmin):
     list_display = ['employee', 'email', 'is_active']
     search_fields = ['employee__name', 'email']
-
-    # Só permite selecionar o funcionário
-    fields = ['employee']
     
+    # Agora mostra employee e grupos no formulário do admin
+    fields = ['employee', 'groups']
+    filter_horizontal = ['groups']  # Interface melhor para selecionar múltiplos grupos
+
     def has_change_permission(self, request, obj=None):
         return True
 
-admin.site.register(User, UserAdmin)
+admin.site.register(User, CustomUserAdmin)
+admin.site.unregister(Group)  # Opcional: se quiser customizar a exibição de grupos
+admin.site.register(Group)    # Reinsere o modelo de grupos no admin
