@@ -1,8 +1,9 @@
+# accounts/models.py
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from employee.models import Employee
-
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -19,7 +20,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_superuser', True)
 
         if not password:
             raise ValueError(_('A senha é obrigatória para superusuário'))
