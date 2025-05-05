@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 
-class EmployeeConfig(AppConfig):
+class SectorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'employee'
-    verbose_name = 'Funcionários'
+    name = 'sector'

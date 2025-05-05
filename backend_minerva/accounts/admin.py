@@ -15,5 +15,5 @@ class CustomUserAdmin(admin.ModelAdmin):
         return True
 
 admin.site.register(User, CustomUserAdmin)
-admin.site.unregister(Group)  # Opcional: se quiser customizar a exibição de grupos
-admin.site.register(Group)    # Reinsere o modelo de grupos no admin
+admin.site.unregister(Group)
+admin.site.register(Group)

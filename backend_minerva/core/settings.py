@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +26,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    #LIBS
     'rest_framework',
     'rest_framework.authtoken',
-    
+    # APPS
     'accounts',
     'employee',
+    'sector',
     
 ]
 
@@ -127,3 +129,23 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Email padrão do remetente (aparece como quem enviou o e-mail)
 DEFAULT_FROM_EMAIL = 'noreply@sistemacontratos.local'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),     
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    
+}
