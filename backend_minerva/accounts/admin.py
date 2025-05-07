@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from .models import User
-from employee.models import Employee
+
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ['employee', 'email', 'is_active']
@@ -11,9 +11,13 @@ class CustomUserAdmin(admin.ModelAdmin):
     fields = ['employee', 'groups']
     filter_horizontal = ['groups']  # Interface melhor para selecionar múltiplos grupos
 
+    # Se quiser aplicar uma lógica específica para permitir a edição, revise a lógica
     def has_change_permission(self, request, obj=None):
-        return True
+        # Exemplo: permitir que apenas superusuários editem
+        if request.user.is_superuser:
+            return True
+        return False
 
+# Registrando o User com o CustomUserAdmin
 admin.site.register(User, CustomUserAdmin)
-admin.site.unregister(Group)
-admin.site.register(Group)
+

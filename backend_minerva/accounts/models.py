@@ -1,9 +1,7 @@
-# accounts/models.py
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from employee.models import Employee
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -38,13 +36,13 @@ class User(AbstractUser):
     username = None  # Remove o campo username
     email = models.EmailField(unique=True, verbose_name="E-mail")
     employee = models.OneToOneField(
-        Employee,
-        on_delete=models.CASCADE,
-        verbose_name="Funcionário",
-        related_name="user",
-        null=True,
-        blank=False,
-    )
+    'employee.Employee',  # ← lazy import via string
+    on_delete=models.CASCADE,
+    verbose_name="Funcionário",
+    related_name="user",
+    null=True,
+    blank=False,
+)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

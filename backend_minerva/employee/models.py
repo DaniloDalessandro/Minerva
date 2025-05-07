@@ -6,9 +6,9 @@ from accounts.models import User
 class Employee(models.Model):
     full_name = models.CharField("Nome completo", max_length=255)
     email = models.EmailField("Email", unique=True)
-    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, null=True)
-    management = models.ForeignKey(Management, on_delete=models.SET_NULL, null=True)
-    coordination = models.ForeignKey(Coordination, on_delete=models.SET_NULL, null=True)
+    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, null=True,verbose_name="Direção")
+    management = models.ForeignKey(Management, on_delete=models.SET_NULL, null=True, verbose_name="Gerência")
+    coordination = models.ForeignKey(Coordination, on_delete=models.SET_NULL, null=True, verbose_name="Coordenação")
     cpf = models.CharField(max_length=15)
     STATUS = [
         ('ATIVO', 'Ativo'),
