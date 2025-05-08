@@ -1,171 +1,180 @@
-from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+
 from .models import Direction, Management, Coordination
 from .serializers import DirectionSerializer, ManagementSerializer, CoordinationSerializer
 from .utils.messages import DIRECTION_MSGS, MANAGEMENT_MSGS, COORDINATION_MSGS
 
+# ========== DIREÇÃO ==========
 
-# ===================== DIREÇÕES =====================
-
-class DirectionCreate(CreateAPIView):
+class DirectionListView(generics.ListAPIView):
     queryset = Direction.objects.all()
     serializer_class = DirectionSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+
+
+class DirectionCreateView(generics.CreateAPIView):
+    queryset = Direction.objects.all()
+    serializer_class = DirectionSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_create(self, serializer):
-        serializer.save()
-        return Response({'message': DIRECTION_MSGS['success_created'], 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.data = {
+            'message': DIRECTION_MSGS['success_created'],
+            'data': response.data
+        }
+        return response
 
 
-class DirectionRetrieve(RetrieveAPIView):
+class DirectionDetailView(generics.RetrieveAPIView):
     queryset = Direction.objects.all()
     serializer_class = DirectionSerializer
-    lookup_field = 'pk'
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def handle_exception(self, exc):
-        if isinstance(exc, Direction.DoesNotExist):
-            return Response({'message': DIRECTION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 
-class DirectionUpdate(UpdateAPIView):
+class DirectionUpdateView(generics.UpdateAPIView):
     queryset = Direction.objects.all()
     serializer_class = DirectionSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_update(self, serializer):
-        serializer.save()
-        return Response({'message': DIRECTION_MSGS['success_updated'], 'data': serializer.data})
+        serializer.save(updated_by=self.request.user)
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Direction.DoesNotExist):
-            return Response({'message': DIRECTION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.data = {
+            'message': DIRECTION_MSGS['success_updated'],
+            'data': response.data
+        }
+        return response
 
 
-class DirectionDestroy(DestroyAPIView):
+class DirectionDeleteView(generics.DestroyAPIView):
     queryset = Direction.objects.all()
     serializer_class = DirectionSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-    def perform_destroy(self, instance):
-        instance.delete()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
         return Response({'message': DIRECTION_MSGS['success_deleted']}, status=status.HTTP_204_NO_CONTENT)
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Direction.DoesNotExist):
-            return Response({'message': DIRECTION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+# ========== GERÊNCIA ==========
 
-
-# ===================== GERÊNCIAS =====================
-
-class ManagementCreate(CreateAPIView):
+class ManagementListView(generics.ListAPIView):
     queryset = Management.objects.all()
     serializer_class = ManagementSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+
+
+class ManagementCreateView(generics.CreateAPIView):
+    queryset = Management.objects.all()
+    serializer_class = ManagementSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_create(self, serializer):
-        serializer.save()
-        return Response({'message': MANAGEMENT_MSGS['success_created'], 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.data = {
+            'message': MANAGEMENT_MSGS['success_created'],
+            'data': response.data
+        }
+        return response
 
 
-class ManagementRetrieve(RetrieveAPIView):
+class ManagementDetailView(generics.RetrieveAPIView):
     queryset = Management.objects.all()
     serializer_class = ManagementSerializer
-    lookup_field = 'pk'
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def handle_exception(self, exc):
-        if isinstance(exc, Management.DoesNotExist):
-            return Response({'message': MANAGEMENT_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 
-class ManagementUpdate(UpdateAPIView):
+class ManagementUpdateView(generics.UpdateAPIView):
     queryset = Management.objects.all()
     serializer_class = ManagementSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_update(self, serializer):
-        serializer.save()
-        return Response({'message': MANAGEMENT_MSGS['success_updated'], 'data': serializer.data})
+        serializer.save(updated_by=self.request.user)
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Management.DoesNotExist):
-            return Response({'message': MANAGEMENT_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.data = {
+            'message': MANAGEMENT_MSGS['success_updated'],
+            'data': response.data
+        }
+        return response
 
 
-class ManagementDestroy(DestroyAPIView):
+class ManagementDeleteView(generics.DestroyAPIView):
     queryset = Management.objects.all()
     serializer_class = ManagementSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-    def perform_destroy(self, instance):
-        instance.delete()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
         return Response({'message': MANAGEMENT_MSGS['success_deleted']}, status=status.HTTP_204_NO_CONTENT)
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Management.DoesNotExist):
-            return Response({'message': MANAGEMENT_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+# =============================== COORDINATION ===============================
 
-
-# ===================== COORDENAÇÕES =====================
-
-class CoordinationCreate(CreateAPIView):
+class CoordinationListView(generics.ListAPIView):
     queryset = Coordination.objects.all()
     serializer_class = CoordinationSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+
+
+class CoordinationCreateView(generics.CreateAPIView):
+    serializer_class = CoordinationSerializer
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_create(self, serializer):
-        serializer.save()
-        return Response({'message': COORDINATION_MSGS['success_created'], 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.data = {
+            'message': COORDINATION_MSGS['success_created'],
+            'data': response.data
+        }
+        return response
 
 
-class CoordinationRetrieve(RetrieveAPIView):
+class CoordinationDetailView(generics.RetrieveAPIView):
     queryset = Coordination.objects.all()
     serializer_class = CoordinationSerializer
-    lookup_field = 'pk'
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def handle_exception(self, exc):
-        if isinstance(exc, Coordination.DoesNotExist):
-            return Response({'message': COORDINATION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 
-class CoordinationUpdate(UpdateAPIView):
+class CoordinationUpdateView(generics.UpdateAPIView):
     queryset = Coordination.objects.all()
     serializer_class = CoordinationSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_update(self, serializer):
-        serializer.save()
-        return Response({'message': COORDINATION_MSGS['success_updated'], 'data': serializer.data})
+        serializer.save(updated_by=self.request.user)
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Coordination.DoesNotExist):
-            return Response({'message': COORDINATION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.data = {
+            'message': COORDINATION_MSGS['success_updated'],
+            'data': response.data
+        }
+        return response
 
 
-class CoordinationDestroy(DestroyAPIView):
+class CoordinationDeleteView(generics.DestroyAPIView):
     queryset = Coordination.objects.all()
     serializer_class = CoordinationSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-    def perform_destroy(self, instance):
-        instance.delete()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
         return Response({'message': COORDINATION_MSGS['success_deleted']}, status=status.HTTP_204_NO_CONTENT)
-
-    def handle_exception(self, exc):
-        if isinstance(exc, Coordination.DoesNotExist):
-            return Response({'message': COORDINATION_MSGS['error_not_found']}, status=status.HTTP_404_NOT_FOUND)
-        return super().handle_exception(exc)

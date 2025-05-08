@@ -2,19 +2,28 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
+from .utils.messages import LOGIN_MESSAGES  # importa as mensagens personalizadas
 
 User = get_user_model()
 
-# -------------------------------
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
-        if user and user.is_active:
-            return {'user': user}
-        raise serializers.ValidationError("Credenciais inválidas.")
+        try:
+            user = User.objects.get(email=data['email'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError(LOGIN_MESSAGES['invalid_credentials'])
+
+        if not user.check_password(data['password']):
+            raise serializers.ValidationError(LOGIN_MESSAGES['invalid_credentials'])
+
+        if not user.is_active:
+            raise serializers.ValidationError("Usuário inativo.")  # você pode criar uma msg específica se quiser
+
+        return {'user': user}
+
 
 
 # -------------------------------

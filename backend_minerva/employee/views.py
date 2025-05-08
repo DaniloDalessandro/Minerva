@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser,DjangoModelPermissions,IsAuthenticated
 from .models import Employee
 from .serializers import EmployeeSerializer
 from .utils.messages import EMPLOYEE_MESSAGES
@@ -9,13 +9,13 @@ from .utils.messages import EMPLOYEE_MESSAGES
 class EmployeeListView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 # Criar funcionário
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -26,13 +26,13 @@ class EmployeeCreateView(generics.CreateAPIView):
 class EmployeeRetrieveView(generics.RetrieveAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 # Atualizar funcionário
 class EmployeeUpdateView(generics.UpdateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
@@ -43,7 +43,7 @@ class EmployeeUpdateView(generics.UpdateAPIView):
 class EmployeeDeleteView(generics.DestroyAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
