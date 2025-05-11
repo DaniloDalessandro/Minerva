@@ -133,6 +133,7 @@ class CoordinationListView(generics.ListAPIView):
 class CoordinationCreateView(generics.CreateAPIView):
     serializer_class = CoordinationSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    queryset = Coordination.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, updated_by=self.request.user)

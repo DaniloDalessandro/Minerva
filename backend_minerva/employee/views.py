@@ -17,10 +17,20 @@ class EmployeeCreateView(generics.CreateAPIView):
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
+    def perform_create(self, serializer):
+        serializer.save(
+            created_by=self.request.user,
+            updated_by=self.request.user
+        )
+
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        response.data['message'] = EMPLOYEE_MESSAGES['created']
+        response.data = {
+            'message': EMPLOYEE_MESSAGES['created'],
+            'data': response.data
+        }
         return response
+
 
 # Visualizar funcionário
 class EmployeeRetrieveView(generics.RetrieveAPIView):

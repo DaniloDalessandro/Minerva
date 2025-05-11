@@ -5,7 +5,7 @@ from .utils.messages import CENTRO_GESTOR_MSGS,CENTRO_SOLICITANTE_MSGS
 from .models import CentroDeCustoGestor,CentroDeCustoSolicitante
 from .serializers import CentroDeCustoGestorSerializer,CentroDeCustoSolicitanteSerializer
 
-# Create your views here.
+
 class CentroGestorListView(generics.ListAPIView):
     queryset = CentroDeCustoGestor.objects.all()
     serializer_class = CentroDeCustoGestorSerializer
@@ -62,6 +62,7 @@ class CentroGestorDeleteView(generics.DestroyAPIView):
         self.perform_destroy(instance)
         return Response({'message': CENTRO_GESTOR_MSGS['success_deleted']}, status=status.HTTP_204_NO_CONTENT)
 
+#=============================================================================================================
 
 class CentroSolicitanteListView(generics.ListAPIView):
     queryset = CentroDeCustoSolicitante.objects.all()
