@@ -4,5 +4,5 @@ from django.apps import AppConfig
 class SectorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'sector'
-    verbose_name = 'Setor'
-    verbose_name_plural = 'Setores'
+    verbose_name = 'Setores'
+    

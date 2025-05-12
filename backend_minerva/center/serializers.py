@@ -1,27 +1,18 @@
 from rest_framework import serializers
-from .models import CentroDeCustoGestor, CentroDeCustoSolicitante
-from .utils.messages import CENTRO_GESTOR_MSGS, CENTRO_SOLICITANTE_MSGS
+from .models import Management_Center,Requesting_Center
 
-class CentroDeCustoGestorSerializer(serializers.ModelSerializer):
+
+# Serializer for the models in the centers app
+class ManagementCenterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CentroDeCustoGestor
+        model = Management_Center
         fields = '__all__'
-
-    def validate_nome(self, value):
-        if CentroDeCustoGestor.objects.filter(nome=value).exists():
-            raise serializers.ValidationError(CENTRO_GESTOR_MSGS['unique_error'])
-        return value
+        read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']
 
 
-class CentroDeCustoSolicitanteSerializer(serializers.ModelSerializer):
+# Serializer for the models in the centers app
+class RequestingCenterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CentroDeCustoSolicitante
+        model = Requesting_Center
         fields = '__all__'
-
-    def validate(self, data):
-        if CentroDeCustoSolicitante.objects.filter(
-            centro_gestor=data['centro_gestor'],
-            nome=data['nome']
-        ).exists():
-            raise serializers.ValidationError(CENTRO_SOLICITANTE_MSGS['unique_error'])
-        return data
+        read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']

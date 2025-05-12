@@ -2,9 +2,9 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from accounts.models import User
 from .utils.validators import validate_year
-from center.models import 
+from center.models import Management_Center
 
-#===============================================================================
+#========================================================================================================================================
 class Budget(models.Model):
     BUDGET_CLASSES = [
         ('CAPEX', 'CAPEX'),
@@ -49,9 +49,9 @@ class Budget(models.Model):
         unique_together = ['year', 'category', 'management_center']
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
-        ordering = ['-year', 'category', 'management_center__name']
+        ordering = ['-year', 'category']
 
-#===============================================================================
+#==================================================================================================================================
 
 class BudgetMovement(models.Model):
     source = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='outgoing_movements',verbose_name='Origem')
