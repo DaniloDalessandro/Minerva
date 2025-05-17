@@ -2,6 +2,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from .models import ContractInstallment, ContractAmendment, Contract
+from employee.utils.access_control import get_employee_queryset
+from employee.models import Employee
 from .serializers import (
     ContractInstallmentSerializer,
     ContractAmendmentSerializer,
@@ -19,6 +21,11 @@ class ContractListAPIView(generics.ListAPIView):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer
 
+    def get_queryset(self):
+        # contratos que o fiscal principal ou substituto esteja dentro do escopo
+        employee_qs = get_employee_queryset(self.request.user, Employee.objects.all())
+        return Contract.objects.filter(main_inspector__in=employee_qs) | Contract.objects.filter(substitute_inspector__in=employee_qs)
+
 
 class ContractCreateAPIView(generics.CreateAPIView):
     queryset = Contract.objects.all()
@@ -32,11 +39,21 @@ class ContractCreateAPIView(generics.CreateAPIView):
         response = super().create(request, *args, **kwargs)
         response.data['message'] = CONTRACTS_MESSAGES['CREATE_SUCCESS']
         return response
+    
+    def get_queryset(self):
+        # contratos que o fiscal principal ou substituto esteja dentro do escopo
+        employee_qs = get_employee_queryset(self.request.user, Employee.objects.all())
+        return Contract.objects.filter(main_inspector__in=employee_qs) | Contract.objects.filter(substitute_inspector__in=employee_qs)
 
 
 class ContractRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer
+
+    def get_queryset(self):
+        # contratos que o fiscal principal ou substituto esteja dentro do escopo
+        employee_qs = get_employee_queryset(self.request.user, Employee.objects.all())
+        return Contract.objects.filter(main_inspector__in=employee_qs) | Contract.objects.filter(substitute_inspector__in=employee_qs)
 
 
 class ContractUpdateAPIView(generics.UpdateAPIView):
