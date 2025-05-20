@@ -1,10 +1,5 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,70 +8,111 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { useState } from "react";
 
 export default function OrcamentoForm({ open, handleClose }) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(orcamentoSchema),
+  const [formData, setFormData] = useState({
+    ano: "",
+    centro_custo: "",
+    classe: "",
+    valor: "",
   });
 
-  const onSubmit = (data) => {
-    console.log("Orçamento salvo:", data);
+  const handleChange = (field) => (e) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
+  const handleSelect = (field) => (value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Dados enviados:", formData);
     handleClose();
-    // aqui você pode enviar para backend ou atualizar estado do pai
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Cadastro de Orçamento</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[480px] max-w-[90vw]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-primary">
+              Novo Orçamento
+            </DialogTitle>
+            <hr className="mt-2 border-b border-gray-200" />
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Ano */}
-          <div className="grid gap-2">
-            <Label htmlFor="ano">Ano</Label>
-            <Input id="ano" type="number" {...register("ano")} placeholder="Ano do orçamento" />
-            {errors.ano && <p className="text-red-500 text-sm">{errors.ano.message}</p>}
+          <div className="grid gap-4 py-6">
+            {/* Linha: Ano + Classe */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="ano">Ano</Label>
+                <Input
+                  id="ano"
+                  type="number"
+                  value={formData.ano}
+                  onChange={handleChange("ano")}
+                  required
+                  className="w-40"
+                  placeholder="2023" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="classe">Classe</Label>
+                <Select onValueChange={handleSelect("classe")} required>
+                  <SelectTrigger id="classe">
+                    <SelectValue placeholder="Selecione a classe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OPEX">OPEX</SelectItem>
+                    <SelectItem value="CAPEX">CAPEX</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Linha: Centro de Custo + Valor */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="centro_custo">Centro de Custo</Label>
+                <Input
+                  id="centro_custo"
+                  value={formData.centro_custo}
+                  onChange={handleChange("centro_custo")}
+                  required
+                  className="w-40"
+                  placeholder="DOP"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="valor">Valor</Label>
+                <Input
+                  id="valor"
+                  type="number"
+                  step="0.01"
+                  value={formData.valor}
+                  onChange={handleChange("valor")}
+                  required
+                  className="w-40"
+                  helpText="Valor em R$"
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Centro de Custo */}
-          <div className="grid gap-2">
-            <Label htmlFor="centro_custo">Centro de Custo</Label>
-            <Input id="centro_custo" {...register("centro_custo")} placeholder="Nome do centro de custo" />
-            {errors.centro_custo && <p className="text-red-500 text-sm">{errors.centro_custo.message}</p>}
-          </div>
-
-          {/* Classe */}
-          <div className="grid gap-2">
-            <Label htmlFor="classe">Classe</Label>
-            <Select onValueChange={(value) => setValue("classe", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a classe" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="OPEX">OPEX</SelectItem>
-                <SelectItem value="CAPEX">CAPEX</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.classe && <p className="text-red-500 text-sm">{errors.classe.message}</p>}
-          </div>
-
-          {/* Valor Total */}
-          <div className="grid gap-2">
-            <Label htmlFor="valor_total">Valor Total</Label>
-            <Input id="valor_total" type="number" {...register("valor_total", { valueAsNumber: true })} placeholder="Valor total" />
-            {errors.valor_total && <p className="text-red-500 text-sm">{errors.valor_total.message}</p>}
-          </div>
-
-          <DialogFooter className="flex justify-between">
+          <DialogFooter className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>

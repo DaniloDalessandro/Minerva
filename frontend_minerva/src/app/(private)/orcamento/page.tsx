@@ -3,8 +3,8 @@
 import { useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
+import OrcamentoForm from "./OrcamentoForm"; // ⬅️ importe correto
 
-// Dados de exemplo atualizados para representar orçamentos
 const data = [
   {
     id: "1",
@@ -46,6 +46,9 @@ export default function Home() {
           title="Orçamentos"
           pageSize={12}
         />
+
+        {/* Aqui renderiza o modal */}
+        <OrcamentoForm open={open} handleClose={handleClose} />
       </div>
     </div>
   );
