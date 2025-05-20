@@ -1,29 +1,61 @@
-import { GalleryVerticalEnd } from "lucide-react"
-import { LoginForm } from "@/components/login-form"
+"use client"
 
-export default function LoginPage() {
-  return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Imagem de fundo como marca d'água */}
-      <img
-        src="/img-login/login1.png"
-        alt="Marca d'água"
-        className="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
-      />
+import { DataTable } from "@/components/data-table"
+import { ColumnDef } from "@tanstack/react-table"
+import { Pencil, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-      {/* Conteúdo sobreposto */}
-      <div className="relative z-10 w-full max-w-md p-6 md:p-10 bg-background/90 backdrop-blur-sm rounded-lg shadow-lg">
-        {/* Logotipo */}
-        <div className="mb-6 flex items-center gap-2 justify-center">
-          <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <GalleryVerticalEnd className="size-4" />
-          </div>
-          <span className="text-lg font-semibold">Minerva</span>
+type User = {
+  id: number
+  name: string
+  email: string
+}
+
+// Colunas com ações (editar e excluir)
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: "name",
+    header: "Nome",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    id: "actions",
+    header: () => <div className="text-right">Ações</div>,
+    cell: ({ row }) => {
+      const user = row.original
+      return (
+        <div className="flex justify-end gap-2">
+          <Button size="icon" variant="ghost" onClick={() => alert(`Editar ${user.name}`)}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => alert(`Excluir ${user.name}`)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
+      )
+    },
+  },
+]
 
-        {/* Formulário */}
-        <LoginForm />
-      </div>
+const data: User[] = [
+  { id: 1, name: "Alice Silva", email: "alice@example.com" },
+  { id: 2, name: "João Souza", email: "joao@example.com" },
+]
+
+export default function UsersPage() {
+  return (
+    <div className="p-6">
+      <DataTable
+        columns={columns}
+        data={data}
+        title="Usuários"
+        searchable
+        sortable
+        paginated
+      />
     </div>
   )
 }
