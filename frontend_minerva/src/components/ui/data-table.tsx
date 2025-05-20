@@ -21,8 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit,
-  Trash,
-  Filter
+  Trash
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,26 +31,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
-// Toolbar atualizada
-function Toolbar({ title, table, selectedRow, toggleStatusFilter, statusFilter, onAdd }) {
+// Toolbar com suporte a edição e exclusão
+function Toolbar({ title, table, selectedRow, onAdd }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
       <h2 className="text-xl font-bold text-primary">{title}</h2>
       <div className="flex items-center gap-4">
-        <Plus className="h-6 w-6 cursor-pointer" onClick={onAdd} aria-label="Adicionar novo item" role="button" />
+        <Plus
+          className="h-6 w-6 cursor-pointer"
+          onClick={onAdd}
+          aria-label="Adicionar novo item"
+          role="button"
+        />
         {selectedRow && (
           <>
             <Edit className="h-6 w-6 cursor-pointer" />
             <Trash className="h-6 w-6 cursor-pointer" />
           </>
         )}
-        <Filter
-          className="h-6 w-6 cursor-pointer"
-          onClick={toggleStatusFilter}
-          title={`Filtro: ${statusFilter}`}
-          aria-label={`Alternar filtro de status: ${statusFilter}`}
-          role="button"
-        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Settings className="h-6 w-6 cursor-pointer" />
@@ -65,8 +62,10 @@ function Toolbar({ title, table, selectedRow, toggleStatusFilter, statusFilter, 
                   key={column.id}
                   className="capitalize"
                   checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  keepOpen={true}
+                  onSelect={(e) => {
+                    e.preventDefault(); // impede o fechamento do menu
+                    column.toggleVisibility(!column.getIsVisible());
+                  }}
                 >
                   {column.id}
                 </DropdownMenuCheckboxItem>
@@ -82,29 +81,16 @@ export function DataTable({
   columns,
   data,
   title,
-  filters,
   defaultColumns,
   pageSize = 10,
   onAdd
 }) {
   const [columnVisibility, setColumnVisibility] = React.useState(defaultColumns || {});
   const [selectedRow, setSelectedRow] = React.useState(null);
-  const [statusFilter, setStatusFilter] = React.useState("ativo"); // padrão: mostrar ativos
   const [sorting, setSorting] = React.useState([]);
 
-  const toggleStatusFilter = () => {
-    setStatusFilter((prev) => (prev === "ativo" ? "Todos" : "ativo"));
-  };
-
-  const filteredData =
-    statusFilter === "Todos"
-      ? data
-      : data.filter((row) =>
-          String(row.status).toLowerCase() === statusFilter.toLowerCase()
-        );
-
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -119,8 +105,7 @@ export function DataTable({
     state: {
       sorting,
       columnVisibility
-    },
-    globalFilter: filters
+    }
   });
 
   return (
@@ -130,8 +115,6 @@ export function DataTable({
           title={title}
           table={table}
           selectedRow={selectedRow}
-          toggleStatusFilter={toggleStatusFilter}
-          statusFilter={statusFilter}
           onAdd={onAdd}
         />
       </CardHeader>
@@ -185,7 +168,7 @@ export function DataTable({
                     colSpan={columns.length}
                     className="h-24 text-center text-gray-500 italic"
                   >
-                    Nenhum registro encontrado com o filtro atual.
+                    Nenhum registro encontrado.
                   </TableCell>
                 </TableRow>
               )}
@@ -196,7 +179,7 @@ export function DataTable({
         {/* Controles de Paginação */}
         <div className="flex items-center justify-between py-1">
           <span className="text-sm text-gray-600">
-            Total de registros: {filteredData.length}
+            Total de registros: {data.length}
           </span>
           <div className="flex items-center gap-2">
             <select
