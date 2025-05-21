@@ -125,14 +125,25 @@ export function DataTable({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} className="font-semibold">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                    <TableHead
+                      key={header.id}
+                      className="font-semibold cursor-pointer select-none"
+                      onClick={() =>
+                        header.column.getCanSort() && header.column.toggleSorting()
+                      }>
+                      <div className="flex items-center">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanSort() && (
+                          <span className="ml-1 text-gray-400">
+                            {{
+                              asc: "▲",
+                              desc: "▼"
+                            }[header.column.getIsSorted()] ?? "↕"}
+                          </span>
+                        )}
+                      </div>
                     </TableHead>
+
                   ))}
                 </TableRow>
               ))}

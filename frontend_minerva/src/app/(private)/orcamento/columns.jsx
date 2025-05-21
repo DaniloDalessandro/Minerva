@@ -1,6 +1,16 @@
 export const columns = [
-  { accessorKey: "ano", header: "Ano" },
-  { accessorKey: "centro_custo", header: "Centro Gestor" },
+  {
+    accessorKey: "ano",
+    header: "Ano",
+    enableSorting: true,
+    cell: ({ getValue }) => getValue()
+  },
+  {
+    accessorKey: "centro_custo",
+    header: "Centro de Custo",
+    enableSorting: false,
+    cell: ({ getValue }) => getValue()
+  },
   { accessorKey: "classe", header: "Classe" },
   { accessorKey: "valor_total", header: "Valor Total" },
   { accessorKey: "valor_utilizado", header: "Valor Utilizado" },
