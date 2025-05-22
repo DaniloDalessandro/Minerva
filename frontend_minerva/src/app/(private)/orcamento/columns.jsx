@@ -3,7 +3,10 @@ export const columns = [
     accessorKey: "ano",
     header: "Ano",
     enableSorting: true,
-    cell: ({ getValue }) => getValue()
+    meta: {
+      showFilterIcon: true 
+    }
+    
   },
   {
     accessorKey: "centro_custo",
