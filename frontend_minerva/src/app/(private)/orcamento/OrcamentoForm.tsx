@@ -17,15 +17,38 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function OrcamentoForm({ open, handleClose }) {
+export default function OrcamentoForm({ 
+  open, 
+  handleClose, 
+  initialData,
+  onSubmit 
+}) {
   const [formData, setFormData] = useState({
+    id: "",
     ano: "",
     centro_custo: "",
     classe: "",
-    valor: "",
+    valor_total: "",
+    status: "ATIVO",
   });
+
+  // Preenche o form quando initialData muda
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        id: "",
+        ano: "",
+        centro_custo: "",
+        classe: "",
+        valor_total: "",
+        status: "ATIVO",
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -37,7 +60,7 @@ export default function OrcamentoForm({ open, handleClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Dados enviados:", formData);
+    onSubmit(formData);
     handleClose();
   };
 
@@ -47,7 +70,7 @@ export default function OrcamentoForm({ open, handleClose }) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-primary">
-              Novo Orçamento
+              {initialData ? "Editar Orçamento" : "Novo Orçamento"}
             </DialogTitle>
             <hr className="mt-2 border-b border-gray-200" />
           </DialogHeader>
@@ -63,13 +86,19 @@ export default function OrcamentoForm({ open, handleClose }) {
                   value={formData.ano}
                   onChange={handleChange("ano")}
                   required
-                  className="w-40"
-                  placeholder="2023" />
+                  min="2000"
+                  max="2100"
+                  placeholder="2023"
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="classe">Classe</Label>
-                <Select onValueChange={handleSelect("classe")} required>
+                <Select 
+                  onValueChange={handleSelect("classe")} 
+                  value={formData.classe}
+                  required
+                >
                   <SelectTrigger id="classe">
                     <SelectValue placeholder="Selecione a classe" />
                   </SelectTrigger>
@@ -90,33 +119,53 @@ export default function OrcamentoForm({ open, handleClose }) {
                   value={formData.centro_custo}
                   onChange={handleChange("centro_custo")}
                   required
-                  className="w-40"
                   placeholder="DOP"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="valor">Valor</Label>
+                <Label htmlFor="valor_total">Valor Total (R$)</Label>
                 <Input
-                  id="valor"
+                  id="valor_total"
                   type="number"
                   step="0.01"
-                  value={formData.valor}
-                  onChange={handleChange("valor")}
+                  min="0"
+                  value={formData.valor_total}
+                  onChange={handleChange("valor_total")}
                   required
-                  className="w-40"
-                  helpText="Valor em R$"
                   placeholder="0,00"
                 />
               </div>
             </div>
+
+            {/* Status (só aparece na edição) */}
+            {initialData && (
+              <div className="grid gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  onValueChange={handleSelect("status")}
+                  value={formData.status}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ATIVO">Ativo</SelectItem>
+                    <SelectItem value="INATIVO">Inativo</SelectItem>
+                    <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit">Salvar</Button>
+            <Button type="submit">
+              {initialData ? "Salvar Alterações" : "Criar Orçamento"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

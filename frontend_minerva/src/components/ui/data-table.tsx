@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   useReactTable,
@@ -41,8 +43,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
-// Toolbar com suporte a edição e exclusão
-function Toolbar({ title, table, selectedRow, onAdd }) {
+function Toolbar({ title, table, selectedRow, onAdd, onEdit, onDelete }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
       <h2 className="text-xl font-bold text-primary">{title}</h2>
@@ -55,10 +56,20 @@ function Toolbar({ title, table, selectedRow, onAdd }) {
         />
         {selectedRow && (
           <>
-            <Eye className="h-6 w-6 cursor-pointer" />
-            <Edit className="h-6 w-6 cursor-pointer" />
-            <Trash className="h-6 w-6 cursor-pointer" />
-            
+
+            <Eye className="h-6 w-6 cursor-pointer text-blue-600 hover:text-blue-800"/>
+            <Edit 
+              className="h-6 w-6 cursor-pointer text-blue-600 hover:text-blue-800" 
+              onClick={() => onEdit(selectedRow)}
+              aria-label="Editar item"
+              role="button"
+            />
+            <Trash 
+              className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
+              onClick={() => onDelete(selectedRow)}
+              aria-label="Excluir item"
+              role="button"
+            />
           </>
         )}
         <DropdownMenu>
@@ -75,7 +86,7 @@ function Toolbar({ title, table, selectedRow, onAdd }) {
                   className="capitalize"
                   checked={column.getIsVisible()}
                   onSelect={(e) => {
-                    e.preventDefault(); // impede o fechamento do menu
+                    e.preventDefault();
                     column.toggleVisibility(!column.getIsVisible());
                   }}
                 >
@@ -96,6 +107,8 @@ export function DataTable({
   defaultColumns,
   pageSize = 10,
   onAdd,
+  onEdit,
+  onDelete,
 }) {
   const [columnVisibility, setColumnVisibility] = React.useState(
     defaultColumns || {}
@@ -144,6 +157,8 @@ export function DataTable({
           table={table}
           selectedRow={selectedRow}
           onAdd={onAdd}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </CardHeader>
       <CardContent>
@@ -336,7 +351,7 @@ export function DataTable({
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </div>
+          </div>  
         </div>
       </CardContent>
     </Card>
