@@ -25,6 +25,7 @@ import {
   Trash,
   Filter,
   X,
+  Eye,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -54,8 +55,10 @@ function Toolbar({ title, table, selectedRow, onAdd }) {
         />
         {selectedRow && (
           <>
+            <Eye className="h-6 w-6 cursor-pointer" />
             <Edit className="h-6 w-6 cursor-pointer" />
             <Trash className="h-6 w-6 cursor-pointer" />
+            
           </>
         )}
         <DropdownMenu>
