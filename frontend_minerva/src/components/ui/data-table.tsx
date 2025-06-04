@@ -42,6 +42,7 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 function Toolbar({ title, table, selectedRow, onAdd, onEdit, onDelete }) {
   return (
@@ -56,16 +57,15 @@ function Toolbar({ title, table, selectedRow, onAdd, onEdit, onDelete }) {
         />
         {selectedRow && (
           <>
-
-            <Eye className="h-6 w-6 cursor-pointer text-blue-600 hover:text-blue-800"/>
-            <Edit 
-              className="h-6 w-6 cursor-pointer text-blue-600 hover:text-blue-800" 
+            <Eye className="h-6 w-6 cursor-pointer" />
+            <Edit
+              className="h-6 w-6 cursor-pointer"
               onClick={() => onEdit(selectedRow)}
               aria-label="Editar item"
               role="button"
             />
-            <Trash 
-              className="h-6 w-6 cursor-pointer text-red-600 hover:text-red-800"
+            <Trash
+              className="h-6 w-6 cursor-pointer"
               onClick={() => onDelete(selectedRow)}
               aria-label="Excluir item"
               role="button"
@@ -149,6 +149,15 @@ export function DataTable({
     setOpenFilterId(null);
   };
 
+  const clearAllFilters = () => {
+    table.getAllColumns().forEach((col) => col.setFilterValue(""));
+    setOpenFilterId(null);
+  };
+
+  const activeFilters = table.getState().columnFilters.filter(
+    (f) => f.value !== undefined && f.value !== ""
+  );
+
   return (
     <Card className="shadow-lg pb-0.5">
       <CardHeader className="pb-1">
@@ -162,6 +171,40 @@ export function DataTable({
         />
       </CardHeader>
       <CardContent>
+
+        {/* TAGS DE FILTROS */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {activeFilters.map((filter) => {
+              const column = table.getColumn(filter.id);
+              return (
+                <Badge
+                  key={filter.id}
+                  variant="outline"
+                  className="flex items-center gap-1"
+                >
+                  <span className="font-medium">
+                    {column?.columnDef.header}:
+                  </span>{" "}
+                  <span>{filter.value}</span>
+                  <X
+                    className="h-3 w-3 cursor-pointer ml-1"
+                    onClick={() => clearFilter(filter.id)}
+                  />
+                </Badge>
+              );
+            })}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="ml-2 text-sm text-red-500"
+            >
+              Limpar filtros
+            </Button>
+          </div>
+        )}
+
         <div className="border shadow-sm">
           <Table>
             <TableHeader className="bg-gray-50">
@@ -351,7 +394,7 @@ export function DataTable({
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </div>  
+          </div>
         </div>
       </CardContent>
     </Card>

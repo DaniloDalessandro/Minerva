@@ -249,7 +249,7 @@ export default function Home() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           title="Orçamentos"
-          pageSize={12}
+          pageSize={9}
         />
 
         <OrcamentoForm 
