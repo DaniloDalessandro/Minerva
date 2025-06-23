@@ -102,7 +102,9 @@ const data = {
       icon: Building2,
       items: [
         { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Adicionar Direção", url: "#" },
+        { title: "Adicionar Gerencia", url: "#" },
+        { title: "Adicionar Coordenação", url: "#" },
       ],
     },
     {
