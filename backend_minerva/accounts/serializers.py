@@ -2,9 +2,34 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
-from .utils.messages import LOGIN_MESSAGES  # importa as mensagens personalizadas
+from .utils.messages import LOGIN_MESSAGES
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Adiciona informações extras ao token (opcional)
+        token['email'] = user.email
+        token['name'] = user.first_name
+        token['id'] = user.id
+
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        # Adiciona dados do usuário na resposta (além dos tokens)
+        data['user'] = {
+            'id': self.user.id,
+            'email': self.user.email,
+            'name': self.user.first_name,
+        }
+
+        return data
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -66,3 +91,9 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'email')
         read_only_fields = ('email',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email', 'avatar']

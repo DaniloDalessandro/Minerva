@@ -6,6 +6,12 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .serializers import UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
 
 from .serializers import (
     LoginSerializer,
@@ -13,7 +19,8 @@ from .serializers import (
     PasswordResetSerializer,
     PasswordResetConfirmSerializer,
     ChangePasswordSerializer,
-    ProfileUpdateSerializer
+    ProfileUpdateSerializer,
+    UserSerializer
 )
 
 from .utils.messages import (
@@ -35,15 +42,43 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']  
-
+            user = serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
 
-            return Response({
+            response = Response({
                 'message': LOGIN_MESSAGES['success'],
-                'access': str(refresh.access_token),
-                'refresh': str(refresh)
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
             })
+
+            # Tempo de expiração
+            access_exp = 60 * 60  # 1 hora
+            refresh_exp = 60 * 60 * 24 * 7  # 7 dias
+
+            response.set_cookie(
+                key="access_token",
+                value=access_token,
+                httponly=True,
+                max_age=access_exp,
+                samesite="Lax",
+                secure=False  # Em produção: secure=True com HTTPS
+            )
+
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                max_age=refresh_exp,
+                samesite="Lax",
+                secure=False
+            )
+
+            return response
 
         return Response({'error': LOGIN_MESSAGES['invalid_credentials']}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -52,11 +87,13 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        try:
-            request.auth.delete()
-            return Response({'message': LOGOUT_MESSAGES['success']})
-        except Exception:
-            return Response({'error': LOGOUT_MESSAGES['error']}, status=status.HTTP_400_BAD_REQUEST)
+        response = Response({'message': LOGOUT_MESSAGES['success']})
+
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
+
 
 # -------------------------------
 class RegisterView(APIView):
@@ -139,3 +176,17 @@ class ProfileUpdateView(APIView):
             serializer.save()
             return Response({'message': PROFILE_MESSAGES['update_success'], 'user': serializer.data})
         return Response({'error': PROFILE_MESSAGES['update_error'], 'details': serializer.errors}, status=400)
+
+
+class UserMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+
+#=========================================================================
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
