@@ -101,7 +101,7 @@ const data = {
       url: "#",
       icon: Building2,
       items: [
-        { title: "Buscar", url: "#" },
+        { title: "Buscar", url: "setor/" },
         { title: "Adicionar Direção", url: "#" },
         { title: "Adicionar Gerencia", url: "#" },
         { title: "Adicionar Coordenação", url: "#" },

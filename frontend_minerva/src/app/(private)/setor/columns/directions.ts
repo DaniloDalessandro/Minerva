@@ -37,11 +37,11 @@ export const columns = (): ColumnDef<Direction>[] => [
   {
     accessorKey: "created_by",
     header: "Criado por",
-    cell: ({ row }) => row.original.created_by?.username ?? "-",
+    cell: ({ row }) => row.original.created_by?.email ?? "-",
   },
   {
     accessorKey: "updated_by",
     header: "Atualizado por",
-    cell: ({ row }) => row.original.updated_by?.username ?? "-",
+    cell: ({ row }) => row.original.updated_by?.email ?? "-",
   },
 ];
