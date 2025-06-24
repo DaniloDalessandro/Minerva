@@ -14,13 +14,25 @@ export const columns = (): ColumnDef<Direction>[] => [
     accessorKey: "created_at",
     header: "Criado em",
     cell: ({ row }) =>
-      new Date(row.original.created_at).toLocaleDateString("pt-BR"),
+      new Date(row.original.created_at).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", ""),
   },
   {
     accessorKey: "updated_at",
     header: "Atualizado em",
     cell: ({ row }) =>
-      new Date(row.original.updated_at).toLocaleDateString("pt-BR"),
+      new Date(row.original.updated_at).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", ""),
   },
   {
     accessorKey: "created_by",
