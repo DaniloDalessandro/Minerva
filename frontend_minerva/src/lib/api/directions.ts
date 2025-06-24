@@ -20,7 +20,7 @@ export async function fetchDirections(page = 1, pageSize = 10) {
 
 export async function createDirection(data: { name: string }) {
   const token = localStorage.getItem("access");
-  const res = await fetch(API_BASE_URL, {
+  const res = await fetch(`${API_BASE_URL}create/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,9 +32,10 @@ export async function createDirection(data: { name: string }) {
   return res.json();
 }
 
+
 export async function updateDirection(data: { id: number; name: string }) {
   const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${data.id}/`, {
+  const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -48,7 +49,7 @@ export async function updateDirection(data: { id: number; name: string }) {
 
 export async function deleteDirection(id: number) {
   const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${id}/`, {
+  const res = await fetch(`${API_BASE_URL}${id}/delete/`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

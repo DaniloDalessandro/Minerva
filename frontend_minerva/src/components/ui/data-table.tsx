@@ -44,75 +44,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-function Toolbar({ title, table, selectedRow, onAdd, onEdit, onDelete }) {
-  return (
-    <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
-      <h2 className="text-xl font-bold text-primary">{title}</h2>
-      <div className="flex items-center gap-4">
-        <Plus
-          className="h-6 w-6 cursor-pointer"
-          onClick={onAdd}
-          aria-label="Adicionar novo item"
-          role="button"
-        />
-        {selectedRow && (
-          <>
-            <Eye className="h-6 w-6 cursor-pointer" />
-            <Edit
-              className="h-6 w-6 cursor-pointer"
-              onClick={() => onEdit(selectedRow)}
-              aria-label="Editar item"
-              role="button"
-            />
-            <Trash
-              className="h-6 w-6 cursor-pointer"
-              onClick={() => onDelete(selectedRow)}
-              aria-label="Excluir item"
-              role="button"
-            />
-          </>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Settings className="h-6 w-6 cursor-pointer" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    column.toggleVisibility(!column.getIsVisible());
-                  }}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
-  );
-}
-
 export function DataTable({
   columns,
   data,
   title,
-  defaultColumns,
   pageSize = 10,
+  pageIndex = 0,
+  totalCount = 0,
+  onPageChange,
+  onPageSizeChange,
   onAdd,
   onEdit,
   onDelete,
 }) {
-  const [columnVisibility, setColumnVisibility] = React.useState(
-    defaultColumns || {}
-  );
+  const [columnVisibility, setColumnVisibility] = React.useState({});
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -121,24 +66,32 @@ export function DataTable({
   const table = useReactTable({
     data,
     columns,
+    pageCount: Math.ceil(totalCount / pageSize),
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
+    state: {
+      pagination: { pageIndex, pageSize },
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+    onPaginationChange: (updater) => {
+      const newState = typeof updater === "function" ? updater(table.getState()) : updater;
+      onPageChange && onPageChange(newState.pageIndex);
+      onPageSizeChange && onPageSizeChange(newState.pageSize);
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    initialState: {
-      pagination: {
-        pageSize: pageSize,
-      },
-    },
-    state: {
-      sorting,
-      columnVisibility,
-      columnFilters,
-    },
   });
+
+  // Filtragem, ordenação etc precisam ser refletidos na query backend
+  // Para simplificação, agora a paginação já é controlada externamente
 
   const handleFilterChange = (columnId, value) => {
     table.getColumn(columnId)?.setFilterValue(value);
@@ -161,17 +114,60 @@ export function DataTable({
   return (
     <Card className="shadow-lg pb-0.5">
       <CardHeader className="pb-1">
-        <Toolbar
-          title={title}
-          table={table}
-          selectedRow={selectedRow}
-          onAdd={onAdd}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
+          <h2 className="text-xl font-bold text-primary">{title}</h2>
+          <div className="flex items-center gap-4">
+            <Plus
+              className="h-6 w-6 cursor-pointer"
+              onClick={onAdd}
+              aria-label="Adicionar novo item"
+              role="button"
+            />
+            {selectedRow && (
+              <>
+                <Eye className="h-6 w-6 cursor-pointer" />
+                <Edit
+                  className="h-6 w-6 cursor-pointer"
+                  onClick={() => onEdit(selectedRow)}
+                  aria-label="Editar item"
+                  role="button"
+                />
+                <Trash
+                  className="h-6 w-6 cursor-pointer"
+                  onClick={() => onDelete(selectedRow)}
+                  aria-label="Excluir item"
+                  role="button"
+                />
+              </>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Settings className="h-6 w-6 cursor-pointer" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        column.toggleVisibility(!column.getIsVisible());
+                      }}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
 
+      <CardContent>
         {/* TAGS DE FILTROS */}
         {activeFilters.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
@@ -183,9 +179,7 @@ export function DataTable({
                   variant="outline"
                   className="flex items-center gap-1"
                 >
-                  <span className="font-medium">
-                    {column?.columnDef.header}:
-                  </span>{" "}
+                  <span className="font-medium">{column?.columnDef.header}:</span>{" "}
                   <span>{filter.value}</span>
                   <X
                     className="h-3 w-3 cursor-pointer ml-1"
@@ -334,21 +328,15 @@ export function DataTable({
                     }
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                      <TableCell key={cell.id} className="py-2">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center text-gray-500 italic"
-                  >
+                  <TableCell colSpan={columns.length} className="text-center py-10">
                     Nenhum registro encontrado.
                   </TableCell>
                 </TableRow>
@@ -357,43 +345,58 @@ export function DataTable({
           </Table>
         </div>
 
-        {/* Controles de Paginação */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-sm text-gray-600">
-            Total de registros: {data.length}
-          </span>
-          <div className="flex items-center gap-2">
-            <select
-              className="text-sm border px-2 py-1 rounded"
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-            >
-              {[5, 10, 20, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size} por página
-                </option>
-              ))}
-            </select>
+        {/* PAGINAÇÃO */}
+        <div className="flex items-center justify-between space-x-2 py-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            Página {pageIndex + 1} de {Math.ceil(totalCount / pageSize)} —{" "}
+            {totalCount} registros
+          </div>
+
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => onPageChange && onPageChange(0)}
+              disabled={pageIndex === 0}
+            >
+              {"<<"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange && onPageChange(pageIndex - 1)}
+              disabled={pageIndex === 0}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-gray-600">
-              {table.getState().pagination.pageIndex + 1} de{" "}
-              {table.getPageCount()}
-            </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => onPageChange && onPageChange(pageIndex + 1)}
+              disabled={pageIndex >= Math.ceil(totalCount / pageSize) - 1}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange && onPageChange(Math.ceil(totalCount / pageSize) - 1)}
+              disabled={pageIndex >= Math.ceil(totalCount / pageSize) - 1}
+            >
+              {">>"}
+            </Button>
+
+            <select
+              className="ml-2 rounded border border-gray-300 px-2 py-1 text-sm"
+              value={pageSize}
+              onChange={(e) => onPageSizeChange && onPageSizeChange(Number(e.target.value))}
+            >
+              {[10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  Mostrar {size}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </CardContent>
