@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { jwtDecode } from "jwt-decode"
 
 interface UserData {
@@ -13,9 +13,11 @@ interface AuthContextType {
   user: UserData | null
   accessToken: string | null
   isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
   login: (data: { access: string; refresh: string; user: UserData }) => void
   logout: () => void
-  refreshAccessToken: () => Promise<void>
+  refreshAccessToken: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -23,95 +25,169 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // ✅ Recupera dados do localStorage ao iniciar
-  useEffect(() => {
-    const token = localStorage.getItem("access")
-    const id = localStorage.getItem("user_id")
-    const email = localStorage.getItem("user_email")
-    const name = localStorage.getItem("user_name")
-
-    if (token && id && email && name) {
-      setAccessToken(token)
-      setUser({ id, email, name })
+  // ✅ Centraliza a leitura dos dados de autenticação
+  const getAuthData = useCallback(() => {
+    try {
+      const token = localStorage.getItem("access")
+      const userData = {
+        id: localStorage.getItem("user_id") || '',
+        email: localStorage.getItem("user_email") || '',
+        name: localStorage.getItem("user_name") || '',
+      }
+      
+      return { 
+        token,
+        userData: token && userData.id ? userData : null 
+      }
+    } catch (error) {
+      console.error("Error reading auth data", error)
+      return { token: null, userData: null }
     }
   }, [])
 
-  // ✅ Função de login
-  function login(data: { access: string; refresh: string; user: UserData }) {
-    localStorage.setItem("access", data.access)
-    localStorage.setItem("refresh", data.refresh)
-    localStorage.setItem("user_id", data.user.id)
-    localStorage.setItem("user_email", data.user.email)
-    localStorage.setItem("user_name", data.user.name)
+  // ✅ Verifica se o token está expirado
+  const isTokenExpired = useCallback((token: string): boolean => {
+    try {
+      const decoded = jwtDecode<{ exp: number }>(token)
+      return decoded.exp < Date.now() / 1000
+    } catch {
+      return true
+    }
+  }, [])
 
-    setAccessToken(data.access)
-    setUser(data.user)
-  }
+  // ✅ Função de login otimizada
+  const login = useCallback((data: { access: string; refresh: string; user: UserData }) => {
+    try {
+      localStorage.setItem("access", data.access)
+      localStorage.setItem("refresh", data.refresh)
+      localStorage.setItem("user_id", data.user.id)
+      localStorage.setItem("user_email", data.user.email)
+      localStorage.setItem("user_name", data.user.name)
 
-  // ✅ Função de logout
-  function logout() {
-    localStorage.removeItem("access")
-    localStorage.removeItem("refresh")
-    localStorage.removeItem("user_id")
-    localStorage.removeItem("user_email")
-    localStorage.removeItem("user_name")
+      setAccessToken(data.access)
+      setUser(data.user)
+      setError(null)
+    } catch (error) {
+      setError("Failed to save authentication data")
+      console.error("Login error:", error)
+    }
+  }, [])
 
-    setAccessToken(null)
-    setUser(null)
-  }
+  // ✅ Função de logout otimizada
+  const logout = useCallback(() => {
+    try {
+      localStorage.removeItem("access")
+      localStorage.removeItem("refresh")
+      localStorage.removeItem("user_id")
+      localStorage.removeItem("user_email")
+      localStorage.removeItem("user_name")
 
-  // ✅ Decodifica o token e verifica se expira em breve
-  function tokenExpiringSoon(token: string, thresholdSeconds = 60): boolean {
-  try {
-    const decoded = jwtDecode<{ exp: number }>(token)
-    const now = Math.floor(Date.now() / 1000)
-    return decoded.exp - now < thresholdSeconds
-  } catch {
-    return false
-  }
-}
+      setAccessToken(null)
+      setUser(null)
+      setError(null)
+    } catch (error) {
+      setError("Failed to clear authentication data")
+      console.error("Logout error:", error)
+    }
+  }, [])
 
-  // ✅ Função para atualizar o access token com o refresh
-  async function refreshAccessToken() {
+  // ✅ Verifica se o token está prestes a expirar
+  const tokenExpiringSoon = useCallback((token: string, thresholdSeconds = 300): boolean => {
+    try {
+      const decoded = jwtDecode<{ exp: number }>(token)
+      const now = Math.floor(Date.now() / 1000)
+      return decoded.exp - now < thresholdSeconds
+    } catch {
+      return true
+    }
+  }, [])
+
+  // ✅ Refresh token com tratamento de erros melhorado
+  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
     const refresh = localStorage.getItem("refresh")
     if (!refresh) {
       logout()
-      return
+      return false
     }
 
     try {
+      setIsLoading(true)
       const response = await fetch("http://localhost:8000/api/v1/accounts/token/refresh/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh }),
       })
 
+      if (!response.ok) throw new Error("Refresh failed")
+
       const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem("access", data.access)
-        setAccessToken(data.access)
-      } else {
-        logout()
-      }
-    } catch {
+      localStorage.setItem("access", data.access)
+      setAccessToken(data.access)
+      setError(null)
+      return true
+    } catch (error) {
+      setError("Session expired. Please login again.")
       logout()
+      return false
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [logout])
 
-  // ✅ Verifica periodicamente se o token vai expirar
+  // ✅ Inicialização com verificação de token
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const { token, userData } = getAuthData()
+        
+        if (token && userData) {
+          if (isTokenExpired(token)) {
+            const refreshed = await refreshAccessToken()
+            if (!refreshed) return
+          } else {
+            setAccessToken(token)
+            setUser(userData)
+          }
+        }
+      } catch (error) {
+        setError("Failed to initialize authentication")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    initializeAuth()
+  }, [getAuthData, isTokenExpired, refreshAccessToken])
+
+  // ✅ Verificação periódica do token
   useEffect(() => {
     if (!accessToken) return
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (accessToken && tokenExpiringSoon(accessToken)) {
-        refreshAccessToken()
+        await refreshAccessToken()
       }
-    }, 50 * 1000) // a cada 50 segundos
+    }, 30 * 1000) // Verifica a cada 30 segundos
 
     return () => clearInterval(interval)
-  }, [accessToken])
+  }, [accessToken, tokenExpiringSoon, refreshAccessToken])
+
+  // ✅ Sincronização entre abas
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "access") {
+        const { token, userData } = getAuthData()
+        setAccessToken(token)
+        setUser(userData)
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
+  }, [getAuthData])
 
   return (
     <AuthContext.Provider
@@ -119,6 +195,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         accessToken,
         isAuthenticated: !!accessToken,
+        isLoading,
+        error,
         login,
         logout,
         refreshAccessToken,
@@ -132,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuthContext() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuthContext deve ser usado dentro do AuthProvider")
+    throw new Error("useAuthContext must be used within an AuthProvider")
   }
   return context
 }

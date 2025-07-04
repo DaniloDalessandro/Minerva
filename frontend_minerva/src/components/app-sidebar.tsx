@@ -2,9 +2,6 @@
 
 import * as React from "react"
 import {
-  GalleryVerticalEnd,
-  AudioWaveform,
-  Command,
   SquareTerminal,
   HandCoins,
   FileText,
@@ -12,9 +9,8 @@ import {
   Wallet,
   Building2,
   Layers,
-  Settings2,
 } from "lucide-react"
-
+import { useAuthContext } from "@/context/AuthContext"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
@@ -26,111 +22,114 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "Danilo Costa",
-    email: "danilo@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Minerva",
-      logo: GalleryVerticalEnd,
-      plan: "Gestão de contratos",
-    },
-    {
-      name: "Minerva",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [
+interface NavItem {
+  title: string
+  url: string
+  icon: React.ComponentType<{ className?: string }>
+  isActive?: boolean
+  items?: {
+    title: string
+    url: string
+  }[]
+}
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuthContext()
+
+  // Dados de navegação - pode ser movido para um arquivo de configuração
+  const navItems: NavItem[] = [
     {
       title: "Colaboradores",
-      url: "#",
+      url: "/employees",
       icon: SquareTerminal,
       isActive: true,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/employees" },
+        { title: "Adicionar", url: "/employees/new" },
       ],
     },
     {
       title: "Auxílios",
-      url: "#",
+      url: "/benefits",
       icon: HandCoins,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/benefits" },
+        { title: "Adicionar", url: "/benefits/new" },
       ],
     },
     {
       title: "Contratos",
-      url: "#",
+      url: "/contracts",
       icon: FileText,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/contracts" },
+        { title: "Adicionar", url: "/contracts/new" },
       ],
     },
     {
       title: "Linhas Orçamentárias",
-      url: "#",
+      url: "/budget-lines",
       icon: Landmark,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/budget-lines" },
+        { title: "Adicionar", url: "/budget-lines/new" },
       ],
     },
     {
       title: "Orçamentos",
-      url: "#",
+      url: "/budgets",
       icon: Wallet,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/budgets" },
+        { title: "Adicionar", url: "/budgets/new" },
       ],
     },
     {
       title: "Setores",
-      url: "#",
+      url: "/departments",
       icon: Building2,
       items: [
-        { title: "Buscar", url: "setor/" },
-        { title: "Adicionar Direção", url: "#" },
-        { title: "Adicionar Gerencia", url: "#" },
-        { title: "Adicionar Coordenação", url: "#" },
+        { title: "Buscar", url: "/departments" },
+        { title: "Adicionar Direção", url: "/departments/new/direction" },
+        { title: "Adicionar Gerência", url: "/departments/new/management" },
+        { title: "Adicionar Coordenação", url: "/departments/new/coordination" },
       ],
     },
     {
       title: "Centros",
-      url: "#",
+      url: "/cost-centers",
       icon: Layers,
       items: [
-        { title: "Buscar", url: "#" },
-        { title: "Adicionar", url: "#" },
+        { title: "Buscar", url: "/cost-centers" },
+        { title: "Adicionar", url: "/cost-centers/new" },
       ],
     },
-  ],
-}
+  ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  if (!user) {
+    return null // Ou um loading state
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={[]} />
       </SidebarHeader>
+      
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
+      
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser 
+          user={{
+            name: user.name || user.email.split('@')[0],
+            email: user.email,
+            avatar: user.avatar || "/avatars/default.jpg"
+          }} 
+        />
       </SidebarFooter>
+      
       <SidebarRail />
     </Sidebar>
   )
