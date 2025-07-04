@@ -2,6 +2,9 @@
 
 import * as React from "react"
 import {
+  GalleryVerticalEnd,
+  AudioWaveform,
+  Command,
   SquareTerminal,
   HandCoins,
   FileText,
@@ -33,10 +36,26 @@ interface NavItem {
   }[]
 }
 
+interface Team {
+  name: string
+  logo: React.ComponentType<{ className?: string }>
+  plan: string
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthContext()
 
-  // Dados de navegação - pode ser movido para um arquivo de configuração
+  // Dados das equipes - pode vir da API no futuro
+  const teams: Team[] = [
+    {
+      name: "Minerva",
+      logo: GalleryVerticalEnd,
+      plan: "Gestão de contratos",
+    },
+    
+  ]
+
+ 
   const navItems: NavItem[] = [
     {
       title: "Colaboradores",
@@ -49,71 +68,72 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      title: "Auxílios",
-      url: "/benefits",
-      icon: HandCoins,
-      items: [
-        { title: "Buscar", url: "/benefits" },
-        { title: "Adicionar", url: "/benefits/new" },
-      ],
-    },
-    {
-      title: "Contratos",
-      url: "/contracts",
-      icon: FileText,
-      items: [
-        { title: "Buscar", url: "/contracts" },
-        { title: "Adicionar", url: "/contracts/new" },
-      ],
-    },
-    {
-      title: "Linhas Orçamentárias",
-      url: "/budget-lines",
-      icon: Landmark,
-      items: [
-        { title: "Buscar", url: "/budget-lines" },
-        { title: "Adicionar", url: "/budget-lines/new" },
-      ],
-    },
-    {
-      title: "Orçamentos",
-      url: "/budgets",
-      icon: Wallet,
-      items: [
-        { title: "Buscar", url: "/budgets" },
-        { title: "Adicionar", url: "/budgets/new" },
-      ],
-    },
-    {
-      title: "Setores",
-      url: "/departments",
-      icon: Building2,
-      items: [
-        { title: "Buscar", url: "/departments" },
-        { title: "Adicionar Direção", url: "/departments/new/direction" },
-        { title: "Adicionar Gerência", url: "/departments/new/management" },
-        { title: "Adicionar Coordenação", url: "/departments/new/coordination" },
-      ],
-    },
-    {
-      title: "Centros",
-      url: "/cost-centers",
-      icon: Layers,
-      items: [
-        { title: "Buscar", url: "/cost-centers" },
-        { title: "Adicionar", url: "/cost-centers/new" },
-      ],
-    },
+    title: "Auxílios",
+    url: "#",
+    icon: HandCoins,
+    items: [
+      { title: "Buscar", url: "#" },
+      { title: "Adicionar", url: "#" },
+    ],
+  },
+  {
+    title: "Contratos",
+    url: "#",
+    icon: FileText,
+    items: [
+      { title: "Buscar", url: "#" },
+      { title: "Adicionar", url: "#" },
+    ],
+  },
+  {
+    title: "Linhas Orçamentárias",
+    url: "#",
+    icon: Landmark,
+    items: [
+      { title: "Buscar", url: "#" },
+      { title: "Adicionar", url: "#" },
+    ],
+  },
+  {
+    title: "Orçamentos",
+    url: "#",
+    icon: Wallet,
+    items: [
+      { title: "Buscar", url: "#" },
+      { title: "Adicionar", url: "#" },
+    ],
+  },
+  {
+    title: "Setores",
+    url: "#",
+    icon: Building2,
+    items: [
+      { title: "Buscar", url: "setor/" },
+      { title: "Adicionar Direção", url: "#" },
+      { title: "Adicionar Gerencia", url: "#" },
+      { title: "Adicionar Coordenação", url: "#" },
+    ],
+  },
+  {
+    title: "Centros",
+    url: "#",
+    icon: Layers,
+    items: [
+      { title: "Buscar", url: "#" },
+      { title: "Adicionar", url: "#" },
+    ],
+  },
+    
   ]
 
   if (!user) {
-    return null // Ou um loading state
+    return null 
   }
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={[]} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
       
       <SidebarContent>
