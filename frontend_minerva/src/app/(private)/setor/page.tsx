@@ -12,6 +12,16 @@ import {
 import DirectionForm from "@/components/forms/DirectionForm";
 import { DataTable } from "@/components/ui/data-table";
 import { columns as directionColumns } from "./columns/directions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function SetoresPage() {
   const [directions, setDirections] = useState<Direction[]>([]);
@@ -21,6 +31,8 @@ export default function SetoresPage() {
 
   const [openDirectionForm, setOpenDirectionForm] = useState(false);
   const [editingDirection, setEditingDirection] = useState<Direction | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [directionToDelete, setDirectionToDelete] = useState<Direction | null>(null);
 
   async function loadDirections() {
     try {
@@ -35,6 +47,25 @@ export default function SetoresPage() {
   useEffect(() => {
     loadDirections();
   }, [page, pageSize]);
+
+  const handleDelete = async () => {
+    if (directionToDelete?.id) {
+      try {
+        await deleteDirection(directionToDelete.id);
+        await loadDirections();
+        
+        // Resetar página se a última direção da página foi excluída
+        if (directions.length === 1 && page > 1) {
+          setPage(page - 1);
+        }
+      } catch (error) {
+        console.error("Erro ao excluir direção:", error);
+      } finally {
+        setDeleteDialogOpen(false);
+        setDirectionToDelete(null);
+      }
+    }
+  };
 
   return (
     <div className="space-y-10 px-4 py-6">
@@ -59,13 +90,12 @@ export default function SetoresPage() {
             setEditingDirection(item);
             setOpenDirectionForm(true);
           }}
-          onDelete={async (item) => {
-            if (item.id && confirm("Excluir direção?")) {
-              await deleteDirection(item.id);
-              await loadDirections();
-            }
+          onDelete={(item) => {
+            setDirectionToDelete(item);
+            setDeleteDialogOpen(true);
           }}
         />
+
         <DirectionForm
           open={openDirectionForm}
           handleClose={() => setOpenDirectionForm(false)}
@@ -80,6 +110,22 @@ export default function SetoresPage() {
             setOpenDirectionForm(false);
           }}
         />
+
+        {/* Modal de confirmação para exclusão */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir a direção "{directionToDelete?.name}"? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Confirmar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </div>
   );
