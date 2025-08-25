@@ -229,39 +229,30 @@ export default function SetoresPage() {
             className="flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 
                        bg-background text-muted-foreground rounded-md border border-transparent
                        hover:bg-accent hover:text-accent-foreground
-                       data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                       data-[state=active]:border-primary data-[state=active]:shadow-sm"
+                       data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 
+                       data-[state=active]:border-blue-200 data-[state=active]:shadow-sm"
           >
-            <span className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-current opacity-60" />
-              Direções
-            </span>
+            Direções
           </TabsTrigger>
           <TabsTrigger 
             value="managements" 
             className="flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 
                        bg-background text-muted-foreground rounded-md border border-transparent
                        hover:bg-accent hover:text-accent-foreground
-                       data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                       data-[state=active]:border-primary data-[state=active]:shadow-sm"
+                       data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 
+                       data-[state=active]:border-blue-200 data-[state=active]:shadow-sm"
           >
-            <span className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-current opacity-60" />
-              Gerências
-            </span>
+            Gerências
           </TabsTrigger>
           <TabsTrigger 
             value="coordinations" 
             className="flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 
                        bg-background text-muted-foreground rounded-md border border-transparent
                        hover:bg-accent hover:text-accent-foreground
-                       data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                       data-[state=active]:border-primary data-[state=active]:shadow-sm"
+                       data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 
+                       data-[state=active]:border-blue-200 data-[state=active]:shadow-sm"
           >
-            <span className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-current opacity-60" />
-              Coordenações
-            </span>
+            Coordenações
           </TabsTrigger>
         </TabsList>
         <TabsContent value="directions">
