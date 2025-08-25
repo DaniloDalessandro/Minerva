@@ -56,6 +56,8 @@ export function DataTable({
   onAdd,
   onEdit,
   onDelete,
+  onFilterChange,
+  onSortingChange,
 }) {
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [selectedRow, setSelectedRow] = React.useState(null);
@@ -81,7 +83,14 @@ export function DataTable({
       onPageChange && onPageChange(newState.pageIndex);
       onPageSizeChange && onPageSizeChange(newState.pageSize);
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(newSorting);
+      // Call parent callback to trigger API call with new sorting
+      if (onSortingChange) {
+        onSortingChange(newSorting);
+      }
+    },
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
@@ -95,16 +104,32 @@ export function DataTable({
 
   const handleFilterChange = (columnId, value) => {
     table.getColumn(columnId)?.setFilterValue(value);
+    // Call parent callback to trigger API call with filter
+    if (onFilterChange) {
+      onFilterChange(columnId, value);
+    }
   };
 
   const clearFilter = (columnId) => {
     table.getColumn(columnId)?.setFilterValue("");
     setOpenFilterId(null);
+    // Call parent callback to clear filter
+    if (onFilterChange) {
+      onFilterChange(columnId, "");
+    }
   };
 
   const clearAllFilters = () => {
     table.getAllColumns().forEach((col) => col.setFilterValue(""));
     setOpenFilterId(null);
+    // Call parent callback to clear all filters
+    if (onFilterChange) {
+      table.getAllColumns().forEach((col) => {
+        if (col.getFilterValue()) {
+          onFilterChange(col.id, "");
+        }
+      });
+    }
   };
 
   const activeFilters = table.getState().columnFilters.filter(
@@ -243,9 +268,6 @@ export function DataTable({
                                           : "text-gray-400"
                                       }`}
                                     />
-                                    {filterValue && (
-                                      <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary"></span>
-                                    )}
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent

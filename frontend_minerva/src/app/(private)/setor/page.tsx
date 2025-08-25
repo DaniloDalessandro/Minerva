@@ -28,15 +28,27 @@ export default function SetoresPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
 
   const [openDirectionForm, setOpenDirectionForm] = useState(false);
   const [editingDirection, setEditingDirection] = useState<Direction | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [directionToDelete, setDirectionToDelete] = useState<Direction | null>(null);
 
+  // Convert TanStack sorting format to Django ordering format
+  const convertSortingToOrdering = (sorting: any[]) => {
+    if (!sorting || sorting.length === 0) return "";
+    
+    const sortItem = sorting[0]; // Take first sorting item
+    const prefix = sortItem.desc ? "-" : "";
+    return `${prefix}${sortItem.id}`;
+  };
+
   async function loadDirections() {
     try {
-      const data = await fetchDirections(page, pageSize);
+      const ordering = convertSortingToOrdering(sorting);
+      const data = await fetchDirections(page, pageSize, searchFilter, ordering);
       setDirections(data.results);
       setTotalCount(data.count);
     } catch (error) {
@@ -46,7 +58,7 @@ export default function SetoresPage() {
 
   useEffect(() => {
     loadDirections();
-  }, [page, pageSize]);
+  }, [page, pageSize, searchFilter, sorting]);
 
   const handleDelete = async () => {
     if (directionToDelete?.id) {
@@ -65,6 +77,19 @@ export default function SetoresPage() {
         setDirectionToDelete(null);
       }
     }
+  };
+
+  const handleFilterChange = (columnId: string, value: string) => {
+    // For the name column filter, use search functionality
+    if (columnId === "name") {
+      setSearchFilter(value);
+      setPage(1); // Reset to first page when filtering
+    }
+  };
+
+  const handleSortingChange = (newSorting: any[]) => {
+    setSorting(newSorting);
+    setPage(1); // Reset to first page when sorting changes
   };
 
   return (
@@ -94,6 +119,8 @@ export default function SetoresPage() {
             setDirectionToDelete(item);
             setDeleteDialogOpen(true);
           }}
+          onFilterChange={handleFilterChange}
+          onSortingChange={handleSortingChange}
         />
 
         <DirectionForm

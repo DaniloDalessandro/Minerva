@@ -1,13 +1,35 @@
 // /lib/api/directions.ts
 
+export interface Direction {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: {
+    email: string;
+  };
+  updated_by?: {
+    email: string;
+  };
+}
+
 const API_BASE_URL = "http://localhost:8000/api/v1/sector/directions/";
 
-export async function fetchDirections(page = 1, pageSize = 10) {
+export async function fetchDirections(page = 1, pageSize = 10, search = "", ordering = "") {
   const token = localStorage.getItem("access");
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
   });
+  
+  if (search) {
+    params.append("search", search);
+  }
+  
+  if (ordering) {
+    params.append("ordering", ordering);
+  }
+  
   const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,

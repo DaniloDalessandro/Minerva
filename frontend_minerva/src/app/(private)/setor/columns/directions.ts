@@ -13,6 +13,7 @@ export const columns = (): ColumnDef<Direction>[] => [
   {
     accessorKey: "created_at",
     header: "Criado em",
+    enableSorting: true,
     cell: ({ row }) =>
       new Date(row.original.created_at).toLocaleString("pt-BR", {
         day: "2-digit",
