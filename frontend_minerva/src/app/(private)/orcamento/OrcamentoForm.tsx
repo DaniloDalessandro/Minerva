@@ -18,31 +18,50 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
+import { fetchManagementCenters, ManagementCenter } from "@/lib/api/centers";
 
-export default function OrcamentoForm({ 
-  open, 
-  handleClose, 
+export default function OrcamentoForm({
+  open,
+  handleClose,
   initialData,
-  onSubmit 
+  onSubmit,
 }) {
   const [formData, setFormData] = useState({
     id: "",
     ano: "",
-    centro_custo: "",
+    management_center_id: "",
     classe: "",
     valor_total: "",
     status: "ATIVO",
   });
+  const [managementCenters, setManagementCenters] = useState<ManagementCenter[]>(
+    []
+  );
+
+  useEffect(() => {
+    async function loadManagementCenters() {
+      try {
+        const data = await fetchManagementCenters(1, 100); // Fetching up to 100 centers
+        setManagementCenters(data.results);
+      } catch (error) {
+        console.error("Erro ao carregar centros gestores:", error);
+      }
+    }
+    loadManagementCenters();
+  }, []);
 
   // Preenche o form quando initialData muda
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        management_center_id: initialData.management_center?.id || "",
+      });
     } else {
       setFormData({
         id: "",
         ano: "",
-        centro_custo: "",
+        management_center_id: "",
         classe: "",
         valor_total: "",
         status: "ATIVO",
@@ -94,8 +113,8 @@ export default function OrcamentoForm({
 
               <div className="grid gap-2">
                 <Label htmlFor="classe">Classe</Label>
-                <Select 
-                  onValueChange={handleSelect("classe")} 
+                <Select
+                  onValueChange={handleSelect("classe")}
                   value={formData.classe}
                   required
                 >
@@ -113,14 +132,23 @@ export default function OrcamentoForm({
             {/* Linha: Centro de Custo + Valor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="centro_custo">Centro de Custo</Label>
-                <Input
-                  id="centro_custo"
-                  value={formData.centro_custo}
-                  onChange={handleChange("centro_custo")}
+                <Label htmlFor="management_center_id">Centro de Custo</Label>
+                <Select
+                  onValueChange={handleSelect("management_center_id")}
+                  value={formData.management_center_id}
                   required
-                  placeholder="DOP"
-                />
+                >
+                  <SelectTrigger id="management_center_id">
+                    <SelectValue placeholder="Selecione o centro de custo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managementCenters.map((center) => (
+                      <SelectItem key={center.id} value={center.id}>
+                        {center.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-2">

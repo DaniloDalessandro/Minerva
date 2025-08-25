@@ -57,6 +57,7 @@ export function DataTable({
   onDelete,
   onFilterChange,
   onSortingChange,
+  readOnly = false,
 }) {
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [selectedRow, setSelectedRow] = React.useState(null);
@@ -79,8 +80,8 @@ export function DataTable({
     },
     onPaginationChange: (updater) => {
       const newState = typeof updater === "function" ? updater(table.getState()) : updater;
-      onPageChange && onPageChange(newState.pageIndex);
-      onPageSizeChange && onPageSizeChange(newState.pageSize);
+      if (onPageChange) onPageChange(newState.pageIndex);
+      if (onPageSizeChange) onPageSizeChange(newState.pageSize);
     },
     onSortingChange: (updater) => {
       const newSorting = typeof updater === "function" ? updater(sorting) : updater;
@@ -141,13 +142,15 @@ export function DataTable({
         <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
           <h2 className="text-xl font-bold text-primary">{title}</h2>
           <div className="flex items-center gap-4">
-            <Plus
-              className="h-6 w-6 cursor-pointer"
-              onClick={onAdd}
-              aria-label="Adicionar novo item"
-              role="button"
-            />
-            {selectedRow && (
+            {onAdd && (
+              <Plus
+                className="h-6 w-6 cursor-pointer"
+                onClick={onAdd}
+                aria-label="Adicionar novo item"
+                role="button"
+              />
+            )}
+            {!readOnly && selectedRow && (
               <>
                 <Edit
                   className="h-6 w-6 cursor-pointer"
