@@ -21,6 +21,8 @@ class DirectionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
 class ManagementSerializer(serializers.ModelSerializer):
+    direction = DirectionSerializer(read_only=True)
+    direction_id = serializers.IntegerField(write_only=True, source='direction')
     created_by = UserInfoSerializer(read_only=True)
     updated_by = UserInfoSerializer(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
@@ -28,10 +30,12 @@ class ManagementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Management
-        fields = '__all__'
+        fields = ['id', 'name', 'direction', 'direction_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
 class CoordinationSerializer(serializers.ModelSerializer):
+    management = ManagementSerializer(read_only=True)
+    management_id = serializers.IntegerField(write_only=True, source='management')
     created_by = UserInfoSerializer(read_only=True)
     updated_by = UserInfoSerializer(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
@@ -39,5 +43,5 @@ class CoordinationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Coordination
-        fields = '__all__'
+        fields = ['id', 'name', 'management', 'management_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']

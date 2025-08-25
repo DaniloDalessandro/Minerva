@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from accounts.models import User
 from .utils.validators import validate_year
 from center.models import Management_Center
+from decimal import Decimal
 
 #========================================================================================================================================
 class Budget(models.Model):
@@ -21,13 +22,13 @@ class Budget(models.Model):
     total_amount = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
-        validators=[MinValueValidator(0.01)],
+        validators=[MinValueValidator(Decimal('0.01'))],
         verbose_name='Valor Total'
     )
     available_amount = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
-        validators=[MinValueValidator(0)], 
+        validators=[MinValueValidator(Decimal('0.00'))], 
         default=0.0,
         verbose_name='Valor Disponível'
     )
@@ -56,7 +57,7 @@ class Budget(models.Model):
 class BudgetMovement(models.Model):
     source = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='outgoing_movements',verbose_name='Origem')
     destination = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='incoming_movements',verbose_name='Destino')
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)],verbose_name='Valor')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))],verbose_name='Valor')
     movement_date = models.DateField(auto_now_add=True,verbose_name='Data da Movimentação')
     notes = models.TextField(blank=True, null=True,verbose_name='Observações')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
