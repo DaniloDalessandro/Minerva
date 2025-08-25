@@ -34,17 +34,17 @@ export default function CoordinationForm({
   initialData,
   onSubmit,
 }: CoordinationFormProps) {
-  const [formData, setFormData] = useState<Coordination>({
+  const [formData, setFormData] = useState<any>({
     id: undefined,
     name: "",
-    management: 0,
+    management_id: 0,
   });
   const [managements, setManagements] = useState<Management[]>([]);
 
   useEffect(() => {
     async function loadManagements() {
       try {
-        const data = await fetchManagements();
+        const data = await fetchManagements(1, 1000);
         setManagements(data.results);
       } catch (error) {
         console.error("Erro ao carregar gerências:", error);
@@ -55,9 +55,13 @@ export default function CoordinationForm({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        id: initialData.id,
+        name: initialData.name,
+        management_id: initialData.management?.id || 0
+      });
     } else {
-      setFormData({ id: undefined, name: "", management: 0 });
+      setFormData({ id: undefined, name: "", management_id: 0 });
     }
   }, [initialData]);
 
@@ -66,7 +70,7 @@ export default function CoordinationForm({
   };
 
   const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, management: parseInt(value) });
+    setFormData({ ...formData, management_id: parseInt(value) });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,9 +105,9 @@ export default function CoordinationForm({
               <Label htmlFor="management">Gerência</Label>
               <Select
                 onValueChange={handleSelectChange}
-                value={formData.management.toString()}
+                value={formData.management_id.toString()}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione uma gerência" />
                 </SelectTrigger>
                 <SelectContent>

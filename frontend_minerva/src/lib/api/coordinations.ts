@@ -41,7 +41,7 @@ export async function fetchCoordinations(page = 1, pageSize = 10, search = "", o
   return json;
 }
 
-export async function createCoordination(data: { name: string, management: number }) {
+export async function createCoordination(data: { name: string, management_id: number }) {
   const token = localStorage.getItem("access");
   const res = await fetch(`${API_BASE_URL}create/`, {
     method: "POST",
@@ -56,7 +56,7 @@ export async function createCoordination(data: { name: string, management: numbe
 }
 
 
-export async function updateCoordination(data: { id: number; name: string, management: number }) {
+export async function updateCoordination(data: { id: number; name: string, management_id: number }) {
   const token = localStorage.getItem("access");
   const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
@@ -64,7 +64,7 @@ export async function updateCoordination(data: { id: number; name: string, manag
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ name: data.name, management: data.management }),
+    body: JSON.stringify({ name: data.name, management_id: data.management_id }),
   });
   if (!res.ok) throw new Error("Erro ao atualizar coordenação");
   return res.json();

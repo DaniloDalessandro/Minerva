@@ -41,7 +41,7 @@ export async function fetchManagements(page = 1, pageSize = 10, search = "", ord
   return json;
 }
 
-export async function createManagement(data: { name: string, direction: number }) {
+export async function createManagement(data: { name: string, direction_id: number }) {
   const token = localStorage.getItem("access");
   const res = await fetch(`${API_BASE_URL}create/`, {
     method: "POST",
@@ -56,7 +56,7 @@ export async function createManagement(data: { name: string, direction: number }
 }
 
 
-export async function updateManagement(data: { id: number; name: string, direction: number }) {
+export async function updateManagement(data: { id: number; name: string, direction_id: number }) {
   const token = localStorage.getItem("access");
   const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
@@ -64,7 +64,7 @@ export async function updateManagement(data: { id: number; name: string, directi
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ name: data.name, direction: data.direction }),
+    body: JSON.stringify({ name: data.name, direction_id: data.direction_id }),
   });
   if (!res.ok) throw new Error("Erro ao atualizar gerência");
   return res.json();

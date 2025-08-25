@@ -34,17 +34,17 @@ export default function ManagementForm({
   initialData,
   onSubmit,
 }: ManagementFormProps) {
-  const [formData, setFormData] = useState<Management>({
+  const [formData, setFormData] = useState<any>({
     id: undefined,
     name: "",
-    direction: 0,
+    direction_id: 0,
   });
   const [directions, setDirections] = useState<Direction[]>([]);
 
   useEffect(() => {
     async function loadDirections() {
       try {
-        const data = await fetchDirections();
+        const data = await fetchDirections(1, 1000);
         setDirections(data.results);
       } catch (error) {
         console.error("Erro ao carregar direções:", error);
@@ -55,9 +55,13 @@ export default function ManagementForm({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        id: initialData.id,
+        name: initialData.name,
+        direction_id: initialData.direction?.id || 0
+      });
     } else {
-      setFormData({ id: undefined, name: "", direction: 0 });
+      setFormData({ id: undefined, name: "", direction_id: 0 });
     }
   }, [initialData]);
 
@@ -66,7 +70,7 @@ export default function ManagementForm({
   };
 
   const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, direction: parseInt(value) });
+    setFormData({ ...formData, direction_id: parseInt(value) });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,9 +105,9 @@ export default function ManagementForm({
               <Label htmlFor="direction">Direção</Label>
               <Select
                 onValueChange={handleSelectChange}
-                value={formData.direction.toString()}
+                value={formData.direction_id.toString()}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione uma direção" />
                 </SelectTrigger>
                 <SelectContent>

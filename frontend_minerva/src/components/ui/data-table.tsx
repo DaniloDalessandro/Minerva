@@ -27,7 +27,6 @@ import {
   Trash,
   Filter,
   X,
-  Eye,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -150,7 +149,6 @@ export function DataTable({
             />
             {selectedRow && (
               <>
-                <Eye className="h-6 w-6 cursor-pointer" />
                 <Edit
                   className="h-6 w-6 cursor-pointer"
                   onClick={() => onEdit(selectedRow)}
