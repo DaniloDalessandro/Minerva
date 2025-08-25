@@ -3,22 +3,24 @@
 import React, { useEffect, useState } from "react";
 import {
   fetchManagementCenters,
-  fetchRequestingCenters,
   createManagementCenter,
   updateManagementCenter,
   deleteManagementCenter,
+  ManagementCenter,
+} from "@/lib/api/centers";
+import {
+  fetchRequestingCenters,
   createRequestingCenter,
   updateRequestingCenter,
   deleteRequestingCenter,
-  ManagementCenter,
   RequestingCenter,
 } from "@/lib/api/centers";
 
 import ManagementCenterForm from "@/components/forms/ManagementCenterForm";
 import RequestingCenterForm from "@/components/forms/RequestingCenterForm";
 import { DataTable } from "@/components/ui/data-table";
-import { managementCenterColumns } from "./columns/management-centers";
-import { requestingCenterColumns } from "./columns/requesting-centers";
+import { columns as managementCenterColumns } from "./columns/management-centers";
+import { columns as requestingCenterColumns } from "./columns/requesting-centers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,42 +31,63 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users2 } from "lucide-react";
 
 export default function CentrosPage() {
-  // Management Centers State
+  // Active tab state
+  const [activeTab, setActiveTab] = useState("management-centers");
+  
+  // States for Management Centers
   const [managementCenters, setManagementCenters] = useState<ManagementCenter[]>([]);
-  const [managementTotalCount, setManagementTotalCount] = useState(0);
-  const [managementPage, setManagementPage] = useState(1);
-  const [managementPageSize, setManagementPageSize] = useState(10);
+  const [totalManagementCenters, setTotalManagementCenters] = useState(0);
+  const [managementCenterPage, setManagementCenterPage] = useState(1);
+  const [managementCenterPageSize, setManagementCenterPageSize] = useState(10);
+  const [managementCenterSearch, setManagementCenterSearch] = useState("");
+  const [managementCenterSorting, setManagementCenterSorting] = useState([]);
+  const [openManagementCenterForm, setOpenManagementCenterForm] = useState(false);
+  const [editingManagementCenter, setEditingManagementCenter] = useState<ManagementCenter | null>(
+    null
+  );
+  const [deleteManagementCenterDialogOpen, setDeleteManagementCenterDialogOpen] =
+    useState(false);
+  const [managementCenterToDelete, setManagementCenterToDelete] = useState<ManagementCenter | null>(
+    null
+  );
 
-  // Requesting Centers State
+  // States for Requesting Centers
   const [requestingCenters, setRequestingCenters] = useState<RequestingCenter[]>([]);
-  const [requestingTotalCount, setRequestingTotalCount] = useState(0);
-  const [requestingPage, setRequestingPage] = useState(1);
-  const [requestingPageSize, setRequestingPageSize] = useState(10);
+  const [totalRequestingCenters, setTotalRequestingCenters] = useState(0);
+  const [requestingCenterPage, setRequestingCenterPage] = useState(1);
+  const [requestingCenterPageSize, setRequestingCenterPageSize] = useState(10);
+  const [requestingCenterSearch, setRequestingCenterSearch] = useState("");
+  const [requestingCenterSorting, setRequestingCenterSorting] = useState([]);
+  const [openRequestingCenterForm, setOpenRequestingCenterForm] = useState(false);
+  const [editingRequestingCenter, setEditingRequestingCenter] =
+    useState<RequestingCenter | null>(null);
+  const [deleteRequestingCenterDialogOpen, setDeleteRequestingCenterDialogOpen] =
+    useState(false);
+  const [requestingCenterToDelete, setRequestingCenterToDelete] =
+    useState<RequestingCenter | null>(null);
 
-  // Form States
-  const [openManagementForm, setOpenManagementForm] = useState(false);
-  const [openRequestingForm, setOpenRequestingForm] = useState(false);
-  const [editingManagementCenter, setEditingManagementCenter] = useState<ManagementCenter | null>(null);
-  const [editingRequestingCenter, setEditingRequestingCenter] = useState<RequestingCenter | null>(null);
+  const convertSortingToOrdering = (sorting: any[]) => {
+    if (!sorting || sorting.length === 0) return "";
+    const sortItem = sorting[0];
+    const prefix = sortItem.desc ? "-" : "";
+    return `${prefix}${sortItem.id}`;
+  };
 
-  // Delete Dialog States
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [centerToDelete, setCenterToDelete] = useState<any>(null);
-  const [deleteType, setDeleteType] = useState<'management' | 'requesting'>('management');
-
-  // Active Tab
-  const [activeTab, setActiveTab] = useState('management');
-
+  // Load functions
   async function loadManagementCenters() {
     try {
-      const data = await fetchManagementCenters(managementPage, managementPageSize);
-      setManagementCenters(data.results as ManagementCenter[]);
-      setManagementTotalCount(data.count);
+      const ordering = convertSortingToOrdering(managementCenterSorting);
+      const data = await fetchManagementCenters(
+        managementCenterPage,
+        managementCenterPageSize,
+        managementCenterSearch,
+        ordering
+      );
+      setManagementCenters(data.results);
+      setTotalManagementCenters(data.count);
     } catch (error) {
       console.error("Erro ao carregar centros gestores:", error);
     }
@@ -72,9 +95,15 @@ export default function CentrosPage() {
 
   async function loadRequestingCenters() {
     try {
-      const data = await fetchRequestingCenters(requestingPage, requestingPageSize);
-      setRequestingCenters(data.results as RequestingCenter[]);
-      setRequestingTotalCount(data.count);
+      const ordering = convertSortingToOrdering(requestingCenterSorting);
+      const data = await fetchRequestingCenters(
+        requestingCenterPage,
+        requestingCenterPageSize,
+        requestingCenterSearch,
+        ordering
+      );
+      setRequestingCenters(data.results);
+      setTotalRequestingCenters(data.count);
     } catch (error) {
       console.error("Erro ao carregar centros solicitantes:", error);
     }
@@ -82,225 +111,236 @@ export default function CentrosPage() {
 
   useEffect(() => {
     loadManagementCenters();
-  }, [managementPage, managementPageSize]);
+  }, [managementCenterPage, managementCenterPageSize, managementCenterSearch, managementCenterSorting]);
 
   useEffect(() => {
     loadRequestingCenters();
-  }, [requestingPage, requestingPageSize]);
+  }, [
+    requestingCenterPage,
+    requestingCenterPageSize,
+    requestingCenterSearch,
+    requestingCenterSorting,
+  ]);
 
-  const handleDeleteManagement = async () => {
-    if (centerToDelete?.id) {
+  // Delete handlers
+  const handleDeleteManagementCenter = async () => {
+    if (managementCenterToDelete?.id) {
       try {
-        await deleteManagementCenter(centerToDelete.id);
+        await deleteManagementCenter(managementCenterToDelete.id);
         await loadManagementCenters();
-        
-        if (managementCenters.length === 1 && managementPage > 1) {
-          setManagementPage(managementPage - 1);
+        if (managementCenters.length === 1 && managementCenterPage > 1) {
+          setManagementCenterPage(managementCenterPage - 1);
         }
       } catch (error) {
         console.error("Erro ao excluir centro gestor:", error);
       } finally {
-        setDeleteDialogOpen(false);
-        setCenterToDelete(null);
+        setDeleteManagementCenterDialogOpen(false);
+        setManagementCenterToDelete(null);
       }
     }
   };
 
-  const handleDeleteRequesting = async () => {
-    if (centerToDelete?.id) {
+  const handleDeleteRequestingCenter = async () => {
+    if (requestingCenterToDelete?.id) {
       try {
-        await deleteRequestingCenter(centerToDelete.id);
+        await deleteRequestingCenter(requestingCenterToDelete.id);
         await loadRequestingCenters();
-        
-        if (requestingCenters.length === 1 && requestingPage > 1) {
-          setRequestingPage(requestingPage - 1);
+        if (requestingCenters.length === 1 && requestingCenterPage > 1) {
+          setRequestingCenterPage(requestingCenterPage - 1);
         }
       } catch (error) {
         console.error("Erro ao excluir centro solicitante:", error);
       } finally {
-        setDeleteDialogOpen(false);
-        setCenterToDelete(null);
+        setDeleteRequestingCenterDialogOpen(false);
+        setRequestingCenterToDelete(null);
       }
     }
   };
 
-  const handleDelete = () => {
-    if (deleteType === 'management') {
-      handleDeleteManagement();
-    } else {
-      handleDeleteRequesting();
+  // Function to get current tab title
+  const getCurrentTabTitle = () => {
+    switch (activeTab) {
+      case "management-centers":
+        return "Centros Gestores";
+      case "requesting-centers":
+        return "Centros Solicitantes";
+      default:
+        return "Centros";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg w-fit">
-              <Building2 className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-xl md:text-2xl font-bold text-blue-900">Centros de Custo</h1>
-              <p className="text-sm md:text-base text-gray-600">Gerencie centros gestores e solicitantes</p>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-10 px-4 py-6">
+      <Tabs defaultValue="management-centers" className="w-full" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2 gap-2 bg-muted p-1 h-auto">
+          <TabsTrigger 
+            value="management-centers" 
+            className="flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 
+                       bg-background text-muted-foreground rounded-md border border-transparent
+                       hover:bg-accent hover:text-accent-foreground
+                       data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 
+                       data-[state=active]:border-blue-200 data-[state=active]:shadow-sm"
+          >
+            Centros Gestores
+          </TabsTrigger>
+          <TabsTrigger 
+            value="requesting-centers" 
+            className="flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 
+                       bg-background text-muted-foreground rounded-md border border-transparent
+                       hover:bg-accent hover:text-accent-foreground
+                       data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 
+                       data-[state=active]:border-blue-200 data-[state=active]:shadow-sm"
+          >
+            Centros Solicitantes
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="management-centers">
+          <DataTable
+            columns={managementCenterColumns()}
+            data={managementCenters}
+            title={getCurrentTabTitle()}
+            pageSize={managementCenterPageSize}
+            pageIndex={managementCenterPage - 1}
+            totalCount={totalManagementCenters}
+            onPageChange={(newPageIndex) => setManagementCenterPage(newPageIndex + 1)}
+            onPageSizeChange={(newPageSize) => {
+              setManagementCenterPageSize(newPageSize);
+              setManagementCenterPage(1);
+            }}
+            onAdd={() => {
+              setEditingManagementCenter(null);
+              setOpenManagementCenterForm(true);
+            }}
+            onEdit={(item) => {
+              setEditingManagementCenter(item);
+              setOpenManagementCenterForm(true);
+            }}
+            onDelete={(item) => {
+              setManagementCenterToDelete(item);
+              setDeleteManagementCenterDialogOpen(true);
+            }}
+            onFilterChange={(columnId, value) => {
+              if (columnId === "name") {
+                setManagementCenterSearch(value);
+                setManagementCenterPage(1);
+              }
+            }}
+            onSortingChange={(newSorting) => {
+              setManagementCenterSorting(newSorting);
+              setManagementCenterPage(1);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="requesting-centers">
+          <DataTable
+            columns={requestingCenterColumns()}
+            data={requestingCenters}
+            title={getCurrentTabTitle()}
+            pageSize={requestingCenterPageSize}
+            pageIndex={requestingCenterPage - 1}
+            totalCount={totalRequestingCenters}
+            onPageChange={(newPageIndex) =>
+              setRequestingCenterPage(newPageIndex + 1)
+            }
+            onPageSizeChange={(newPageSize) => {
+              setRequestingCenterPageSize(newPageSize);
+              setRequestingCenterPage(1);
+            }}
+            onAdd={() => {
+              setEditingRequestingCenter(null);
+              setOpenRequestingCenterForm(true);
+            }}
+            onEdit={(item) => {
+              setEditingRequestingCenter(item);
+              setOpenRequestingCenterForm(true);
+            }}
+            onDelete={(item) => {
+              setRequestingCenterToDelete(item);
+              setDeleteRequestingCenterDialogOpen(true);
+            }}
+            onFilterChange={(columnId, value) => {
+              if (columnId === "name") {
+                setRequestingCenterSearch(value);
+                setRequestingCenterPage(1);
+              }
+            }}
+            onSortingChange={(newSorting) => {
+              setRequestingCenterSorting(newSorting);
+              setRequestingCenterPage(1);
+            }}
+          />
+        </TabsContent>
+      </Tabs>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-1">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-50">
-              <TabsTrigger 
-                value="management" 
-                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2"
-              >
-                <Building2 className="h-4 w-4" />
-                Centros Gestores
-              </TabsTrigger>
-              <TabsTrigger 
-                value="requesting"
-                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2"
-              >
-                <Users2 className="h-4 w-4" />
-                Centros Solicitantes
-              </TabsTrigger>
-            </TabsList>
-          </div>
+      <ManagementCenterForm
+        open={openManagementCenterForm}
+        handleClose={() => setOpenManagementCenterForm(false)}
+        initialData={editingManagementCenter}
+        onSubmit={async (data) => {
+          if (data.id) {
+            await updateManagementCenter(data);
+          } else {
+            await createManagementCenter(data);
+          }
+          await loadManagementCenters();
+          setOpenManagementCenterForm(false);
+        }}
+      />
+      <AlertDialog
+        open={deleteManagementCenterDialogOpen}
+        onOpenChange={setDeleteManagementCenterDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o centro gestor "
+              {managementCenterToDelete?.name}"?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteManagementCenter}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-          <TabsContent value="management" className="space-y-6">
-            <Card className="shadow-lg border-blue-100">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                <CardTitle className="text-blue-900 flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Centros Gestores
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <DataTable
-                  title=""
-                  columns={managementCenterColumns()}
-                  data={managementCenters}
-                  pageSize={managementPageSize}
-                  pageIndex={managementPage - 1}
-                  totalCount={managementTotalCount}
-                  onPageChange={(newPageIndex) => setManagementPage(newPageIndex + 1)}
-                  onPageSizeChange={(newPageSize) => {
-                    setManagementPageSize(newPageSize);
-                    setManagementPage(1);
-                  }}
-                  onAdd={() => {
-                    setEditingManagementCenter(null);
-                    setOpenManagementForm(true);
-                  }}
-                  onEdit={(item) => {
-                    setEditingManagementCenter(item);
-                    setOpenManagementForm(true);
-                  }}
-                  onDelete={(item) => {
-                    setCenterToDelete(item);
-                    setDeleteType('management');
-                    setDeleteDialogOpen(true);
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <ManagementCenterForm
-              open={openManagementForm}
-              handleClose={() => setOpenManagementForm(false)}
-              initialData={editingManagementCenter}
-              onSubmit={async (data) => {
-                if (data.id) {
-                  await updateManagementCenter(data);
-                } else {
-                  await createManagementCenter(data);
-                }
-                await loadManagementCenters();
-                setOpenManagementForm(false);
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="requesting" className="space-y-6">
-            <Card className="shadow-lg border-blue-100">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                <CardTitle className="text-blue-900 flex items-center gap-2">
-                  <Users2 className="h-5 w-5" />
-                  Centros Solicitantes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <DataTable
-                  title=""
-                  columns={requestingCenterColumns()}
-                  data={requestingCenters}
-                  pageSize={requestingPageSize}
-                  pageIndex={requestingPage - 1}
-                  totalCount={requestingTotalCount}
-                  onPageChange={(newPageIndex) => setRequestingPage(newPageIndex + 1)}
-                  onPageSizeChange={(newPageSize) => {
-                    setRequestingPageSize(newPageSize);
-                    setRequestingPage(1);
-                  }}
-                  onAdd={() => {
-                    setEditingRequestingCenter(null);
-                    setOpenRequestingForm(true);
-                  }}
-                  onEdit={(item) => {
-                    setEditingRequestingCenter(item);
-                    setOpenRequestingForm(true);
-                  }}
-                  onDelete={(item) => {
-                    setCenterToDelete(item);
-                    setDeleteType('requesting');
-                    setDeleteDialogOpen(true);
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <RequestingCenterForm
-              open={openRequestingForm}
-              handleClose={() => setOpenRequestingForm(false)}
-              initialData={editingRequestingCenter}
-              onSubmit={async (data) => {
-                if (data.id) {
-                  await updateRequestingCenter(data);
-                } else {
-                  await createRequestingCenter(data);
-                }
-                await loadRequestingCenters();
-                setOpenRequestingForm(false);
-              }}
-            />
-          </TabsContent>
-        </Tabs>
-
-        {/* Modal de confirmação para exclusão */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="bg-white">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-red-700">Confirmar exclusão</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o centro "{centerToDelete?.name}"? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-50">
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Confirmar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <RequestingCenterForm
+        open={openRequestingCenterForm}
+        handleClose={() => setOpenRequestingCenterForm(false)}
+        initialData={editingRequestingCenter}
+        onSubmit={async (data) => {
+          if (data.id) {
+            await updateRequestingCenter(data);
+          } else {
+            await createRequestingCenter(data);
+          }
+          await loadRequestingCenters();
+          setOpenRequestingCenterForm(false);
+        }}
+      />
+      <AlertDialog
+        open={deleteRequestingCenterDialogOpen}
+        onOpenChange={setDeleteRequestingCenterDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o centro solicitante "
+              {requestingCenterToDelete?.name}"?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteRequestingCenter}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

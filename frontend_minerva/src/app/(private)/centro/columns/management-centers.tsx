@@ -1,29 +1,11 @@
-import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ManagementCenter } from "@/lib/api/centers";
 
-export const managementCenterColumns = (): ColumnDef<ManagementCenter>[] => [
-  {
-    accessorKey: "id",
-    header: "ID",
-    size: 80,
-    cell: ({ row }) => (
-      <div className="text-center font-mono text-sm">
-        {row.getValue("id")}
-      </div>
-    ),
-    meta: {
-      showFilterIcon: true,
-    },
-  },
+export const columns = (): ColumnDef<ManagementCenter>[] => [
   {
     accessorKey: "name",
     header: "Nome",
-    cell: ({ row }) => (
-      <div className="font-medium text-blue-900">
-        {row.getValue("name")}
-      </div>
-    ),
+    enableSorting: true,
     meta: {
       showFilterIcon: true,
     },
@@ -31,46 +13,42 @@ export const managementCenterColumns = (): ColumnDef<ManagementCenter>[] => [
   {
     accessorKey: "description",
     header: "Descrição",
-    cell: ({ row }) => {
-      const description = row.getValue("description") as string;
-      return (
-        <div className="max-w-xs truncate text-gray-700">
-          {description || "—"}
-        </div>
-      );
-    },
-    meta: {
-      showFilterIcon: true,
-    },
+    enableSorting: true,
+    cell: ({ row }) => row.original.description || "-",
   },
   {
     accessorKey: "created_at",
     header: "Criado em",
-    cell: ({ row }) => {
-      const date = row.getValue("created_at") as string;
-      return (
-        <div className="text-sm text-gray-600">
-          {date ? new Date(date).toLocaleDateString("pt-BR") : "—"}
-        </div>
-      );
-    },
-    meta: {
-      showFilterIcon: true,
-    },
+    enableSorting: true,
+    cell: ({ row }) =>
+      new Date(row.original.created_at).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", ""),
   },
   {
     accessorKey: "updated_at",
     header: "Atualizado em",
-    cell: ({ row }) => {
-      const date = row.getValue("updated_at") as string;
-      return (
-        <div className="text-sm text-gray-600">
-          {date ? new Date(date).toLocaleDateString("pt-BR") : "—"}
-        </div>
-      );
-    },
-    meta: {
-      showFilterIcon: true,
-    },
+    cell: ({ row }) =>
+      new Date(row.original.updated_at).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", ""),
+  },
+  {
+    accessorKey: "created_by",
+    header: "Criado por",
+    cell: ({ row }) => row.original.created_by?.email ?? "-",
+  },
+  {
+    accessorKey: "updated_by",
+    header: "Atualizado por",
+    cell: ({ row }) => row.original.updated_by?.email ?? "-",
   },
 ];

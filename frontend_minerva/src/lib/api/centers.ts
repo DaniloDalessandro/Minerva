@@ -1,162 +1,168 @@
-import { authFetch } from "./authFetch";
+// /lib/api/centers.ts
 
 export interface ManagementCenter {
-  id?: number;
+  id: number;
   name: string;
   description?: string;
-  created_at?: string;
-  updated_at?: string;
-  created_by?: any;
-  updated_by?: any;
+  created_at: string;
+  updated_at: string;
+  created_by?: {
+    email: string;
+  };
+  updated_by?: {
+    email: string;
+  };
 }
 
 export interface RequestingCenter {
-  id?: number;
-  management_center: number;
-  management_center_name?: string;
+  id: number;
   name: string;
   description?: string;
-  created_at?: string;
-  updated_at?: string;
-  created_by?: any;
-  updated_by?: any;
+  management_center: {
+    id: number;
+    name: string;
+  };
+  created_at: string;
+  updated_at: string;
+  created_by?: {
+    email: string;
+  };
+  updated_by?: {
+    email: string;
+  };
 }
 
-export interface CentersResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: ManagementCenter[] | RequestingCenter[];
-}
+const MANAGEMENT_CENTERS_API_URL = "http://localhost:8000/api/v1/center/management-centers/";
+const REQUESTING_CENTERS_API_URL = "http://localhost:8000/api/v1/center/requesting-centers/";
 
 // Management Centers API
-export async function fetchManagementCenters(
-  page = 1,
-  pageSize = 10
-): Promise<CentersResponse> {
-  const response = await authFetch(
-    `/center/management-centers/?page=${page}&page_size=${pageSize}`
-  );
-  if (!response.ok) {
-    throw new Error("Erro ao carregar centros gestores");
+export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "") {
+  const token = localStorage.getItem("access");
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  
+  if (search) {
+    params.append("search", search);
   }
-  return response.json();
+  
+  if (ordering) {
+    params.append("ordering", ordering);
+  }
+  
+  const res = await fetch(`${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Erro ao buscar centros gestores");
+  const json = await res.json();
+  return json; // espera {results: [...], count: total, ...}
 }
 
-export async function createManagementCenter(
-  center: Omit<ManagementCenter, "id">
-): Promise<ManagementCenter> {
-  const response = await authFetch("/center/management-centers/create/", {
+export async function createManagementCenter(data: { name: string; description?: string }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${MANAGEMENT_CENTERS_API_URL}create/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(center),
+    body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao criar centro gestor");
-  }
-
-  return response.json();
+  if (!res.ok) throw new Error("Erro ao criar centro gestor");
+  return res.json();
 }
 
-export async function updateManagementCenter(
-  center: ManagementCenter
-): Promise<ManagementCenter> {
-  const response = await authFetch(
-    `/center/management-centers/${center.id}/update/`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(center),
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao atualizar centro gestor");
-  }
-
-  return response.json();
+export async function updateManagementCenter(data: { id: number; name: string; description?: string }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${MANAGEMENT_CENTERS_API_URL}${data.id}/update/`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name: data.name, description: data.description }),
+  });
+  if (!res.ok) throw new Error("Erro ao atualizar centro gestor");
+  return res.json();
 }
 
-export async function deleteManagementCenter(id: number): Promise<void> {
-  const response = await authFetch(`/center/management-centers/${id}/delete/`, {
+export async function deleteManagementCenter(id: number) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${MANAGEMENT_CENTERS_API_URL}${id}/delete/`, {
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao excluir centro gestor");
-  }
+  if (!res.ok) throw new Error("Erro ao deletar centro gestor");
+  return true;
 }
 
 // Requesting Centers API
-export async function fetchRequestingCenters(
-  page = 1,
-  pageSize = 10
-): Promise<CentersResponse> {
-  const response = await authFetch(
-    `/center/requesting-centers/?page=${page}&page_size=${pageSize}`
-  );
-  if (!response.ok) {
-    throw new Error("Erro ao carregar centros solicitantes");
+export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "", ordering = "") {
+  const token = localStorage.getItem("access");
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  
+  if (search) {
+    params.append("search", search);
   }
-  return response.json();
+  
+  if (ordering) {
+    params.append("ordering", ordering);
+  }
+  
+  const res = await fetch(`${REQUESTING_CENTERS_API_URL}?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Erro ao buscar centros solicitantes");
+  const json = await res.json();
+  return json;
 }
 
-export async function createRequestingCenter(
-  center: Omit<RequestingCenter, "id">
-): Promise<RequestingCenter> {
-  const response = await authFetch("/center/requesting-centers/create/", {
+export async function createRequestingCenter(data: { name: string; description?: string; management_center_id: number }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${REQUESTING_CENTERS_API_URL}create/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(center),
+    body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao criar centro solicitante");
-  }
-
-  return response.json();
+  if (!res.ok) throw new Error("Erro ao criar centro solicitante");
+  return res.json();
 }
 
-export async function updateRequestingCenter(
-  center: RequestingCenter
-): Promise<RequestingCenter> {
-  const response = await authFetch(
-    `/center/requesting-centers/${center.id}/update/`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(center),
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao atualizar centro solicitante");
-  }
-
-  return response.json();
+export async function updateRequestingCenter(data: { id: number; name: string; description?: string; management_center_id: number }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${REQUESTING_CENTERS_API_URL}${data.id}/update/`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name: data.name, description: data.description, management_center_id: data.management_center_id }),
+  });
+  if (!res.ok) throw new Error("Erro ao atualizar centro solicitante");
+  return res.json();
 }
 
-export async function deleteRequestingCenter(id: number): Promise<void> {
-  const response = await authFetch(`/center/requesting-centers/${id}/delete/`, {
+export async function deleteRequestingCenter(id: number) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${REQUESTING_CENTERS_API_URL}${id}/delete/`, {
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro ao excluir centro solicitante");
-  }
+  if (!res.ok) throw new Error("Erro ao deletar centro solicitante");
+  return true;
 }

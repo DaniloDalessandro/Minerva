@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +8,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { ManagementCenter } from "@/lib/api/centers";
 
 interface ManagementCenterFormProps {
   open: boolean;
   handleClose: () => void;
-  initialData?: ManagementCenter | null;
-  onSubmit: (data: ManagementCenter) => Promise<void>;
+  initialData: ManagementCenter | null;
+  onSubmit: (data: ManagementCenter) => void;
 }
 
 export default function ManagementCenterForm({
@@ -26,103 +26,73 @@ export default function ManagementCenterForm({
   initialData,
   onSubmit,
 }: ManagementCenterFormProps) {
-  const [formData, setFormData] = useState<ManagementCenter>({
+  const [formData, setFormData] = useState<any>({
+    id: undefined,
     name: "",
     description: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         id: initialData.id,
-        name: initialData.name || "",
+        name: initialData.name,
         description: initialData.description || "",
       });
     } else {
-      setFormData({
-        name: "",
-        description: "",
-      });
+      setFormData({ id: undefined, name: "", description: "" });
     }
-  }, [initialData, open]);
+  }, [initialData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await onSubmit(formData);
-      handleClose();
-    } catch (error) {
-      console.error("Erro ao salvar centro gestor:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleInputChange = (field: keyof ManagementCenter, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+    handleClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white">
-        <DialogHeader className="bg-gradient-to-r from-blue-50 to-blue-100 -mx-6 -mt-6 px-6 py-4 border-b">
-          <DialogTitle className="text-blue-900 font-semibold">
-            {initialData ? "Editar Centro Gestor" : "Novo Centro Gestor"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[480px] max-w-[90vw]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-primary">
+              {initialData ? "Editar Centro Gestor" : "Novo Centro Gestor"}
+            </DialogTitle>
+            <hr className="mt-2 border-b border-gray-200" />
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-gray-700 font-medium">
-              Nome *
-            </Label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              required
-              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Digite o nome do centro gestor"
-            />
+          <div className="grid gap-4 py-6">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Nome do Centro Gestor"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Descrição do Centro Gestor (opcional)"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-700 font-medium">
-              Descrição
-            </Label>
-            <Input
-              id="description"
-              type="text"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Digite uma descrição (opcional)"
-            />
-          </div>
-
-          <DialogFooter className="gap-2 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
+          <DialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSubmitting ? "Salvando..." : "Salvar"}
+            <Button type="submit">
+              {initialData ? "Salvar Alterações" : "Criar Centro Gestor"}
             </Button>
           </DialogFooter>
         </form>
