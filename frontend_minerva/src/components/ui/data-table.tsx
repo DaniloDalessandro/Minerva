@@ -181,7 +181,7 @@ export function DataTable({
                         column.toggleVisibility(!column.getIsVisible());
                       }}
                     >
-                      {column.id}
+                      {column.columnDef.header || column.id}
                     </DropdownMenuCheckboxItem>
                   ))}
               </DropdownMenuContent>
