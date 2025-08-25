@@ -43,6 +43,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SetoresPage() {
+  // Active tab state
+  const [activeTab, setActiveTab] = useState("directions");
+  
   // States for Directions
   const [directions, setDirections] = useState<Direction[]>([]);
   const [totalDirections, setTotalDirections] = useState(0);
@@ -220,9 +223,23 @@ export default function SetoresPage() {
     }
   };
 
+  // Function to get current tab title
+  const getCurrentTabTitle = () => {
+    switch (activeTab) {
+      case "directions":
+        return "Direções";
+      case "managements":
+        return "Gerências";
+      case "coordinations":
+        return "Coordenações";
+      default:
+        return "Setores";
+    }
+  };
+
   return (
     <div className="space-y-10 px-4 py-6">
-      <Tabs defaultValue="directions" className="w-full">
+      <Tabs defaultValue="directions" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-muted p-1 h-auto">
           <TabsTrigger 
             value="directions" 
@@ -259,6 +276,7 @@ export default function SetoresPage() {
           <DataTable
             columns={directionColumns()}
             data={directions}
+            title={getCurrentTabTitle()}
             pageSize={directionPageSize}
             pageIndex={directionPage - 1}
             totalCount={totalDirections}
@@ -295,6 +313,7 @@ export default function SetoresPage() {
           <DataTable
             columns={managementColumns()}
             data={managements}
+            title={getCurrentTabTitle()}
             pageSize={managementPageSize}
             pageIndex={managementPage - 1}
             totalCount={totalManagements}
@@ -333,6 +352,7 @@ export default function SetoresPage() {
           <DataTable
             columns={coordinationColumns()}
             data={coordinations}
+            title={getCurrentTabTitle()}
             pageSize={coordinationPageSize}
             pageIndex={coordinationPage - 1}
             totalCount={totalCoordinations}
