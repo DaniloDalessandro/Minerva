@@ -1,40 +1,83 @@
+// /lib/api/coordinations.ts
+
 export interface Coordination {
-  id: string;
+  id: number;
   name: string;
-  management: string; // ID da gerência
+  management: number;
+  created_at: string;
+  updated_at: string;
+  created_by?: {
+    email: string;
+  };
+  updated_by?: {
+    email: string;
+  };
 }
 
-const BASE_URL = "/coordinations/";
+const API_BASE_URL = "http://localhost:8000/api/v1/sector/coordinations/";
 
-export async function fetchCoordinations(): Promise<Coordination[]> {
-  const res = await fetch(BASE_URL);
+export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "") {
+  const token = localStorage.getItem("access");
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  
+  if (search) {
+    params.append("search", search);
+  }
+  
+  if (ordering) {
+    params.append("ordering", ordering);
+  }
+  
+  const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   if (!res.ok) throw new Error("Erro ao buscar coordenações");
-  return res.json();
+  const json = await res.json();
+  return json;
 }
 
-export async function createCoordination(data: Coordination): Promise<Coordination> {
-  const res = await fetch(`${BASE_URL}create/`, {
+export async function createCoordination(data: { name: string, management: number }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${API_BASE_URL}create/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Erro ao criar coordenação");
   return res.json();
 }
 
-export async function updateCoordination(data: Coordination): Promise<Coordination> {
-  const res = await fetch(`${BASE_URL}${data.id}/update/`, {
+
+export async function updateCoordination(data: { id: number; name: string, management: number }) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name: data.name, management: data.management }),
   });
   if (!res.ok) throw new Error("Erro ao atualizar coordenação");
   return res.json();
 }
 
-export async function deleteCoordination(id: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}${id}/delete/`, {
+export async function deleteCoordination(id: number) {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${API_BASE_URL}${id}/delete/`, {
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   if (!res.ok) throw new Error("Erro ao deletar coordenação");
+  return true;
 }
