@@ -171,13 +171,24 @@ export async function createBudget(data: {
   status: 'ATIVO' | 'INATIVO';
 }) {
   const token = localStorage.getItem("access");
+  
+  // Transform the data to match backend expectations
+  const transformedData = {
+    year: data.year,
+    category: data.category,
+    management_center: data.management_center_id, // Backend expects 'management_center', not 'management_center_id'
+    total_amount: data.total_amount,
+    status: data.status
+    // Note: available_amount is read-only and automatically set by the serializer
+  };
+  
   const res = await fetch(`${API_BASE_URL}create/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(transformedData),
   });
   if (!res.ok) throw new Error("Erro ao criar orçamento");
   return res.json();
@@ -193,22 +204,37 @@ export async function updateBudget(data: {
   status: 'ATIVO' | 'INATIVO';
 }) {
   const token = localStorage.getItem("access");
+  
+  // Transform the data to match backend expectations
+  const transformedData = {
+    year: data.year,
+    category: data.category,
+    management_center: data.management_center_id, // Backend expects 'management_center', not 'management_center_id'
+    total_amount: data.total_amount,
+    available_amount: data.available_amount, // For updates, available_amount might need to be sent
+    status: data.status,
+  };
+  
   const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({
-      year: data.year,
-      category: data.category,
-      management_center_id: data.management_center_id,
-      total_amount: data.total_amount,
-      available_amount: data.available_amount,
-      status: data.status,
-    }),
+    body: JSON.stringify(transformedData),
   });
   if (!res.ok) throw new Error("Erro ao atualizar orçamento");
+  return res.json();
+}
+
+export async function fetchBudgetById(id: number): Promise<Budget> {
+  const token = localStorage.getItem("access");
+  const res = await fetch(`${API_BASE_URL}${id}/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Erro ao buscar orçamento");
   return res.json();
 }
 

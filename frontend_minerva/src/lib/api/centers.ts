@@ -38,6 +38,11 @@ const REQUESTING_CENTERS_API_URL = "http://localhost:8000/api/v1/center/requesti
 // Management Centers API
 export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "") {
   const token = localStorage.getItem("access");
+  
+  if (!token) {
+    throw new Error("Token de acesso não encontrado. Faça login novamente.");
+  }
+  
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -51,14 +56,35 @@ export async function fetchManagementCenters(page = 1, pageSize = 10, search = "
     params.append("ordering", ordering);
   }
   
-  const res = await fetch(`${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!res.ok) throw new Error("Erro ao buscar centros gestores");
-  const json = await res.json();
-  return json; // espera {results: [...], count: total, ...}
+  const url = `${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`;
+  
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Error ${res.status} fetching management centers:`, errorText);
+      
+      if (res.status === 401) {
+        throw new Error("Não autorizado. Faça login novamente.");
+      } else if (res.status === 403) {
+        throw new Error("Sem permissão para acessar centros gestores.");
+      } else {
+        throw new Error(`Erro ao buscar centros gestores: ${res.status}`);
+      }
+    }
+    
+    const json = await res.json();
+    return json; // espera {results: [...], count: total, ...}
+  } catch (error) {
+    console.error("Network error fetching management centers:", error);
+    throw error;
+  }
 }
 
 export async function createManagementCenter(data: { name: string; description?: string }) {

@@ -44,15 +44,39 @@ export default function BudgetForm({
     status: "ATIVO",
   });
   const [managementCenters, setManagementCenters] = useState<ManagementCenter[]>([]);
+  const [loadingCenters, setLoadingCenters] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadManagementCenters() {
       try {
+        setLoadingCenters(true);
+        console.log("Fetching management centers...");
         const data = await fetchManagementCenters(1, 1000);
-        setManagementCenters(data.results);
+        console.log("Management centers response:", data);
+        
+        if (data && data.results && Array.isArray(data.results)) {
+          setManagementCenters(data.results);
+          console.log("Management centers loaded:", data.results.length);
+        } else if (Array.isArray(data)) {
+          // Fallback in case the response is a direct array (non-paginated)
+          console.warn("Response is direct array, using as is:", data.length);
+          setManagementCenters(data);
+        } else {
+          console.warn("Unexpected response format:", data);
+          setManagementCenters([]);
+        }
       } catch (error) {
         console.error("Erro ao carregar centros gestores:", error);
+        // Set empty array so the form still works, just without management centers
+        setManagementCenters([]);
+        // Show user-friendly error in the form
+        setErrors(prev => ({
+          ...prev, 
+          management_center_id: "Erro ao carregar centros gestores. Verifique sua conexão."
+        }));
+      } finally {
+        setLoadingCenters(false);
       }
     }
     loadManagementCenters();
@@ -121,12 +145,15 @@ export default function BudgetForm({
       newErrors.total_amount = "Valor total deve ser maior que zero";
     }
 
-    if (!formData.available_amount || parseFloat(formData.available_amount) < 0) {
-      newErrors.available_amount = "Valor disponível não pode ser negativo";
-    }
+    // Only validate available_amount for existing budgets (editing)
+    if (initialData) {
+      if (!formData.available_amount || parseFloat(formData.available_amount) < 0) {
+        newErrors.available_amount = "Valor disponível não pode ser negativo";
+      }
 
-    if (parseFloat(formData.available_amount) > parseFloat(formData.total_amount)) {
-      newErrors.available_amount = "Valor disponível não pode ser maior que o total";
+      if (parseFloat(formData.available_amount) > parseFloat(formData.total_amount)) {
+        newErrors.available_amount = "Valor disponível não pode ser maior que o total";
+      }
     }
 
     if (!formData.status) {
@@ -197,19 +224,40 @@ export default function BudgetForm({
               <Select
                 onValueChange={(value) => handleSelectChange("management_center_id", value)}
                 value={formData.management_center_id.toString()}
+                disabled={loadingCenters}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione um centro gestor" />
+                  <SelectValue placeholder={
+                    loadingCenters 
+                      ? "Carregando centros gestores..." 
+                      : managementCenters.length === 0 
+                        ? "Nenhum centro gestor disponível" 
+                        : "Selecione um centro gestor"
+                  } />
                 </SelectTrigger>
                 <SelectContent>
-                  {managementCenters.map((center) => (
-                    <SelectItem key={center.id} value={center.id.toString()}>
-                      {center.name}
+                  {!loadingCenters && managementCenters.length === 0 ? (
+                    <SelectItem value="0" disabled>
+                      Nenhum centro gestor encontrado
                     </SelectItem>
-                  ))}
+                  ) : (
+                    managementCenters.map((center) => (
+                      <SelectItem key={center.id} value={center.id.toString()}>
+                        {center.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {errors.management_center_id && <span className="text-sm text-red-500">{errors.management_center_id}</span>}
+              {loadingCenters && (
+                <span className="text-sm text-gray-500">Carregando centros gestores...</span>
+              )}
+              {!loadingCenters && managementCenters.length === 0 && !errors.management_center_id && (
+                <span className="text-sm text-orange-500">
+                  Nenhum centro gestor disponível. Verifique as permissões ou crie um centro gestor primeiro.
+                </span>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -227,20 +275,32 @@ export default function BudgetForm({
               {errors.total_amount && <span className="text-sm text-red-500">{errors.total_amount}</span>}
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="available_amount">Valor Disponível</Label>
-              <Input
-                id="available_amount"
-                type="number"
-                step="0.01"
-                value={formData.available_amount}
-                onChange={handleChange}
-                required
-                placeholder="0.00"
-                min="0"
-              />
-              {errors.available_amount && <span className="text-sm text-red-500">{errors.available_amount}</span>}
-            </div>
+            {/* Only show available_amount field for editing existing budgets */}
+            {initialData && (
+              <div className="grid gap-2">
+                <Label htmlFor="available_amount">Valor Disponível</Label>
+                <Input
+                  id="available_amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.available_amount}
+                  onChange={handleChange}
+                  required
+                  placeholder="0.00"
+                  min="0"
+                />
+                {errors.available_amount && <span className="text-sm text-red-500">{errors.available_amount}</span>}
+              </div>
+            )}
+            
+            {/* Show info for new budgets that available_amount will be set automatically */}
+            {!initialData && (
+              <div className="grid gap-2">
+                <Label className="text-sm text-gray-600">
+                  Valor Disponível: Será definido automaticamente igual ao valor total
+                </Label>
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>

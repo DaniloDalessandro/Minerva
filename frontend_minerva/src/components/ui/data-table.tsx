@@ -27,6 +27,7 @@ import {
   Trash,
   Filter,
   X,
+  Eye,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -55,6 +56,7 @@ export function DataTable({
   onAdd,
   onEdit,
   onDelete,
+  onViewDetails,
   onFilterChange,
   onSortingChange,
   readOnly = false,
@@ -147,6 +149,14 @@ export function DataTable({
                 className="h-6 w-6 cursor-pointer"
                 onClick={onAdd}
                 aria-label="Adicionar novo item"
+                role="button"
+              />
+            )}
+            {onViewDetails && selectedRow && (
+              <Eye
+                className="h-6 w-6 cursor-pointer"
+                onClick={() => onViewDetails(selectedRow)}
+                aria-label="Ver detalhes do item selecionado"
                 role="button"
               />
             )}

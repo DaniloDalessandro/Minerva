@@ -6,11 +6,14 @@ import OrcamentoForm from "./OrcamentoForm";
 // Ajuste o caminho abaixo conforme a localização real do arquivo budgets.ts
 import { Budget, fetchBudgets, createBudget, updateBudget, deleteBudget } from "../../api/budgets";
 import { DataTable } from "@/components/ui/data-table"; // ajuste o path se necessário
+import { BudgetDetailsModal } from "@/components/modals/BudgetDetailsModal";
 
 export default function Home() {
   const [data, setData] = useState<Budget[]>([]);
   const [open, setOpen] = useState(false);
   const [editingData, setEditingData] = useState<Budget | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBudgets()
@@ -23,18 +26,14 @@ export default function Home() {
     setOpen(true);
   }, []);
 
-  const handleEdit = useCallback((data: Budget) => {
-    setEditingData(data);
-    setOpen(true);
+  const handleView = useCallback((budget: Budget) => {
+    setSelectedBudget(budget);
+    setIsModalOpen(true);
   }, []);
 
-  const handleDelete = useCallback(async (data: Budget) => {
-    if (confirm(`Deseja excluir o orçamento ${data.orcamento}?`)) {
-      const ok = await deleteBudget(data.id);
-      if (ok) {
-        setData((prev) => prev.filter((item) => item.id !== data.id));
-      }
-    }
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedBudget(null);
   }, []);
 
   const handleSubmit = useCallback(
@@ -61,11 +60,9 @@ export default function Home() {
     <div className="container mx-auto py-1 px-2">
       <div className="space-y-2">
         <DataTable
-          columns={columns(handleEdit, handleDelete)}
+          columns={columns(handleView)}
           data={data}
           onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
           title="Orçamentos"
           pageSize={9}
         />
@@ -75,6 +72,12 @@ export default function Home() {
           handleClose={handleClose}
           initialData={editingData}
           onSubmit={handleSubmit}
+        />
+
+        <BudgetDetailsModal
+          budget={selectedBudget}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
         />
       </div>
     </div>

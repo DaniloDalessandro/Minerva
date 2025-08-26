@@ -1,14 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Budget } from "@/lib/api/budgets";
-import { Eye, Edit, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-export const columns = (
-  onViewContracts: (budget: Budget) => void,
-  onEdit: (budget: Budget) => void,
-  onDelete: (budget: Budget) => void
-): ColumnDef<Budget>[] => [
+export const columns: ColumnDef<Budget>[] = [
   {
     accessorKey: "year",
     header: "Ano",
@@ -97,40 +91,5 @@ export const columns = (
         hour: "2-digit",
         minute: "2-digit",
       }).replace(",", ""),
-  },
-  {
-    id: "actions",
-    header: "Ações",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onViewContracts(row.original)}
-          className="h-8 w-8 p-0"
-        >
-          <Eye className="h-4 w-4" />
-          <span className="sr-only">Ver contratos</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(row.original)}
-          className="h-8 w-8 p-0"
-        >
-          <Edit className="h-4 w-4" />
-          <span className="sr-only">Editar orçamento</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onDelete(row.original)}
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Excluir orçamento</span>
-        </Button>
-      </div>
-    ),
   },
 ];
