@@ -26,6 +26,7 @@ interface BudgetFormProps {
   handleClose: () => void;
   initialData: Budget | null;
   onSubmit: (data: Budget) => void;
+  isSubmitting?: boolean;
 }
 
 export default function BudgetForm({
@@ -33,6 +34,7 @@ export default function BudgetForm({
   handleClose,
   initialData,
   onSubmit,
+  isSubmitting = false,
 }: BudgetFormProps) {
   const [formData, setFormData] = useState<any>({
     id: undefined,
@@ -148,7 +150,11 @@ export default function BudgetForm({
     }
 
     if (!formData.management_center_id || formData.management_center_id === 0) {
-      newErrors.management_center_id = "Centro Gestor é obrigatório";
+      if (managementCenters.length === 0 && !loadingCenters) {
+        newErrors.management_center_id = "Nenhum centro gestor disponível. Verifique as permissões ou cadastre um centro gestor primeiro.";
+      } else {
+        newErrors.management_center_id = "Centro Gestor é obrigatório";
+      }
     }
 
     if (!formData.total_amount || parseFloat(formData.total_amount) <= 0) {
@@ -176,6 +182,12 @@ export default function BudgetForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent submission while management centers are still loading
+    if (loadingCenters) {
+      console.warn("⚠️ Form submission blocked - management centers still loading");
+      return;
+    }
     
     if (!validateForm()) {
       return;
@@ -241,7 +253,7 @@ export default function BudgetForm({
                     loadingCenters 
                       ? "Carregando centros gestores..." 
                       : managementCenters.length === 0 
-                        ? "Nenhum centro gestor disponível" 
+                        ? "Nenhum centro gestor encontrado" 
                         : "Selecione um centro gestor"
                   } />
                 </SelectTrigger>
@@ -331,11 +343,23 @@ export default function BudgetForm({
           </div>
 
           <DialogFooter className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit">
-              {initialData ? "Salvar Alterações" : "Criar Orçamento"}
+            <Button type="submit" disabled={isSubmitting || loadingCenters}>
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  {initialData ? "Salvando..." : "Criando..."}
+                </>
+              ) : loadingCenters ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Carregando...
+                </>
+              ) : (
+                initialData ? "Salvar Alterações" : "Criar Orçamento"
+              )}
             </Button>
           </DialogFooter>
         </form>

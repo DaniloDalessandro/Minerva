@@ -19,6 +19,10 @@ export default function BudgetPage() {
   // Form states
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const convertSortingToOrdering = (sorting: { id: string; desc: boolean }[]) => {
     if (!sorting || sorting.length === 0) return "";
@@ -30,6 +34,9 @@ export default function BudgetPage() {
   // Load budgets function
   const loadBudgets = useCallback(async () => {
     try {
+      setIsLoading(true);
+      console.log("🔄 Loading budgets with params:", { page, pageSize, search, sorting, filters });
+      
       const ordering = convertSortingToOrdering(sorting);
       
       // Build search params including filters - use the most recent filter value
@@ -39,8 +46,12 @@ export default function BudgetPage() {
       const data = await fetchBudgets(page, pageSize, searchParam, ordering);
       setBudgets(data.results);
       setTotalBudgets(data.count);
+      console.log("✅ Budgets loaded successfully:", data.results.length, "items");
     } catch (error) {
-      console.error("Erro ao carregar orçamentos:", error);
+      console.error("❌ Erro ao carregar orçamentos:", error);
+      // Could add user-friendly error notification here
+    } finally {
+      setIsLoading(false);
     }
   }, [page, pageSize, search, sorting, filters]);
 
@@ -60,11 +71,14 @@ export default function BudgetPage() {
 
   const handleBudgetSubmit = async (budgetData: any) => {
     try {
+      setIsSubmitting(true);
       console.log("💾 Submitting budget data:", budgetData);
       
       let result;
-      if (budgetData.id) {
-        console.log("📝 Updating existing budget...");
+      const isEditing = budgetData.id;
+      
+      if (isEditing) {
+        console.log("📝 Updating existing budget with ID:", budgetData.id);
         result = await updateBudget(budgetData);
       } else {
         console.log("➕ Creating new budget...");
@@ -75,16 +89,25 @@ export default function BudgetPage() {
       
       // Close form first
       setBudgetFormOpen(false);
+      setEditingBudget(null);
       
-      // Then refresh the list
+      // Then refresh the list with a small delay to ensure backend consistency
       console.log("🔄 Refreshing budget list...");
-      await loadBudgets();
-      console.log("✅ Budget list refreshed successfully");
+      setTimeout(async () => {
+        try {
+          await loadBudgets();
+          console.log("✅ Budget list refreshed successfully");
+        } catch (refreshError) {
+          console.error("❌ Error refreshing budget list:", refreshError);
+        }
+      }, 100);
       
     } catch (error) {
       console.error("❌ Erro ao salvar orçamento:", error);
       // Handle error - show user notification here if needed
       // For now, we'll keep the form open so user can try again
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,9 +147,13 @@ export default function BudgetPage() {
 
         <BudgetForm
           open={budgetFormOpen}
-          handleClose={() => setBudgetFormOpen(false)}
+          handleClose={() => {
+            setBudgetFormOpen(false);
+            setEditingBudget(null);
+          }}
           initialData={editingBudget}
           onSubmit={handleBudgetSubmit}
+          isSubmitting={isSubmitting}
         />
 
       </div>
