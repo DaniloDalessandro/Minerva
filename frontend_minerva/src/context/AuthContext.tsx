@@ -67,6 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("user_email", data.user.email)
       localStorage.setItem("user_name", data.user.name)
 
+      // Also set cookies for server-side access
+      document.cookie = `access=${data.access}; path=/; SameSite=strict`
+      document.cookie = `refresh=${data.refresh}; path=/; SameSite=strict`
+
       setAccessToken(data.access)
       setUser(data.user)
       setError(null)
@@ -84,6 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("user_id")
       localStorage.removeItem("user_email")
       localStorage.removeItem("user_name")
+
+      // Clear cookies
+      document.cookie = 'access=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+      document.cookie = 'refresh=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
 
       setAccessToken(null)
       setUser(null)

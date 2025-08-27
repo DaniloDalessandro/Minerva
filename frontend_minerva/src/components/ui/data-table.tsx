@@ -61,11 +61,47 @@ export function DataTable({
   onSortingChange,
   readOnly = false,
 }) {
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  // Initialize column visibility with audit fields hidden by default
+  const getInitialColumnVisibility = React.useCallback(() => {
+    const auditFields = [
+      'created_at', 'criado_em', 'createdAt',
+      'created_by', 'criado_por', 'createdBy', 
+      'updated_at', 'atualizado_em', 'updatedAt',
+      'updated_by', 'atualizado_por', 'updatedBy'
+    ];
+    
+    const initialVisibility = {};
+    columns.forEach(column => {
+      const columnId = column.accessorKey || column.id;
+      const headerText = (column.header || '').toString().toLowerCase();
+      
+      // Check if this is an audit field by ID or header text
+      const isAuditField = auditFields.some(field => 
+        columnId === field || 
+        headerText.includes('criado') || 
+        headerText.includes('atualizado') ||
+        headerText.includes('created') ||
+        headerText.includes('updated')
+      );
+      
+      if (isAuditField) {
+        initialVisibility[columnId] = false;
+      }
+    });
+    
+    return initialVisibility;
+  }, [columns]);
+
+  const [columnVisibility, setColumnVisibility] = React.useState(() => getInitialColumnVisibility());
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [openFilterId, setOpenFilterId] = React.useState(null);
+
+  // Update column visibility when columns change
+  React.useEffect(() => {
+    setColumnVisibility(prev => ({ ...getInitialColumnVisibility(), ...prev }));
+  }, [getInitialColumnVisibility]);
 
   const table = useReactTable({
     data,
