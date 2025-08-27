@@ -12,10 +12,10 @@ export const columns: ColumnDef<Budget>[] = [
     },
   },
   {
-    accessorKey: "management_center.name",
+    accessorKey: "management_center_data",
     header: "Centro Gestor",
     enableSorting: false,
-    cell: ({ row }) => row.original.management_center?.name ?? "-",
+    cell: ({ row }) => row.original.management_center_data?.name ?? "-",
     meta: {
       showFilterIcon: true,
     },
@@ -91,5 +91,46 @@ export const columns: ColumnDef<Budget>[] = [
         hour: "2-digit",
         minute: "2-digit",
       }).replace(",", ""),
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Atualizado em",
+    enableSorting: true,
+    cell: ({ row }) =>
+      new Date(row.original.updated_at).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).replace(",", ""),
+  },
+  {
+    accessorKey: "created_by_data",
+    header: "Criado por",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const createdBy = row.original.created_by_data;
+      if (createdBy) {
+        return createdBy.first_name && createdBy.last_name 
+          ? `${createdBy.first_name} ${createdBy.last_name}` 
+          : createdBy.email;
+      }
+      return "N/A";
+    },
+  },
+  {
+    accessorKey: "updated_by_data",
+    header: "Atualizado por",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const updatedBy = row.original.updated_by_data;
+      if (updatedBy) {
+        return updatedBy.first_name && updatedBy.last_name 
+          ? `${updatedBy.first_name} ${updatedBy.last_name}` 
+          : updatedBy.email;
+      }
+      return "N/A";
+    },
   },
 ];

@@ -4,7 +4,8 @@ export interface Budget {
   id: number;
   year: number;
   category: 'CAPEX' | 'OPEX';
-  management_center: {
+  management_center: number;
+  management_center_data?: {
     id: number;
     name: string;
   };
@@ -13,11 +14,17 @@ export interface Budget {
   status: 'ATIVO' | 'INATIVO';
   created_at: string;
   updated_at: string;
-  created_by?: {
+  created_by_data?: {
+    id: number;
     email: string;
+    first_name: string;
+    last_name: string;
   };
-  updated_by?: {
+  updated_by_data?: {
+    id: number;
     email: string;
+    first_name: string;
+    last_name: string;
   };
 }
 

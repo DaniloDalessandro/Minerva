@@ -99,10 +99,15 @@ export const budgetColumns = (
     },
   },
   {
-    accessorKey: "management_center",
+    accessorKey: "management_center_data",
     header: "Centro Gestor",
     cell: ({ row }) => {
-      const managementCenterId = row.getValue("management_center") as number
+      const managementCenterData = row.getValue("management_center_data") as { id: number; name: string } | null
+      if (managementCenterData) {
+        return managementCenterData.name
+      }
+      // Fallback para compatibilidade
+      const managementCenterId = row.original.management_center
       const managementCenter = managementCenters.find(mc => mc.id === managementCenterId)
       return managementCenter ? managementCenter.name : "Não encontrado"
     },
@@ -147,6 +152,40 @@ export const budgetColumns = (
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"))
       return date.toLocaleDateString("pt-BR")
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Atualizado em",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("updated_at"))
+      return date.toLocaleDateString("pt-BR")
+    },
+  },
+  {
+    accessorKey: "created_by_data",
+    header: "Criado por",
+    cell: ({ row }) => {
+      const createdBy = row.getValue("created_by_data") as { id: number; email: string; first_name: string; last_name: string } | null
+      if (createdBy) {
+        return createdBy.first_name && createdBy.last_name 
+          ? `${createdBy.first_name} ${createdBy.last_name}` 
+          : createdBy.email
+      }
+      return "N/A"
+    },
+  },
+  {
+    accessorKey: "updated_by_data",
+    header: "Atualizado por",
+    cell: ({ row }) => {
+      const updatedBy = row.getValue("updated_by_data") as { id: number; email: string; first_name: string; last_name: string } | null
+      if (updatedBy) {
+        return updatedBy.first_name && updatedBy.last_name 
+          ? `${updatedBy.first_name} ${updatedBy.last_name}` 
+          : updatedBy.email
+      }
+      return "N/A"
     },
   },
   {
