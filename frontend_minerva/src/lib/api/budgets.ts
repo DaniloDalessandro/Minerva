@@ -1,31 +1,76 @@
 // /lib/api/budgets.ts
 
+import { authFetch } from "./authFetch";
+
 export interface Budget {
   id: number;
   year: number;
   category: 'CAPEX' | 'OPEX';
-  management_center: number;
-  management_center_data?: {
+  management_center?: {
     id: number;
     name: string;
+    description?: string;
+    created_at: string;
+    updated_at: string;
+    created_by?: {
+      id: number;
+      email: string;
+    };
+    updated_by?: {
+      id: number;
+      email: string;
+    };
   };
+  management_center_id?: number;
   total_amount: string;
   available_amount: string;
   status: 'ATIVO' | 'INATIVO';
   created_at: string;
   updated_at: string;
-  created_by_data?: {
+  created_by?: {
     id: number;
     email: string;
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
   };
-  updated_by_data?: {
+  updated_by?: {
     id: number;
     email: string;
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
   };
+}
+
+export interface BudgetMovement {
+  id: number;
+  source: Budget;
+  source_id?: number;
+  destination: Budget;
+  destination_id?: number;
+  amount: string;
+  movement_date: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: {
+    id: number;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+  };
+  updated_by?: {
+    id: number;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+  };
+}
+
+export interface CreateBudgetMovementData {
+  source: number;
+  destination: number;
+  amount: string;
+  notes?: string;
 }
 
 export interface BudgetLine {
@@ -90,7 +135,6 @@ export interface Contract {
 const API_BASE_URL = "http://localhost:8000/api/v1/budget/budgets/";
 
 export async function fetchBudgets(page = 1, pageSize = 10, search = "", ordering = "") {
-  const token = localStorage.getItem("access");
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -104,34 +148,20 @@ export async function fetchBudgets(page = 1, pageSize = 10, search = "", orderin
     params.append("ordering", ordering);
   }
   
-  const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar orçamentos");
   const json = await res.json();
   return json; // espera {results: [...], count: total, ...}
 }
 
 export async function fetchBudgetLines(budgetId: number) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`http://localhost:8000/api/v1/budgetline/budgetlines/?budget=${budgetId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authFetch(`http://localhost:8000/api/v1/budgetline/budgetlines/?budget=${budgetId}`);
   if (!res.ok) throw new Error("Erro ao buscar linhas orçamentárias");
   return res.json();
 }
 
 export async function fetchContractsByBudgetLine(budgetLineId: number) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`http://localhost:8000/api/v1/contract/contracts/?budget_line=${budgetLineId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authFetch(`http://localhost:8000/api/v1/contract/contracts/?budget_line=${budgetLineId}`);
   if (!res.ok) throw new Error("Erro ao buscar contratos");
   return res.json();
 }
@@ -177,24 +207,18 @@ export async function createBudget(data: {
   available_amount: string;
   status: 'ATIVO' | 'INATIVO';
 }) {
-  const token = localStorage.getItem("access");
-  
   // Transform the data to match backend expectations
   const transformedData = {
     year: data.year,
     category: data.category,
-    management_center: data.management_center_id, // Backend expects 'management_center', not 'management_center_id'
+    management_center_id: data.management_center_id, // Backend expects 'management_center_id'
     total_amount: data.total_amount,
     status: data.status
     // Note: available_amount is read-only and automatically set by the serializer
   };
   
-  const res = await fetch(`${API_BASE_URL}create/`, {
+  const res = await authFetch(`${API_BASE_URL}create/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(transformedData),
   });
   if (!res.ok) throw new Error("Erro ao criar orçamento");
@@ -210,24 +234,18 @@ export async function updateBudget(data: {
   available_amount: string;
   status: 'ATIVO' | 'INATIVO';
 }) {
-  const token = localStorage.getItem("access");
-  
   // Transform the data to match backend expectations
   const transformedData = {
     year: data.year,
     category: data.category,
-    management_center: data.management_center_id, // Backend expects 'management_center', not 'management_center_id'
+    management_center_id: data.management_center_id, // Backend expects 'management_center_id'
     total_amount: data.total_amount,
     available_amount: data.available_amount, // For updates, available_amount might need to be sent
     status: data.status,
   };
   
-  const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
+  const res = await authFetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(transformedData),
   });
   if (!res.ok) throw new Error("Erro ao atualizar orçamento");
@@ -235,23 +253,14 @@ export async function updateBudget(data: {
 }
 
 export async function fetchBudgetById(id: number): Promise<Budget> {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${id}/`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authFetch(`${API_BASE_URL}${id}/`);
   if (!res.ok) throw new Error("Erro ao buscar orçamento");
   return res.json();
 }
 
 export async function deleteBudget(id: number) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${id}/delete/`, {
+  const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   if (!res.ok) throw new Error("Erro ao deletar orçamento");
   return true;

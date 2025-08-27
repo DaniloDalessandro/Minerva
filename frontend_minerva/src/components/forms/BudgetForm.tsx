@@ -51,23 +51,26 @@ export default function BudgetForm({
     async function loadManagementCenters() {
       try {
         setLoadingCenters(true);
-        console.log("Fetching management centers...");
+        console.log("🔍 Fetching management centers...");
         const data = await fetchManagementCenters(1, 1000);
-        console.log("Management centers response:", data);
+        console.log("📋 Management centers response:", data);
         
         if (data && data.results && Array.isArray(data.results)) {
           setManagementCenters(data.results);
-          console.log("Management centers loaded:", data.results.length);
+          console.log("✅ Management centers loaded successfully:", data.results.length, "centers");
+          if (data.results.length > 0) {
+            console.log("📝 First center example:", data.results[0]);
+          }
         } else if (Array.isArray(data)) {
           // Fallback in case the response is a direct array (non-paginated)
-          console.warn("Response is direct array, using as is:", data.length);
+          console.warn("⚠️ Response is direct array, using as is:", data.length);
           setManagementCenters(data);
         } else {
-          console.warn("Unexpected response format:", data);
+          console.warn("⚠️ Unexpected response format:", data);
           setManagementCenters([]);
         }
       } catch (error) {
-        console.error("Erro ao carregar centros gestores:", error);
+        console.error("❌ Erro ao carregar centros gestores:", error);
         // Set empty array so the form still works, just without management centers
         setManagementCenters([]);
         // Show user-friendly error in the form
@@ -79,33 +82,40 @@ export default function BudgetForm({
         setLoadingCenters(false);
       }
     }
-    loadManagementCenters();
-  }, []);
+    
+    if (open) { // Only load when form opens
+      loadManagementCenters();
+    }
+  }, [open]);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        id: initialData.id,
-        year: initialData.year,
-        category: initialData.category,
-        management_center_id: initialData.management_center?.id || 0,
-        total_amount: initialData.total_amount,
-        available_amount: initialData.available_amount,
-        status: initialData.status,
-      });
-    } else {
-      setFormData({
-        id: undefined,
-        year: new Date().getFullYear(),
-        category: "",
-        management_center_id: 0,
-        total_amount: "",
-        available_amount: "",
-        status: "ATIVO",
-      });
+    if (open) {
+      if (initialData) {
+        console.log("📝 Editing existing budget:", initialData);
+        setFormData({
+          id: initialData.id,
+          year: initialData.year,
+          category: initialData.category,
+          management_center_id: initialData.management_center?.id || 0,
+          total_amount: initialData.total_amount,
+          available_amount: initialData.available_amount,
+          status: initialData.status,
+        });
+      } else {
+        console.log("➕ Creating new budget - resetting form");
+        setFormData({
+          id: undefined,
+          year: new Date().getFullYear(),
+          category: "",
+          management_center_id: 0,
+          total_amount: "",
+          available_amount: "",
+          status: "ATIVO",
+        });
+      }
+      setErrors({});
     }
-    setErrors({});
-  }, [initialData]);
+  }, [open, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -172,7 +182,7 @@ export default function BudgetForm({
     }
 
     onSubmit(formData);
-    handleClose();
+    // Form will be closed by the parent component after successful submission
   };
 
   return (
@@ -223,7 +233,7 @@ export default function BudgetForm({
               <Label htmlFor="management_center">Centro Gestor</Label>
               <Select
                 onValueChange={(value) => handleSelectChange("management_center_id", value)}
-                value={formData.management_center_id.toString()}
+                value={formData.management_center_id > 0 ? formData.management_center_id.toString() : ""}
                 disabled={loadingCenters}
               >
                 <SelectTrigger className="w-full">

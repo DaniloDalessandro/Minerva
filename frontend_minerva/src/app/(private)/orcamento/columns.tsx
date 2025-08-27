@@ -12,10 +12,10 @@ export const columns: ColumnDef<Budget>[] = [
     },
   },
   {
-    accessorKey: "management_center_data",
+    accessorKey: "management_center",
     header: "Centro Gestor",
     enableSorting: false,
-    cell: ({ row }) => row.original.management_center_data?.name ?? "-",
+    cell: ({ row }) => row.original.management_center?.name ?? "-",
     meta: {
       showFilterIcon: true,
     },
@@ -106,11 +106,11 @@ export const columns: ColumnDef<Budget>[] = [
       }).replace(",", ""),
   },
   {
-    accessorKey: "created_by_data",
+    accessorKey: "created_by",
     header: "Criado por",
     enableSorting: false,
     cell: ({ row }) => {
-      const createdBy = row.original.created_by_data;
+      const createdBy = row.original.created_by;
       if (createdBy) {
         return createdBy.first_name && createdBy.last_name 
           ? `${createdBy.first_name} ${createdBy.last_name}` 
@@ -120,11 +120,11 @@ export const columns: ColumnDef<Budget>[] = [
     },
   },
   {
-    accessorKey: "updated_by_data",
+    accessorKey: "updated_by",
     header: "Atualizado por",
     enableSorting: false,
     cell: ({ row }) => {
-      const updatedBy = row.original.updated_by_data;
+      const updatedBy = row.original.updated_by;
       if (updatedBy) {
         return updatedBy.first_name && updatedBy.last_name 
           ? `${updatedBy.first_name} ${updatedBy.last_name}` 

@@ -1,5 +1,4 @@
-import { useAuthContext } from "@/context/AuthContext"
-import jwt_decode from "jwt-decode"
+import { jwtDecode } from "jwt-decode"
 
 interface JWTPayload {
   exp: number
@@ -8,7 +7,7 @@ interface JWTPayload {
 // Verifica se o token está prestes a expirar
 function tokenExpiringSoon(token: string, thresholdSeconds = 60): boolean {
   try {
-    const decoded = jwt_decode<JWTPayload>(token)
+    const decoded = jwtDecode<JWTPayload>(token)
     const now = Math.floor(Date.now() / 1000)
     return decoded.exp - now < thresholdSeconds
   } catch {

@@ -60,15 +60,31 @@ export default function BudgetPage() {
 
   const handleBudgetSubmit = async (budgetData: any) => {
     try {
+      console.log("💾 Submitting budget data:", budgetData);
+      
+      let result;
       if (budgetData.id) {
-        await updateBudget(budgetData);
+        console.log("📝 Updating existing budget...");
+        result = await updateBudget(budgetData);
       } else {
-        await createBudget(budgetData);
+        console.log("➕ Creating new budget...");
+        result = await createBudget(budgetData);
       }
-      await loadBudgets();
+      
+      console.log("✅ Budget operation successful:", result);
+      
+      // Close form first
       setBudgetFormOpen(false);
+      
+      // Then refresh the list
+      console.log("🔄 Refreshing budget list...");
+      await loadBudgets();
+      console.log("✅ Budget list refreshed successfully");
+      
     } catch (error) {
-      console.error("Erro ao salvar orçamento:", error);
+      console.error("❌ Erro ao salvar orçamento:", error);
+      // Handle error - show user notification here if needed
+      // For now, we'll keep the form open so user can try again
     }
   };
 
