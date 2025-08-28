@@ -207,18 +207,28 @@ export const budgetMovementColumns = (
     accessorKey: "source",
     header: "Origem",
     cell: ({ row }) => {
-      const sourceId = row.getValue("source") as number
-      const sourceBudget = budgets.find(b => b.id === sourceId)
-      return sourceBudget ? `${sourceBudget.category} ${sourceBudget.year}` : "Não encontrado"
+      const source = row.getValue("source") as Budget | number
+      if (typeof source === 'object' && source) {
+        return `${source.category} ${source.year}`
+      } else if (typeof source === 'number') {
+        const sourceBudget = budgets.find(b => b.id === source)
+        return sourceBudget ? `${sourceBudget.category} ${sourceBudget.year}` : "Não encontrado"
+      }
+      return "Não encontrado"
     },
   },
   {
     accessorKey: "destination",
     header: "Destino",
     cell: ({ row }) => {
-      const destinationId = row.getValue("destination") as number
-      const destinationBudget = budgets.find(b => b.id === destinationId)
-      return destinationBudget ? `${destinationBudget.category} ${destinationBudget.year}` : "Não encontrado"
+      const destination = row.getValue("destination") as Budget | number
+      if (typeof destination === 'object' && destination) {
+        return `${destination.category} ${destination.year}`
+      } else if (typeof destination === 'number') {
+        const destinationBudget = budgets.find(b => b.id === destination)
+        return destinationBudget ? `${destinationBudget.category} ${destinationBudget.year}` : "Não encontrado"
+      }
+      return "Não encontrado"
     },
   },
   {

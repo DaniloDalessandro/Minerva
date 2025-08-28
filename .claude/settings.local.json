@@ -13,7 +13,11 @@
       "Bash(.\\venv\\Scripts\\activate)",
       "Bash(call venv\\Scripts\\activate.bat)",
       "Bash(venv\\Scripts\\python.exe manage.py shell:*)",
-      "Bash(del \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\budget\\test_center_api.py\")"
+      "Bash(del \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\budget\\test_center_api.py\")",
+      "Bash(npm run dev:*)",
+      "Bash(venvScriptspython.exe manage.py:*)",
+      "Bash(./venv/Scripts/activate)",
+      "Bash(python test_budget_debug.py:*)"
     ],
     "deny": []
   }

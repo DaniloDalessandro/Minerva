@@ -25,7 +25,7 @@ interface BudgetFormProps {
   open: boolean;
   handleClose: () => void;
   initialData: Budget | null;
-  onSubmit: (data: Budget) => void;
+  onSubmit: (data: any) => void;
   isSubmitting?: boolean;
 }
 

@@ -67,6 +67,14 @@ export interface BudgetMovement {
   };
 }
 
+export interface CreateBudgetData {
+  year: number;
+  category: 'CAPEX' | 'OPEX';
+  management_center_id: number;
+  total_amount: string;
+  status: 'ATIVO' | 'INATIVO';
+}
+
 export interface CreateBudgetMovementData {
   source: number;
   destination: number;
@@ -134,6 +142,7 @@ export interface Contract {
 }
 
 const API_BASE_URL = "http://localhost:8000/api/v1/budget/budgets/";
+const MOVEMENTS_API_BASE_URL = "http://localhost:8000/api/v1/budget/movements/";
 
 export async function fetchBudgets(page = 1, pageSize = 10, search = "", ordering = "") {
   const params = new URLSearchParams({
@@ -200,54 +209,19 @@ export async function fetchBudgetContracts(budgetId: number): Promise<Contract[]
   }
 }
 
-export async function createBudget(data: {
-  year: number;
-  category: 'CAPEX' | 'OPEX';
-  management_center_id: number;
-  total_amount: string;
-  available_amount: string;
-  status: 'ATIVO' | 'INATIVO';
-}) {
-  // Transform the data to match backend expectations
-  const transformedData = {
-    year: data.year,
-    category: data.category,
-    management_center_id: data.management_center_id, // Backend expects 'management_center_id'
-    total_amount: data.total_amount,
-    status: data.status
-    // Note: available_amount is read-only and automatically set by the serializer
-  };
-  
+export async function createBudget(data: CreateBudgetData) {
   const res = await authFetch(`${API_BASE_URL}create/`, {
     method: "POST",
-    body: JSON.stringify(transformedData),
+    body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Erro ao criar orçamento");
   return res.json();
 }
 
-export async function updateBudget(data: {
-  id: number;
-  year: number;
-  category: 'CAPEX' | 'OPEX';
-  management_center_id: number;
-  total_amount: string;
-  available_amount: string;
-  status: 'ATIVO' | 'INATIVO';
-}) {
-  // Transform the data to match backend expectations
-  const transformedData = {
-    year: data.year,
-    category: data.category,
-    management_center_id: data.management_center_id, // Backend expects 'management_center_id'
-    total_amount: data.total_amount,
-    available_amount: data.available_amount, // For updates, available_amount might need to be sent
-    status: data.status,
-  };
-  
-  const res = await authFetch(`${API_BASE_URL}${data.id}/update/`, {
+export async function updateBudget(id: number, data: CreateBudgetData) {
+  const res = await authFetch(`${API_BASE_URL}${id}/update/`, {
     method: "PUT",
-    body: JSON.stringify(transformedData),
+    body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Erro ao atualizar orçamento");
   return res.json();
@@ -264,5 +238,37 @@ export async function deleteBudget(id: number) {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Erro ao deletar orçamento");
+  return true;
+}
+
+export async function getBudgetMovements() {
+  const res = await authFetch(`${MOVEMENTS_API_BASE_URL}`);
+  if (!res.ok) throw new Error("Erro ao buscar movimentações");
+  return res.json();
+}
+
+export async function createBudgetMovement(data: CreateBudgetMovementData) {
+  const res = await authFetch(`${MOVEMENTS_API_BASE_URL}create/`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erro ao criar movimentação");
+  return res.json();
+}
+
+export async function updateBudgetMovement(id: number, data: CreateBudgetMovementData) {
+  const res = await authFetch(`${MOVEMENTS_API_BASE_URL}${id}/update/`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erro ao atualizar movimentação");
+  return res.json();
+}
+
+export async function deleteBudgetMovement(id: number) {
+  const res = await authFetch(`${MOVEMENTS_API_BASE_URL}${id}/delete/`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Erro ao deletar movimentação");
   return true;
 }

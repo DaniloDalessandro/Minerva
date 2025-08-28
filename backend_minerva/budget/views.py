@@ -73,9 +73,24 @@ class BudgetCreateView(generics.CreateAPIView):
 
 
 class BudgetDetailView(generics.RetrieveAPIView):
-    queryset = Budget.objects.all()
+    queryset = Budget.objects.select_related('management_center', 'created_by', 'updated_by')
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    
+    def get_object(self):
+        logger = logging.getLogger(__name__)
+        pk = self.kwargs.get('pk')
+        logger.info(f"Trying to retrieve budget with ID: {pk}")
+        
+        try:
+            obj = super().get_object()
+            logger.info(f"Budget found: {obj}")
+            return obj
+        except Exception as e:
+            logger.error(f"Budget with ID {pk} not found: {str(e)}")
+            all_budgets = Budget.objects.all()
+            logger.info(f"Available budgets: {[budget.id for budget in all_budgets]}")
+            raise
 
 
 class BudgetUpdateView(generics.UpdateAPIView):
@@ -141,7 +156,7 @@ class BudgetDeleteView(generics.DestroyAPIView):
 
 # Budget Movement Views
 class BudgetMovementListView(generics.ListAPIView):
-    queryset = BudgetMovement.objects.select_related('budget', 'created_by', 'updated_by')
+    queryset = BudgetMovement.objects.select_related('source', 'destination', 'created_by', 'updated_by')
     serializer_class = BudgetMovementSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

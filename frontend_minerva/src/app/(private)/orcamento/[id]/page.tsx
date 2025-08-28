@@ -2,75 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { fetchBudgetById, Budget, fetchBudgetLines, fetchBudgetContracts, BudgetLine, Contract } from "@/lib/api/budgets"
+import { fetchBudgetById, Budget } from "@/lib/api/budgets"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DataTable } from "@/components/ui/data-table"
-
-// Budget Lines columns for table
-const budgetLinesColumns = [
-  {
-    accessorKey: "expense_type",
-    header: "Tipo de Despesa",
-  },
-  {
-    accessorKey: "summary_description",
-    header: "Descrição Resumida",
-    cell: ({ row }: { row: { original: BudgetLine } }) => row.original.summary_description || "-",
-  },
-  {
-    accessorKey: "budgeted_amount",
-    header: "Valor Orçado",
-    cell: ({ row }: { row: { original: BudgetLine } }) => {
-      const amount = row.original.budgeted_amount;
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(amount);
-    },
-  },
-  {
-    accessorKey: "process_status",
-    header: "Status do Processo",
-    cell: ({ row }: { row: { original: BudgetLine } }) => row.original.process_status || "-",
-  },
-]
-
-// Contracts columns for table
-const contractsColumns = [
-  {
-    accessorKey: "protocol_number",
-    header: "Número do Protocolo",
-  },
-  {
-    accessorKey: "description",
-    header: "Descrição",
-  },
-  {
-    accessorKey: "current_value",
-    header: "Valor Atual",
-    cell: ({ row }: { row: { original: Contract } }) => {
-      const amount = parseFloat(row.original.current_value);
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(amount);
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }: { row: { original: Contract } }) => (
-      <Badge variant={row.original.status === 'ATIVO' ? 'default' : 'secondary'}>
-        {row.original.status}
-      </Badge>
-    ),
-  },
-]
 
 export default function BudgetDetailsPage() {
   const params = useParams()
@@ -78,8 +15,6 @@ export default function BudgetDetailsPage() {
   const budgetId = Number(params.id)
   
   const [budget, setBudget] = useState<Budget | null>(null)
-  const [budgetLines, setBudgetLines] = useState<BudgetLine[]>([])
-  const [contracts, setContracts] = useState<Contract[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -88,17 +23,9 @@ export default function BudgetDetailsPage() {
       try {
         setLoading(true)
         
-        // Load budget details
+        // Load budget details only
         const budgetData = await fetchBudgetById(budgetId)
         setBudget(budgetData)
-        
-        // Load budget lines
-        const budgetLinesData = await fetchBudgetLines(budgetId)
-        setBudgetLines(budgetLinesData.results || budgetLinesData)
-        
-        // Load contracts
-        const contractsData = await fetchBudgetContracts(budgetId)
-        setContracts(contractsData)
         
       } catch (err) {
         console.error("Erro ao carregar detalhes do orçamento:", err)
@@ -209,7 +136,9 @@ export default function BudgetDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-lg font-semibold">{budget.management_center?.name}</p>
+            <p className="text-lg font-semibold">
+              {budget.management_center?.name || "N/A"}
+            </p>
           </CardContent>
         </Card>
 
@@ -273,43 +202,24 @@ export default function BudgetDetailsPage() {
           </CardContent>
         </Card>
 
-        {/* Tabs for Budget Lines and Contracts */}
+        {/* Additional Budget Information */}
         <Card>
-          <CardContent className="pt-6">
-            <Tabs defaultValue="budgetlines" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="budgetlines">
-                  Linhas Orçamentárias ({budgetLines.length})
-                </TabsTrigger>
-                <TabsTrigger value="contracts">
-                  Contratos ({contracts.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="budgetlines" className="mt-4">
-                <DataTable
-                  columns={budgetLinesColumns}
-                  data={budgetLines}
-                  title=""
-                  pageSize={10}
-                  pageIndex={0}
-                  totalCount={budgetLines.length}
-                  readOnly={true}
-                />
-              </TabsContent>
-              
-              <TabsContent value="contracts" className="mt-4">
-                <DataTable
-                  columns={contractsColumns}
-                  data={contracts}
-                  title=""
-                  pageSize={10}
-                  pageIndex={0}
-                  totalCount={contracts.length}
-                  readOnly={true}
-                />
-              </TabsContent>
-            </Tabs>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">
+              Informações Adicionais
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">ID do Orçamento</p>
+                <p className="text-lg">{budget.id}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Percentual Utilizado</p>
+                <p className="text-lg">{usagePercentage}%</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -326,7 +236,9 @@ export default function BudgetDetailsPage() {
               {budget.created_by && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                   <UserIcon className="h-3 w-3" />
-                  {budget.created_by.email}
+                  {budget.created_by.first_name && budget.created_by.last_name 
+                    ? `${budget.created_by.first_name} ${budget.created_by.last_name}`
+                    : budget.created_by.email}
                 </p>
               )}
             </CardContent>
@@ -343,7 +255,9 @@ export default function BudgetDetailsPage() {
               {budget.updated_by && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                   <UserIcon className="h-3 w-3" />
-                  {budget.updated_by.email}
+                  {budget.updated_by.first_name && budget.updated_by.last_name 
+                    ? `${budget.updated_by.first_name} ${budget.updated_by.last_name}`
+                    : budget.updated_by.email}
                 </p>
               )}
             </CardContent>

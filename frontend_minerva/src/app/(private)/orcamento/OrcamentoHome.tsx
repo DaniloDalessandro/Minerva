@@ -19,7 +19,7 @@ import { Plus, Search } from "lucide-react"
 import { 
   Budget, 
   BudgetMovement,
-  getBudgets,
+  fetchBudgets,
   getBudgetMovements,
   createBudget,
   createBudgetMovement,
@@ -32,7 +32,7 @@ import {
 } from "@/lib/api/budgets"
 import { getManagementCenters, ManagementCenter } from "@/lib/api/centers"
 import { budgetColumns, budgetMovementColumns } from "./budget-columns"
-import { BudgetForm } from "@/components/forms/BudgetForm"
+import BudgetForm from "@/components/forms/BudgetForm"
 import { BudgetMovementForm } from "@/components/forms/BudgetMovementForm"
 import { useDebounce } from "@/hooks/useDebounce"
 
@@ -62,7 +62,7 @@ export default function OrcamentoHome() {
     try {
       setIsLoading(true)
       const [budgetsRes, movementsRes, centersRes] = await Promise.all([
-        getBudgets(),
+        fetchBudgets(),
         getBudgetMovements(),
         getManagementCenters()
       ])
@@ -244,12 +244,11 @@ export default function OrcamentoHome() {
 
       {formType === 'budget' && (
         <BudgetForm
-          isOpen={isFormOpen}
-          onClose={handleCloseForm}
+          open={isFormOpen}
+          handleClose={handleCloseForm}
           onSubmit={handleBudgetSubmit}
-          budget={selectedBudget || undefined}
-          managementCenters={managementCenters}
-          isLoading={isSubmitting}
+          initialData={selectedBudget}
+          isSubmitting={isSubmitting}
         />
       )}
 
