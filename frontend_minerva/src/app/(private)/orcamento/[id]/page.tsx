@@ -6,7 +6,7 @@ import { fetchBudgetById, Budget, createBudgetMovement, CreateBudgetMovementData
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeft, ArrowLeftRightIcon, InfoIcon, TagIcon, CheckCircleIcon } from "lucide-react"
+import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeftRightIcon, InfoIcon, TagIcon, CheckCircleIcon, FileTextIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { BudgetMovementHistory } from "@/components/budget/BudgetMovementHistory"
@@ -71,6 +71,20 @@ export default function BudgetDetailsPage() {
     setIsMovementFormOpen(true)
   }
 
+  const handleGenerateReport = () => {
+    // TODO: Implementar geração de PDF do relatório de orçamento
+    console.log("Generating budget report for:", budget?.id)
+    // Placeholder para a funcionalidade de geração de relatório
+    alert("Funcionalidade de geração de relatório será implementada em breve")
+  }
+
+  const handleCreateNewBudgetLine = () => {
+    // TODO: Implementar criação de nova linha orçamentária
+    console.log("Creating new budget line for budget:", budget?.id)
+    // Placeholder para a funcionalidade de criação de linha orçamentária
+    alert("Funcionalidade de criação de nova linha orçamentária será implementada em breve")
+  }
+
   const handleMovementSubmit = async (data: CreateBudgetMovementData) => {
     try {
       setIsSubmitting(true)
@@ -117,27 +131,17 @@ export default function BudgetDetailsPage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      {/* Compact Header with Back Button and Title */}
+      {/* Header with Title */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Detalhes do Orçamento - {budget.year}
-            </h1>
-            <p className="text-sm text-muted-foreground">Visualização completa do orçamento</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Detalhes do Orçamento - {budget.year}
+          </h1>
+          <p className="text-sm text-muted-foreground">Visualização completa do orçamento</p>
         </div>
-        <Button onClick={handleNewMovement} className="flex items-center gap-2">
-          <ArrowLeftRightIcon className="h-4 w-4" />
-          Nova Movimentação
+        <Button onClick={handleGenerateReport} className="flex items-center gap-2">
+          <FileTextIcon className="h-4 w-4" />
+          Gerar Relatório
         </Button>
       </div>
       
@@ -259,6 +263,7 @@ export default function BudgetDetailsPage() {
           <BudgetLines 
             budgetLines={budget.budget_lines}
             budgetLinesSummary={budget.budget_lines_summary}
+            onCreateNewBudgetLine={handleCreateNewBudgetLine}
           />
         )}
       </div>

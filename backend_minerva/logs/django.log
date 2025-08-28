@@ -1,0 +1,15 @@
+INFO 2025-08-27 13:58:09,892 autoreload 15008 29504 Watching for file changes with StatReloader
+INFO 2025-08-27 13:58:19,356 views 15008 1404 Budget list request by user test@test.com
+INFO 2025-08-27 13:58:19,373 basehttp 15008 1404 "GET /api/v1/budget/budgets/?search=dop HTTP/1.1" 200 553
+INFO 2025-08-27 13:58:26,123 views 15008 29192 Budget list request by user test@test.com
+INFO 2025-08-27 13:58:26,132 basehttp 15008 29192 "GET /api/v1/budget/budgets/?year=2025&category=OPEX HTTP/1.1" 200 553
+INFO 2025-08-27 13:58:33,124 views 15008 1316 Management center list request by user test@test.com
+INFO 2025-08-27 13:58:33,129 basehttp 15008 1316 "GET /api/v1/center/management-centers/?search=dop HTTP/1.1" 200 257
+INFO 2025-08-27 13:58:40,971 views 15008 11852 Budget creation attempt by user test@test.com with data: {'year': 2025, 'category': 'OPEX', 'management_center_id': 1, 'total_amount': 50000.0}
+ERROR 2025-08-27 13:58:40,973 views 15008 11852 Unexpected error in budget creation: {'non_field_errors': [ErrorDetail(string='Já existe um orçamento para o ano de 2025, categoria OPEX e centro gestor dop.', code='invalid')]}
+ERROR 2025-08-27 13:58:40,973 log 15008 11852 Internal Server Error: /api/v1/budget/budgets/create/
+ERROR 2025-08-27 13:58:40,974 basehttp 15008 11852 "POST /api/v1/budget/budgets/create/ HTTP/1.1" 500 103
+INFO 2025-08-27 14:01:15,875 views 15008 28360 Budget list request by user alice@email.com
+INFO 2025-08-27 14:01:15,882 basehttp 15008 28360 "GET /api/v1/budget/budgets/?page=1&page_size=10 HTTP/1.1" 200 553
+INFO 2025-08-27 14:01:52,650 basehttp 15008 28360 "OPTIONS /api/v1/budget/budgets/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-08-27 14:03:15,349 autoreload 15008 29504 C:\Users\danilo.ecopel\Documents\PROJETOS\PYTHON\Sys_Minerva\Minerva\backend_minerva\core\settings.py changed, reloading.

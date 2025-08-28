@@ -15,7 +15,8 @@ import {
   TagIcon,
   CheckCircle2Icon,
   AlertCircleIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  PlusIcon
 } from "lucide-react"
 import { BudgetLineListItem, BudgetLinesSummary } from "@/lib/api/budgets"
 import BudgetLineVersionHistory from "./BudgetLineVersionHistory"
@@ -23,9 +24,10 @@ import BudgetLineVersionHistory from "./BudgetLineVersionHistory"
 interface BudgetLinesProps {
   budgetLines: BudgetLineListItem[]
   budgetLinesSummary: BudgetLinesSummary
+  onCreateNewBudgetLine?: () => void
 }
 
-export function BudgetLines({ budgetLines, budgetLinesSummary }: BudgetLinesProps) {
+export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudgetLine }: BudgetLinesProps) {
   const [selectedLineId, setSelectedLineId] = useState<number | null>(null)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
 
@@ -98,10 +100,18 @@ export function BudgetLines({ budgetLines, budgetLinesSummary }: BudgetLinesProp
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2">
-          <ClipboardListIcon className="h-5 w-5" />
-          Linhas Orçamentárias Vinculadas
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardListIcon className="h-5 w-5" />
+            Linhas Orçamentárias Vinculadas
+          </CardTitle>
+          {onCreateNewBudgetLine && (
+            <Button onClick={onCreateNewBudgetLine} className="flex items-center gap-2">
+              <PlusIcon className="h-4 w-4" />
+              Gerar Nova Linha Orçamentária
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Summary Statistics */}

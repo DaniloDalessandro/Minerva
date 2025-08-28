@@ -70,7 +70,7 @@ class BudgetMovementAdmin(admin.ModelAdmin):
         'created_by',
         'updated_by',
         'created_at',
-        'update_at',
+        'updated_at',
     )
     list_filter = (
         'movement_date',
@@ -87,7 +87,7 @@ class BudgetMovementAdmin(admin.ModelAdmin):
         'updated_by',
         'movement_date',
         'created_at',
-        'update_at',
+        'updated_at',
     )
     fieldsets = (
         (None, {
@@ -105,7 +105,7 @@ class BudgetMovementAdmin(admin.ModelAdmin):
                 'updated_by',
                 'movement_date',
                 'created_at',
-                'update_at',
+                'updated_at',
             )
         }),
     )

@@ -18,8 +18,23 @@
       "Bash(venvScriptspython.exe manage.py:*)",
       "Bash(./venv/Scripts/activate)",
       "Bash(python test_budget_debug.py:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(python manage.py:*)",
+      "Bash(.venvScriptspython.exe manage.py makemigrations budgetline)",
+      "Bash(./venv/Scripts/python.exe manage.py makemigrations budgetline)",
+      "Bash(./venv/Scripts/python.exe manage.py makemigrations:*)",
+      "Bash(node:*)",
+      "Bash(npm install)",
+      "Bash(..venvScriptsactivate.bat)",
+      "Bash(npx tsc:*)",
+      "Bash(pip install:*)",
+      "Bash(venvScripts:*)",
+      "Bash(\"venv/Scripts/python.exe\" -m pip install reportlab)",
+      "Bash(\"venv/Scripts/python.exe\" manage.py check)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
+    ]
   }
 }

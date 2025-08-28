@@ -4,7 +4,8 @@ from .views import (
     BudgetUpdateView, BudgetDeleteView,
     BudgetMovementListView, BudgetMovementCreateView,
     BudgetMovementDetailView, BudgetMovementUpdateView,
-    BudgetMovementDeleteView, budget_form_metadata
+    BudgetMovementDeleteView, budget_form_metadata,
+    generate_budget_report_pdf, generate_budget_summary_report_pdf
 )
 
 urlpatterns = [
@@ -24,4 +25,8 @@ urlpatterns = [
     
     # Utility URLs for forms
     path('form-metadata/', budget_form_metadata, name='budget-form-metadata'),
+    
+    # PDF Report URLs
+    path('budgets/<int:budget_id>/report/pdf/', generate_budget_report_pdf, name='budget-report-pdf'),
+    path('budgets/summary/pdf/', generate_budget_summary_report_pdf, name='budget-summary-pdf'),
 ]

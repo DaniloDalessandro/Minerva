@@ -12,6 +12,10 @@ from .views import (
     BudgetLineMovementRetrieveAPIView,
     BudgetLineMovementUpdateAPIView,
     BudgetLineMovementDestroyAPIView,
+    #==============================
+    BudgetLineVersionListAPIView,
+    BudgetLineVersionRetrieveAPIView,
+    BudgetLineVersionCreateAPIView,
 )
 
 urlpatterns = [
@@ -26,4 +30,9 @@ urlpatterns = [
     path('budgetlinemovements/<int:pk>/', BudgetLineMovementRetrieveAPIView.as_view(), name='budgetlinemovement-retrieve'),
     path('budgetlinemovements/<int:pk>/update/', BudgetLineMovementUpdateAPIView.as_view(), name='budgetlinemovement-update'),
     path('budgetlinemovements/<int:pk>/delete/', BudgetLineMovementDestroyAPIView.as_view(), name='budgetlinemovement-destroy'),
+    #==============================
+    path('budgetslines/<int:budget_line_id>/versions/', BudgetLineVersionListAPIView.as_view(), name='budgetline-versions-list'),
+    path('budgetslines/versions/', BudgetLineVersionListAPIView.as_view(), name='budgetline-all-versions-list'),
+    path('budgetslines/versions/<int:pk>/', BudgetLineVersionRetrieveAPIView.as_view(), name='budgetline-version-detail'),
+    path('budgetslines/versions/create/', BudgetLineVersionCreateAPIView.as_view(), name='budgetline-version-create'),
 ]

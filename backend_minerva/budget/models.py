@@ -61,7 +61,7 @@ class BudgetMovement(models.Model):
     movement_date = models.DateField(auto_now_add=True,verbose_name='Data da Movimentação')
     notes = models.TextField(blank=True, null=True,verbose_name='Observações')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
-    update_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
+    updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
     created_by = models.ForeignKey(User, related_name='budget_movements_created', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Criado por')
     updated_by = models.ForeignKey(User, related_name='budget_movements_updated', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Atualizado por')
     

@@ -23,6 +23,98 @@ class BudgetSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at', 'available_amount']
 
+
+class BudgetDetailSerializer(BudgetSerializer):
+    """
+    Serializer detalhado para Budget incluindo linhas orçamentárias vinculadas
+    """
+    # Linhas orçamentárias vinculadas
+    budget_lines = serializers.SerializerMethodField()
+    
+    # Estatísticas das linhas orçamentárias
+    budget_lines_summary = serializers.SerializerMethodField()
+    
+    # Histórico de movimentações
+    movements_summary = serializers.SerializerMethodField()
+    
+    class Meta(BudgetSerializer.Meta):
+        fields = BudgetSerializer.Meta.fields + [
+            'budget_lines', 'budget_lines_summary', 'movements_summary'
+        ]
+    
+    def get_budget_lines(self, obj):
+        """
+        Retorna as linhas orçamentárias vinculadas ao orçamento com informações detalhadas
+        """
+        from budgetline.serializers import BudgetLineDetailSerializer
+        
+        # Busca as linhas com prefetch para otimização
+        budget_lines = obj.budget_lines.select_related(
+            'management_center', 'requesting_center', 'main_fiscal', 
+            'secondary_fiscal', 'created_by', 'updated_by'
+        ).prefetch_related('versions').order_by('-created_at')
+        
+        return BudgetLineDetailSerializer(budget_lines, many=True).data
+    
+    def get_budget_lines_summary(self, obj):
+        """
+        Retorna um resumo das linhas orçamentárias
+        """
+        budget_lines = obj.budget_lines.all()
+        total_budgeted = sum(line.budgeted_amount for line in budget_lines)
+        
+        # Contagem por status de processo
+        process_status_counts = {}
+        for line in budget_lines:
+            status = line.process_status or 'N/A'
+            process_status_counts[status] = process_status_counts.get(status, 0) + 1
+        
+        # Contagem por status de contrato
+        contract_status_counts = {}
+        for line in budget_lines:
+            status = line.contract_status or 'N/A'
+            contract_status_counts[status] = contract_status_counts.get(status, 0) + 1
+        
+        # Contagem por tipo de despesa
+        expense_type_counts = {}
+        for line in budget_lines:
+            expense_type = line.expense_type or 'N/A'
+            expense_type_counts[expense_type] = expense_type_counts.get(expense_type, 0) + 1
+        
+        return {
+            'total_lines': budget_lines.count(),
+            'total_budgeted_amount': float(total_budgeted),
+            'remaining_amount': float(obj.available_amount),
+            'utilization_percentage': round((float(total_budgeted) / float(obj.total_amount)) * 100, 2) if obj.total_amount > 0 else 0,
+            'process_status_distribution': process_status_counts,
+            'contract_status_distribution': contract_status_counts,
+            'expense_type_distribution': expense_type_counts
+        }
+    
+    def get_movements_summary(self, obj):
+        """
+        Retorna um resumo das movimentações do orçamento
+        """
+        # Movimentações onde este orçamento é origem (saídas)
+        outgoing_movements = obj.outgoing_movements.all()
+        total_outgoing = sum(movement.amount for movement in outgoing_movements)
+        
+        # Movimentações onde este orçamento é destino (entradas)
+        incoming_movements = obj.incoming_movements.all()
+        total_incoming = sum(movement.amount for movement in incoming_movements)
+        
+        return {
+            'total_outgoing_movements': outgoing_movements.count(),
+            'total_incoming_movements': incoming_movements.count(),
+            'total_outgoing_amount': float(total_outgoing),
+            'total_incoming_amount': float(total_incoming),
+            'net_movement': float(total_incoming - total_outgoing),
+            'last_movement_date': max(
+                [m.movement_date for m in list(outgoing_movements) + list(incoming_movements)],
+                default=None
+            )
+        }
+
     def create(self, validated_data):
         logger = logging.getLogger(__name__)
         logger.info(f"Creating budget with validated_data: {validated_data}")

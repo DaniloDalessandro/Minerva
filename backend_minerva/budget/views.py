@@ -5,11 +5,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import IntegrityError
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 import logging
 
 from .models import Budget, BudgetMovement
-from .serializers import BudgetSerializer, BudgetMovementSerializer
+from .serializers import BudgetSerializer, BudgetDetailSerializer, BudgetMovementSerializer
 from .utils.messages import BUDGET_MSGS, BUDGET_MOVEMENT_MSGS
+from .utils.pdf_generator import generate_budget_pdf, generate_budget_summary_pdf
 from center.models import Management_Center
 from center.serializers import ManagementCenterSerializer
 
@@ -73,9 +76,30 @@ class BudgetCreateView(generics.CreateAPIView):
 
 
 class BudgetDetailView(generics.RetrieveAPIView):
-    queryset = Budget.objects.select_related('management_center', 'created_by', 'updated_by')
-    serializer_class = BudgetSerializer
+    serializer_class = BudgetDetailSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    
+    def get_queryset(self):
+        """
+        Otimiza a query para incluir todas as informações relacionadas necessárias
+        """
+        return Budget.objects.select_related(
+            'management_center', 'created_by', 'updated_by'
+        ).prefetch_related(
+            # Prefetch linhas orçamentárias com seus relacionamentos
+            'budget_lines__management_center',
+            'budget_lines__requesting_center', 
+            'budget_lines__main_fiscal',
+            'budget_lines__secondary_fiscal',
+            'budget_lines__created_by',
+            'budget_lines__updated_by',
+            'budget_lines__versions',
+            # Prefetch movimentações
+            'outgoing_movements__destination__management_center',
+            'incoming_movements__source__management_center',
+            'outgoing_movements__created_by',
+            'incoming_movements__created_by'
+        )
     
     def get_object(self):
         logger = logging.getLogger(__name__)
@@ -85,6 +109,7 @@ class BudgetDetailView(generics.RetrieveAPIView):
         try:
             obj = super().get_object()
             logger.info(f"Budget found: {obj}")
+            logger.info(f"Budget has {obj.budget_lines.count()} budget lines")
             return obj
         except Exception as e:
             logger.error(f"Budget with ID {pk} not found: {str(e)}")
@@ -247,5 +272,139 @@ def budget_form_metadata(request):
     except Exception as e:
         return Response(
             {'error': 'Erro ao carregar metadata do formulário', 'details': str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# PDF Report Views
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_budget_report_pdf(request, budget_id):
+    """
+    Gera e retorna um relatório PDF completo para um orçamento específico.
+    Inclui dados básicos, linhas orçamentárias e histórico de movimentações.
+    """
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Buscar o orçamento com otimizações de query
+        budget = get_object_or_404(
+            Budget.objects.select_related(
+                'management_center', 'created_by', 'updated_by'
+            ).prefetch_related(
+                'budget_lines__management_center',
+                'budget_lines__requesting_center', 
+                'budget_lines__main_fiscal',
+                'budget_lines__secondary_fiscal',
+                'budget_lines__created_by',
+                'budget_lines__updated_by',
+                'outgoing_movements__destination__management_center',
+                'incoming_movements__source__management_center',
+                'outgoing_movements__created_by',
+                'incoming_movements__created_by'
+            ),
+            pk=budget_id
+        )
+        
+        logger.info(f"Generating PDF report for budget ID: {budget_id}")
+        
+        # Gerar o PDF
+        pdf_buffer = generate_budget_pdf(budget)
+        
+        # Preparar a resposta HTTP com o PDF
+        response = HttpResponse(pdf_buffer.read(), content_type='application/pdf')
+        filename = f"relatorio_orcamento_{budget.year}_{budget.category}_{budget.management_center.name.replace(' ', '_')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        logger.info(f"PDF report generated successfully for budget ID: {budget_id}")
+        return response
+        
+    except Budget.DoesNotExist:
+        logger.error(f"Budget with ID {budget_id} not found")
+        return Response(
+            {'error': 'Orçamento não encontrado', 'message': 'O orçamento especificado não existe.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error generating PDF report for budget ID {budget_id}: {str(e)}")
+        return Response(
+            {
+                'error': 'Erro ao gerar relatório PDF',
+                'message': 'Ocorreu um erro interno durante a geração do relatório. Tente novamente mais tarde.',
+                'details': str(e)
+            }, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_budget_summary_report_pdf(request):
+    """
+    Gera e retorna um relatório PDF resumido com múltiplos orçamentos.
+    Aceita parâmetros de filtro via query string (year, category, management_center, status).
+    """
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Construir queryset com base nos filtros fornecidos
+        budgets_queryset = Budget.objects.select_related(
+            'management_center', 'created_by', 'updated_by'
+        )
+        
+        # Aplicar filtros baseados nos parâmetros da query string
+        year_filter = request.GET.get('year')
+        if year_filter:
+            budgets_queryset = budgets_queryset.filter(year=year_filter)
+        
+        category_filter = request.GET.get('category')
+        if category_filter:
+            budgets_queryset = budgets_queryset.filter(category=category_filter)
+        
+        management_center_filter = request.GET.get('management_center')
+        if management_center_filter:
+            budgets_queryset = budgets_queryset.filter(management_center_id=management_center_filter)
+        
+        status_filter = request.GET.get('status')
+        if status_filter:
+            budgets_queryset = budgets_queryset.filter(status=status_filter)
+        
+        # Ordenar resultados
+        budgets_queryset = budgets_queryset.order_by('-year', 'category', 'management_center__name')
+        
+        logger.info(f"Generating summary PDF report for {budgets_queryset.count()} budgets")
+        
+        if not budgets_queryset.exists():
+            return Response(
+                {'error': 'Nenhum orçamento encontrado', 'message': 'Não há orçamentos que correspondam aos filtros aplicados.'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Gerar o PDF
+        pdf_buffer = generate_budget_summary_pdf(budgets_queryset)
+        
+        # Preparar a resposta HTTP com o PDF
+        response = HttpResponse(pdf_buffer.read(), content_type='application/pdf')
+        filename_parts = []
+        if year_filter:
+            filename_parts.append(f"ano_{year_filter}")
+        if category_filter:
+            filename_parts.append(f"{category_filter.lower()}")
+        
+        filename_suffix = "_".join(filename_parts) if filename_parts else "todos"
+        filename = f"relatorio_resumo_orcamentos_{filename_suffix}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        logger.info(f"Summary PDF report generated successfully for {budgets_queryset.count()} budgets")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error generating summary PDF report: {str(e)}")
+        return Response(
+            {
+                'error': 'Erro ao gerar relatório resumo PDF',
+                'message': 'Ocorreu um erro interno durante a geração do relatório. Tente novamente mais tarde.',
+                'details': str(e)
+            }, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
