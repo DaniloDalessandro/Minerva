@@ -1,6 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Management_Center, Requesting_Center
 from .serializers import ManagementCenterSerializer, RequestingCenterSerializer
@@ -15,6 +17,10 @@ class ManagementCenterListView(generics.ListAPIView):
     queryset = Management_Center.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at', 'updated_at']
+    ordering = ['-created_at']
 
 
 class ManagementCenterCreateView(generics.CreateAPIView):
@@ -76,9 +82,13 @@ class ManagementCenterDeleteView(generics.DestroyAPIView):
 # --------------------------------------------------------------------------------------------------------------------
 
 class RequestingCenterListView(generics.ListAPIView):
-    queryset = Requesting_Center.objects.all()
+    queryset = Requesting_Center.objects.select_related('management_center')
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description', 'management_center__name']
+    ordering_fields = ['name', 'created_at', 'updated_at', 'management_center__name']
+    ordering = ['-created_at']
 
 
 class RequestingCenterCreateView(generics.CreateAPIView):

@@ -14,8 +14,17 @@ export const columns: ColumnDef<Budget>[] = [
   {
     accessorKey: "management_center",
     header: "Centro Gestor",
-    enableSorting: false,
-    cell: ({ row }) => row.original.management_center?.name ?? "-",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const isOptimistic = row.original.isOptimistic;
+      const centerName = row.original.management_center?.name;
+      
+      if (isOptimistic && !centerName) {
+        return <span className="text-gray-400 italic">Carregando...</span>;
+      }
+      
+      return centerName ?? "-";
+    },
     meta: {
       showFilterIcon: true,
     },
@@ -70,11 +79,21 @@ export const columns: ColumnDef<Budget>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={row.original.status === 'ATIVO' ? 'default' : 'secondary'}>
-        {row.original.status}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const isOptimistic = row.original.isOptimistic;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant={row.original.status === 'ATIVO' ? 'default' : 'secondary'}>
+            {row.original.status}
+          </Badge>
+          {isOptimistic && (
+            <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+              Salvando...
+            </Badge>
+          )}
+        </div>
+      );
+    },
     meta: {
       showFilterIcon: true,
     },

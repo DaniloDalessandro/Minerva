@@ -4,7 +4,7 @@ from .views import (
     BudgetUpdateView, BudgetDeleteView,
     BudgetMovementListView, BudgetMovementCreateView,
     BudgetMovementDetailView, BudgetMovementUpdateView,
-    BudgetMovementDeleteView
+    BudgetMovementDeleteView, budget_form_metadata
 )
 
 urlpatterns = [
@@ -21,4 +21,7 @@ urlpatterns = [
     path('movements/<int:pk>/', BudgetMovementDetailView.as_view(), name='movement-detail'),
     path('movements/<int:pk>/update/', BudgetMovementUpdateView.as_view(), name='movement-update'),
     path('movements/<int:pk>/delete/', BudgetMovementDeleteView.as_view(), name='movement-delete'),
+    
+    # Utility URLs for forms
+    path('form-metadata/', budget_form_metadata, name='budget-form-metadata'),
 ]

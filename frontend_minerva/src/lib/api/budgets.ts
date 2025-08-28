@@ -39,6 +39,7 @@ export interface Budget {
     first_name?: string;
     last_name?: string;
   };
+  isOptimistic?: boolean; // Flag for optimistic updates
 }
 
 export interface BudgetMovement {

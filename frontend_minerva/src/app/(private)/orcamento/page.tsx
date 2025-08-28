@@ -3,13 +3,37 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
-import { fetchBudgets, Budget, createBudget, updateBudget } from "@/lib/api/budgets";
+import { fetchBudgets, Budget, createBudget, updateBudget, deleteBudget } from "@/lib/api/budgets";
+import { fetchManagementCenters } from "@/lib/api/centers";
 import BudgetForm from "@/components/forms/BudgetForm";
+import { useOptimisticBudgets } from "@/hooks/useOptimisticBudgets";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function BudgetPage() {
-  // States for budget data
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [totalBudgets, setTotalBudgets] = useState(0);
+  // Use optimistic budgets hook for better state management
+  const {
+    budgets,
+    totalCount: totalBudgets,
+    isLoading,
+    setBudgets,
+    setTotalCount,
+    setLoading,
+    addOptimisticBudget,
+    replaceOptimisticBudget,
+    removeOptimisticBudget,
+    updateBudget: updateOptimisticBudget
+  } = useOptimisticBudgets();
+
+  // Pagination and filtering states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -20,8 +44,11 @@ export default function BudgetPage() {
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   
-  // Loading and error states
-  const [isLoading, setIsLoading] = useState(false);
+  // Delete dialog states
+  const [deleteBudgetDialogOpen, setDeleteBudgetDialogOpen] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<Budget | null>(null);
+  
+  // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const convertSortingToOrdering = (sorting: { id: string; desc: boolean }[]) => {
@@ -34,7 +61,7 @@ export default function BudgetPage() {
   // Load budgets function
   const loadBudgets = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       console.log("🔄 Loading budgets with params:", { page, pageSize, search, sorting, filters });
       
       const ordering = convertSortingToOrdering(sorting);
@@ -45,15 +72,15 @@ export default function BudgetPage() {
       
       const data = await fetchBudgets(page, pageSize, searchParam, ordering);
       setBudgets(data.results);
-      setTotalBudgets(data.count);
+      setTotalCount(data.count);
       console.log("✅ Budgets loaded successfully:", data.results.length, "items");
     } catch (error) {
       console.error("❌ Erro ao carregar orçamentos:", error);
       // Could add user-friendly error notification here
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [page, pageSize, search, sorting, filters]);
+  }, [page, pageSize, search, sorting, filters, setBudgets, setTotalCount, setLoading]);
 
   useEffect(() => {
     loadBudgets();
@@ -69,41 +96,93 @@ export default function BudgetPage() {
     setBudgetFormOpen(true);
   };
 
+  const handleEditBudget = (budget: Budget) => {
+    setEditingBudget(budget);
+    setBudgetFormOpen(true);
+  };
+
+  const handleDeleteBudget = (budget: Budget) => {
+    setBudgetToDelete(budget);
+    setDeleteBudgetDialogOpen(true);
+  };
+
+  const confirmDeleteBudget = async () => {
+    if (budgetToDelete?.id) {
+      try {
+        await deleteBudget(budgetToDelete.id);
+        await loadBudgets(); // Reload the list
+        if (budgets.length === 1 && page > 1) {
+          setPage(page - 1);
+        }
+      } catch (error) {
+        console.error("Erro ao excluir orçamento:", error);
+      } finally {
+        setDeleteBudgetDialogOpen(false);
+        setBudgetToDelete(null);
+      }
+    }
+  };
+
   const handleBudgetSubmit = async (budgetData: any) => {
+    let tempId: number | null = null;
+    
     try {
       setIsSubmitting(true);
       console.log("💾 Submitting budget data:", budgetData);
       
-      let result;
       const isEditing = budgetData.id;
       
       if (isEditing) {
         console.log("📝 Updating existing budget with ID:", budgetData.id);
-        result = await updateBudget(budgetData);
+        const result = await updateBudget(budgetData);
+        
+        // Extract the actual budget data from the API response
+        const updatedBudget = result.data || result;
+        console.log("✅ Budget update successful:", updatedBudget);
+        
+        // Update the budget in the list
+        updateOptimisticBudget(updatedBudget);
+        
       } else {
         console.log("➕ Creating new budget...");
-        result = await createBudget(budgetData);
+        
+        // Find the selected management center for better optimistic UI
+        const selectedCenter = budgetData.management_center_id ? 
+          await fetchManagementCenters(1, 1000).then(data => 
+            (data.results || data).find((center: any) => center.id === budgetData.management_center_id)
+          ).catch(() => null) : null;
+        
+        // Add optimistic entry for immediate UI feedback
+        tempId = addOptimisticBudget({
+          ...budgetData,
+          management_center: selectedCenter
+        });
+        
+        // Make the API call
+        const result = await createBudget(budgetData);
+        
+        // Extract the actual budget data from the API response
+        const newBudget = result.data || result;
+        console.log("✅ Budget creation successful:", newBudget);
+        
+        // Replace optimistic entry with real data
+        replaceOptimisticBudget(tempId, newBudget);
       }
       
-      console.log("✅ Budget operation successful:", result);
-      
-      // Close form first
+      // Close form
       setBudgetFormOpen(false);
       setEditingBudget(null);
       
-      // Then refresh the list with a small delay to ensure backend consistency
-      console.log("🔄 Refreshing budget list...");
-      setTimeout(async () => {
-        try {
-          await loadBudgets();
-          console.log("✅ Budget list refreshed successfully");
-        } catch (refreshError) {
-          console.error("❌ Error refreshing budget list:", refreshError);
-        }
-      }, 100);
+      console.log("✅ Budget operation completed successfully");
       
     } catch (error) {
       console.error("❌ Erro ao salvar orçamento:", error);
+      
+      // If this was a creation and we have a temporary ID, remove the optimistic entry
+      if (!budgetData.id && tempId !== null) {
+        removeOptimisticBudget(tempId);
+      }
+      
       // Handle error - show user notification here if needed
       // For now, we'll keep the form open so user can try again
     } finally {
@@ -127,6 +206,8 @@ export default function BudgetPage() {
             setPage(1);
           }}
           onAdd={handleAddBudget}
+          onEdit={handleEditBudget}
+          onDelete={handleDeleteBudget}
           onViewDetails={handleViewDetails}
           onFilterChange={(columnId, value) => {
             const newFilters = { ...filters };
@@ -155,6 +236,30 @@ export default function BudgetPage() {
           onSubmit={handleBudgetSubmit}
           isSubmitting={isSubmitting}
         />
+
+        <AlertDialog
+          open={deleteBudgetDialogOpen}
+          onOpenChange={setDeleteBudgetDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o orçamento do ano{" "}
+                {budgetToDelete?.year}?
+                {budgetToDelete?.management_center?.name && (
+                  <> (Centro Gestor: {budgetToDelete.management_center.name})</>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteBudget}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
       </div>
     </div>

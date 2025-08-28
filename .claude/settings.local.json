@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venvScriptsactivate)",
+      "Bash(python manage.py shell:*)",
+      "Bash(call venvScriptsactivate.bat)",
+      "Bash(sqlite3:*)",
+      "Bash(pip show:*)",
+      "Bash(python budget/test_budget_validation.py)",
+      "Bash(del \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\budget\\test_budget_validation.py\")",
+      "Bash(rm:*)",
+      "Bash(python manage.py runserver:*)",
+      "Bash(.\\venv\\Scripts\\activate)",
+      "Bash(call venv\\Scripts\\activate.bat)",
+      "Bash(venv\\Scripts\\python.exe manage.py shell:*)",
+      "Bash(del \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\budget\\test_center_api.py\")"
+    ],
+    "deny": []
+  }
+}
