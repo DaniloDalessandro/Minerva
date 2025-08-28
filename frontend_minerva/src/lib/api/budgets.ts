@@ -272,3 +272,18 @@ export async function deleteBudgetMovement(id: number) {
   if (!res.ok) throw new Error("Erro ao deletar movimentação");
   return true;
 }
+
+export async function getBudgetMovementsByBudget(budgetId: number) {
+  // Get all movements and filter on the frontend for now
+  const res = await authFetch(`${MOVEMENTS_API_BASE_URL}`);
+  if (!res.ok) throw new Error("Erro ao buscar movimentações do orçamento");
+  const data = await res.json();
+  const movements = data.results || data;
+  
+  // Filter movements where this budget is either source or destination
+  const filteredMovements = movements.filter((movement: BudgetMovement) => 
+    movement.source?.id === budgetId || movement.destination?.id === budgetId
+  );
+  
+  return filteredMovements;
+}

@@ -17,7 +17,8 @@
       "Bash(npm run dev:*)",
       "Bash(venvScriptspython.exe manage.py:*)",
       "Bash(./venv/Scripts/activate)",
-      "Bash(python test_budget_debug.py:*)"
+      "Bash(python test_budget_debug.py:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

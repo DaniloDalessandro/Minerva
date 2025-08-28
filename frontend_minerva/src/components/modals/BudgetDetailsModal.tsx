@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon } from "lucide-react"
+import { BudgetMovementHistory } from "@/components/budget/BudgetMovementHistory"
 
 interface BudgetDetailsModalProps {
   budget: Budget | null
@@ -50,144 +51,78 @@ export function BudgetDetailsModal({ budget, isOpen, onClose }: BudgetDetailsMod
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  Ano
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-2xl font-bold">{budget.year}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Categoria
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'} className="text-sm">
-                  {budget.category}
-                </Badge>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Management Center */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <BuildingIcon className="h-4 w-4" />
-                Centro Gestor
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-lg font-semibold">{budget.management_center?.name}</p>
-            </CardContent>
-          </Card>
-
-          {/* Financial Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <DollarSignIcon className="h-4 w-4" />
-                  Valor Total
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xl font-bold text-blue-600">
-                  {formatCurrency(budget.total_amount)}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Valor Disponível
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xl font-bold text-green-600">
-                  {formatCurrency(budget.available_amount)}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Valor Utilizado
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xl font-bold text-orange-600">
-                  {formatCurrency(usedAmount.toString())}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {usagePercentage}% do total
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Status */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Compact Header Information */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold">{budget.year}</span>
+              <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'}>
+                {budget.category}
+              </Badge>
               <Badge variant={budget.status === 'ATIVO' ? 'default' : 'secondary'}>
                 {budget.status}
               </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <BuildingIcon className="h-4 w-4" />
+              <span>{budget.management_center?.name}</span>
+            </div>
+          </div>
+
+          {/* Compact Financial Information */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <DollarSignIcon className="h-4 w-4" />
+                Valores Orçamentários
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-lg font-bold text-blue-600">{formatCurrency(budget.total_amount)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Disponível</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(budget.available_amount)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Utilizado</p>
+                  <p className="text-lg font-bold text-orange-600">{formatCurrency(usedAmount.toString())}</p>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-orange-600 h-2 rounded-full" 
+                  style={{width: `${usagePercentage}%`}}
+                />
+              </div>
+              <p className="text-sm text-center text-muted-foreground">{usagePercentage}% utilizado</p>
             </CardContent>
           </Card>
 
-          {/* Audit Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Criado em
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm">{formatDate(budget.created_at)}</p>
-                {budget.created_by && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <UserIcon className="h-3 w-3" />
-                    {budget.created_by.email}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+          {/* Budget Movements History */}
+          <BudgetMovementHistory budgetId={budget.id} />
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Atualizado em
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm">{formatDate(budget.updated_at)}</p>
-                {budget.updated_by && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <UserIcon className="h-3 w-3" />
-                    {budget.updated_by.email}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Compact Audit Information */}
+          <Card>
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <UserIcon className="h-3 w-3" />
+                  <span>Criado: {formatDate(budget.created_at)}</span>
+                  {budget.created_by && <span>por {budget.created_by.email}</span>}
+                </div>
+                <div className="flex items-center gap-1">
+                  <UserIcon className="h-3 w-3" />
+                  <span>Atualizado: {formatDate(budget.updated_at)}</span>
+                  {budget.updated_by && <span>por {budget.updated_by.email}</span>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>
