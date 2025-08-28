@@ -5,11 +5,13 @@ import { useParams } from "next/navigation"
 import { fetchBudgetById, Budget, createBudgetMovement, CreateBudgetMovementData, fetchBudgets } from "@/lib/api/budgets"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeft, ArrowLeftRightIcon } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeft, ArrowLeftRightIcon, InfoIcon, TagIcon, CheckCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { BudgetMovementHistory } from "@/components/budget/BudgetMovementHistory"
 import { BudgetMovementForm } from "@/components/forms/BudgetMovementForm"
+import { BudgetLines } from "@/components/budget/BudgetLines"
 
 export default function BudgetDetailsPage() {
   const params = useParams()
@@ -115,7 +117,7 @@ export default function BudgetDetailsPage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      {/* Header with back button and actions */}
+      {/* Compact Header with Back Button and Title */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Button
@@ -126,9 +128,12 @@ export default function BudgetDetailsPage() {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <h1 className="text-2xl font-bold">
-            Detalhes do Orçamento - {budget.year}
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Detalhes do Orçamento - {budget.year}
+            </h1>
+            <p className="text-sm text-muted-foreground">Visualização completa do orçamento</p>
+          </div>
         </div>
         <Button onClick={handleNewMovement} className="flex items-center gap-2">
           <ArrowLeftRightIcon className="h-4 w-4" />
@@ -136,26 +141,84 @@ export default function BudgetDetailsPage() {
         </Button>
       </div>
       
-      <div className="space-y-4">
-        {/* Compact Header Information */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-            <span className="font-semibold">{budget.year}</span>
-            <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'}>
-              {budget.category}
-            </Badge>
-            <Badge variant={budget.status === 'ATIVO' ? 'default' : 'secondary'}>
-              {budget.status}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BuildingIcon className="h-4 w-4" />
-            <span>{budget.management_center?.name || "N/A"}</span>
-          </div>
-        </div>
+      <div className="space-y-6">
+        {/* Budget Information Card */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <InfoIcon className="h-5 w-5" />
+              Informações do Orçamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4" />
+                  Ano
+                </div>
+                <p className="text-lg font-semibold">{budget.year}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <TagIcon className="h-4 w-4" />
+                  Tipo/Categoria
+                </div>
+                <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'} className="text-sm">
+                  {budget.category}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Status
+                </div>
+                <Badge variant={budget.status === 'ATIVO' ? 'default' : 'secondary'} className="text-sm">
+                  {budget.status}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <BuildingIcon className="h-4 w-4" />
+                  Centro Gestor
+                </div>
+                <p className="text-base font-medium">{budget.management_center?.name || "Não informado"}</p>
+              </div>
+            </div>
+            
+            <Separator className="my-4" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <UserIcon className="h-4 w-4" />
+                <span>Criado em {formatDate(budget.created_at)}</span>
+                {budget.created_by && (
+                  <span className="font-medium">
+                    por {budget.created_by.first_name && budget.created_by.last_name 
+                      ? `${budget.created_by.first_name} ${budget.created_by.last_name}`
+                      : budget.created_by.email}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <UserIcon className="h-4 w-4" />
+                <span>Atualizado em {formatDate(budget.updated_at)}</span>
+                {budget.updated_by && (
+                  <span className="font-medium">
+                    por {budget.updated_by.first_name && budget.updated_by.last_name 
+                      ? `${budget.updated_by.first_name} ${budget.updated_by.last_name}`
+                      : budget.updated_by.email}
+                  </span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Compact Financial Information */}
+        {/* Budget Values */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
@@ -191,31 +254,13 @@ export default function BudgetDetailsPage() {
         {/* Budget Movements History */}
         <BudgetMovementHistory budgetId={budget.id} onNewMovement={handleNewMovement} />
 
-        {/* Compact Audit Information */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <UserIcon className="h-3 w-3" />
-                <span>Criado: {formatDate(budget.created_at)}</span>
-                {budget.created_by && (
-                  <span>por {budget.created_by.first_name && budget.created_by.last_name 
-                    ? `${budget.created_by.first_name} ${budget.created_by.last_name}`
-                    : budget.created_by.email}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <UserIcon className="h-3 w-3" />
-                <span>Atualizado: {formatDate(budget.updated_at)}</span>
-                {budget.updated_by && (
-                  <span>por {budget.updated_by.first_name && budget.updated_by.last_name 
-                    ? `${budget.updated_by.first_name} ${budget.updated_by.last_name}`
-                    : budget.updated_by.email}</span>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Budget Lines */}
+        {budget.budget_lines && budget.budget_lines_summary && (
+          <BudgetLines 
+            budgetLines={budget.budget_lines}
+            budgetLinesSummary={budget.budget_lines_summary}
+          />
+        )}
       </div>
 
       {/* Budget Movement Form Modal */}

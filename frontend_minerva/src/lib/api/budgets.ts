@@ -40,6 +40,8 @@ export interface Budget {
     last_name?: string;
   };
   isOptimistic?: boolean; // Flag for optimistic updates
+  budget_lines?: BudgetLineListItem[];
+  budget_lines_summary?: BudgetLinesSummary;
 }
 
 export interface BudgetMovement {
@@ -139,6 +141,28 @@ export interface Contract {
   status: 'ATIVO' | 'ENCERRADO';
   created_at: string;
   updated_at: string;
+}
+
+export interface BudgetLineListItem {
+  id: number;
+  summary_description: string;
+  budgeted_amount: number;
+  management_center_name: string;
+  main_fiscal_name: string;
+  current_version: number;
+  total_versions: number;
+  expense_type: string;
+  contract_status: string;
+  process_status: string;
+}
+
+export interface BudgetLinesSummary {
+  total_lines: number;
+  total_budgeted_amount: number;
+  utilization_percentage: number;
+  process_status_distribution: { [key: string]: number };
+  contract_status_distribution: { [key: string]: number };
+  expense_type_distribution: { [key: string]: number };
 }
 
 const API_BASE_URL = "http://localhost:8000/api/v1/budget/budgets/";

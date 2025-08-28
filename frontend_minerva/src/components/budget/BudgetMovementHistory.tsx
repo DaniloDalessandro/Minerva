@@ -70,18 +70,10 @@ export function BudgetMovementHistory({ budgetId, onNewMovement }: BudgetMovemen
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <HistoryIcon className="h-4 w-4" />
-            Histórico de Movimentações ({movements.length})
-          </CardTitle>
-          {onNewMovement && (
-            <Button size="sm" onClick={onNewMovement}>
-              <PlusIcon className="h-3 w-3 mr-1" />
-              Nova Movimentação
-            </Button>
-          )}
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <HistoryIcon className="h-4 w-4" />
+          Histórico de Movimentações ({movements.length})
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {movements.length === 0 ? (
