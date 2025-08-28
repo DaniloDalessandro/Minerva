@@ -22,7 +22,7 @@ class DirectionSerializer(serializers.ModelSerializer):
 
 class ManagementSerializer(serializers.ModelSerializer):
     direction = DirectionSerializer(read_only=True)
-    direction_id = serializers.IntegerField(write_only=True, source='direction')
+    direction_id = serializers.IntegerField(write_only=True)
     created_by = UserInfoSerializer(read_only=True)
     updated_by = UserInfoSerializer(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
@@ -35,7 +35,7 @@ class ManagementSerializer(serializers.ModelSerializer):
 
 class CoordinationSerializer(serializers.ModelSerializer):
     management = ManagementSerializer(read_only=True)
-    management_id = serializers.IntegerField(write_only=True, source='management')
+    management_id = serializers.IntegerField(write_only=True)
     created_by = UserInfoSerializer(read_only=True)
     updated_by = UserInfoSerializer(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
