@@ -6,7 +6,7 @@ import { fetchAuxilioById, Auxilio } from "@/lib/api/auxilios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Calendar, DollarSign, User, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Calendar, DollarSign, User, FileText, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AuxilioDetailsPage() {
@@ -103,6 +103,18 @@ export default function AuxilioDetailsPage() {
     }
   };
 
+  const checkExpirationStatus = (endDate?: string) => {
+    if (!endDate) return { isExpiring: false, isExpired: false, daysDiff: 0 };
+    
+    const expDate = new Date(endDate);
+    const today = new Date();
+    const daysDiff = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    const isExpiring = daysDiff <= 30 && daysDiff >= 0;
+    const isExpired = daysDiff < 0;
+    
+    return { isExpiring, isExpired, daysDiff };
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -137,6 +149,8 @@ export default function AuxilioDetailsPage() {
     );
   }
 
+  const expirationStatus = checkExpirationStatus(auxilio.end_date);
+
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="space-y-6">
@@ -162,6 +176,22 @@ export default function AuxilioDetailsPage() {
             Editar
           </Button>
         </div>
+
+        {/* Expiration Warning */}
+        {(expirationStatus.isExpiring || expirationStatus.isExpired) && (
+          <Card className={`border-l-4 ${expirationStatus.isExpired ? 'border-l-red-500 bg-red-50' : 'border-l-yellow-500 bg-yellow-50'}`}>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className={`w-5 h-5 ${expirationStatus.isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
+                <span className={`font-semibold ${expirationStatus.isExpired ? 'text-red-700' : 'text-yellow-700'}`}>
+                  {expirationStatus.isExpired 
+                    ? `Auxílio vencido há ${Math.abs(expirationStatus.daysDiff)} dias` 
+                    : `Auxílio vence em ${expirationStatus.daysDiff} dias`}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -250,7 +280,7 @@ export default function AuxilioDetailsPage() {
                 Período
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               <div>
                 <p className="text-sm text-gray-600">Data Início</p>
                 <p className="font-medium">
@@ -262,14 +292,19 @@ export default function AuxilioDetailsPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Data Fim</p>
-                <p className="font-medium">
-                  {new Date(auxilio.end_date).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
+                <p className="text-sm text-gray-600">Data Fim (Vencimento)</p>
+                <div className="flex items-center gap-2">
+                  <p className={`font-medium ${expirationStatus.isExpired ? 'text-red-600' : expirationStatus.isExpiring ? 'text-yellow-600' : ''}`}>
+                    {new Date(auxilio.end_date).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </p>
+                  {(expirationStatus.isExpiring || expirationStatus.isExpired) && (
+                    <AlertTriangle className={`w-4 h-4 ${expirationStatus.isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

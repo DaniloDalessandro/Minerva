@@ -48,6 +48,7 @@ export function DataTable({
   columns,
   data,
   title,
+  subtitle,
   pageSize = 10,
   pageIndex = 0,
   totalCount = 0,
@@ -178,7 +179,12 @@ export function DataTable({
     <Card className="shadow-lg pb-0.5">
       <CardHeader className="pb-1">
         <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
-          <h2 className="text-xl font-bold text-primary">{title}</h2>
+          <div>
+            <h2 className="text-xl font-bold text-primary">{title}</h2>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             {onAdd && (
               <Plus

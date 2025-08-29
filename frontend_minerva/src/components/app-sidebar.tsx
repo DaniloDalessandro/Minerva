@@ -3,8 +3,6 @@
 import * as React from "react"
 import {
   GalleryVerticalEnd,
-  AudioWaveform,
-  Command,
   SquareTerminal,
   HandCoins,
   FileText,
@@ -25,6 +23,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { usePathname } from "next/navigation"
 
 interface NavItem {
   title: string
@@ -45,18 +44,16 @@ interface Team {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthContext()
+  const pathname = usePathname()
 
-  // Dados das equipes - pode vir da API no futuro
   const teams: Team[] = [
     {
       name: "Minerva",
       logo: GalleryVerticalEnd,
       plan: "Gestão de contratos",
     },
-    
   ]
 
- 
   const navItems: NavItem[] = [
     {
       title: "Colaboradores",
@@ -69,97 +66,117 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-    title: "Auxílios",
-    url: "/auxilio",
-    icon: HandCoins,
-    items: [
-      { title: "Buscar", url: "/auxilio" },
-      { title: "Buscar Todos", url: "/auxilios" },
-      { title: "Adicionar", url: "/auxilio/new" },
-    ],
-  },
-  {
-    title: "Contratos",
-    url: "/contratos",
-    icon: FileText,
-    items: [
-      { title: "Buscar", url: "/contratos" },
-      { title: "Adicionar", url: "/contratos/new" },
-    ],
-  },
-  {
-    title: "Linhas Orçamentárias",
-    url: "/linhas-orcamentarias",
-    icon: Landmark,
-    items: [
-      { title: "Buscar", url: "/linhas-orcamentarias" },
-      { title: "Adicionar", url: "/linhas-orcamentarias/new" },
-    ],
-  },
-  {
-    title: "Orçamentos",
-    url: "/orcamento",
-    icon: Wallet,
-    items: [
-      { title: "Buscar", url: "/orcamento" },
-      { title: "Adicionar", url: "/orcamento/new" },
-    ],
-  },
-  {
-    title: "Setores",
-    url: "/setor",
-    icon: Building2,
-    items: [
-      { title: "Buscar", url: "/setor" },
-      { title: "Adicionar Direção", url: "/setor/direction/new" },
-      { title: "Adicionar Gerencia", url: "/setor/management/new" },
-      { title: "Adicionar Coordenação", url: "/setor/coordination/new" },
-    ],
-  },
-  {
-    title: "Centros",
-    url: "/centro",
-    icon: Layers,
-    items: [
-      { title: "Buscar", url: "/centro" },
-      { title: "Adicionar", url: "/centro/new" },
-    ],
-  },
-  {
-    title: "Fale com Alice",
-    url: "/alice",
-    icon: Bot,
-    items: [
-      { title: "Chat", url: "/alice" },
-    ],
-  },
-    
+      title: "Auxílios",
+      url: "/auxilio",
+      icon: HandCoins,
+      items: [
+        { title: "Buscar", url: "/auxilio" },
+        { title: "Buscar Todos", url: "/auxilios" },
+        { title: "Adicionar", url: "/auxilio/new" },
+      ],
+    },
+    {
+      title: "Contratos",
+      url: "/contratos",
+      icon: FileText,
+      items: [
+        { title: "Buscar", url: "/contratos" },
+        { title: "Adicionar", url: "/contratos/new" },
+      ],
+    },
+    {
+      title: "Linhas Orçamentárias",
+      url: "/linhas-orcamentarias",
+      icon: Landmark,
+      items: [
+        { title: "Buscar", url: "/linhas-orcamentarias" },
+        { title: "Adicionar", url: "/linhas-orcamentarias/new" },
+      ],
+    },
+    {
+      title: "Orçamentos",
+      url: "/orcamento",
+      icon: Wallet,
+      items: [
+        { title: "Buscar", url: "/orcamento" },
+        { title: "Adicionar", url: "/orcamento/new" },
+      ],
+    },
+    {
+      title: "Setores",
+      url: "/setor",
+      icon: Building2,
+      items: [
+        { title: "Buscar", url: "/setor" },
+        { title: "Adicionar Direção", url: "/setor/direction/new" },
+        { title: "Adicionar Gerencia", url: "/setor/management/new" },
+        { title: "Adicionar Coordenação", url: "/setor/coordination/new" },
+      ],
+    },
+    {
+      title: "Centros",
+      url: "/centro",
+      icon: Layers,
+      items: [
+        { title: "Buscar", url: "/centro" },
+        { title: "Adicionar", url: "/centro/new" },
+      ],
+    },
+    {
+      title: "Fale com Alice",
+      url: "/alice",
+      icon: Bot,
+    },
   ]
 
-  if (!user) {
-    return null 
+  if (!user) return null
+
+  const isAlicePage = pathname.startsWith("/alice")
+
+  if (isAlicePage) {
+    // Sidebar fixa, sem opção de expandir
+    return (
+      <aside className="w-64 bg-white border-r flex flex-col" {...props}>
+        <div className="p-4 border-b">
+          <TeamSwitcher teams={teams} />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <NavMain items={navItems} />
+        </div>
+        <div className="p-4 border-t">
+          <NavUser
+            user={{
+              name: user.name || user.email.split("@")[0],
+              email: user.email,
+              avatar: user.avatar || "/avatars/default.jpg",
+            }}
+          />
+        </div>
+      </aside>
+    )
   }
 
+  // Sidebar normal (com expandir/recolher)
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={teams} />
       </SidebarHeader>
-      
+
       <SidebarContent>
         <NavMain items={navItems} />
       </SidebarContent>
-      
+
       <SidebarFooter>
-        <NavUser 
+        <NavUser
           user={{
-            name: user.name || user.email.split('@')[0],
+            name: user.name || user.email.split("@")[0],
             email: user.email,
-            avatar: user.avatar || "/avatars/default.jpg"
-          }} 
+            avatar: user.avatar || "/avatars/default.jpg",
+          }}
         />
       </SidebarFooter>
-      
+
       <SidebarRail />
     </Sidebar>
   )

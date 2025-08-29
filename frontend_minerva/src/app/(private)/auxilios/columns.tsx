@@ -1,6 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Auxilio } from "@/lib/api/auxilios";
 import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Calendar, User } from "lucide-react";
 
 export const columns: ColumnDef<Auxilio>[] = [
   {
@@ -31,7 +32,14 @@ export const columns: ColumnDef<Auxilio>[] = [
         return <span className="text-gray-400 italic">Carregando...</span>;
       }
       
-      return employeeName || "-";
+      return (
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-gray-400" />
+          <span className="font-semibold">
+            {employeeName || "-"}
+          </span>
+        </div>
+      );
     },
     meta: {
       showFilterIcon: true,
@@ -75,7 +83,7 @@ export const columns: ColumnDef<Auxilio>[] = [
       };
 
       return (
-        <Badge variant={getTypeVariant(type)}>
+        <Badge variant={getTypeVariant(type)} className="text-xs">
           {getTypeLabel(type)}
         </Badge>
       );
@@ -137,11 +145,18 @@ export const columns: ColumnDef<Auxilio>[] = [
       const startDate = row.original.start_date;
       if (!startDate) return "-";
       
-      return new Date(startDate).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      return (
+        <div className="flex items-center gap-1">
+          <Calendar className="w-3 h-3 text-gray-400" />
+          <span className="text-sm">
+            {new Date(startDate).toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
+        </div>
+      );
     },
   },
   {
@@ -152,11 +167,27 @@ export const columns: ColumnDef<Auxilio>[] = [
       const endDate = row.original.end_date;
       if (!endDate) return "-";
       
-      return new Date(endDate).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      const endDateObj = new Date(endDate);
+      const today = new Date();
+      const daysDiff = Math.ceil((endDateObj.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
+      const isExpired = daysDiff < 0;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="w-3 h-3 text-gray-400" />
+          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
+            {endDateObj.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
+          {(isExpiringSoon || isExpired) && (
+            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
+          )}
+        </div>
+      );
     },
   },
   {
