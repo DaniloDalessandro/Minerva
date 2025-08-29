@@ -51,40 +51,63 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Bem-vindo ao Minerva</h1>
-                <p className="text-muted-foreground text-balance">
-                  Faça login na sua conta
-                </p>
+    <div className={cn("space-y-8", className)} {...props}>
+      {/* Header com logo */}
+      <div className="text-center space-y-4">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 3h18v2H3zm0 16h18v2H3zm8.5-12L9 10.5 7.5 9 9 7.5 10.5 9zm0 6L9 16.5 7.5 15 9 13.5 10.5 15z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Minerva Porto
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Faça login para acessar o sistema
+          </p>
+        </div>
+      </div>
+
+      {/* Formulário */}
+      <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+        <CardContent className="p-8">
+          <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                <div className="flex">
+                  <svg className="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-red-700 text-sm">{error}</span>
+                </div>
               </div>
-
-              {error && (
-                <div className="text-red-500 text-sm text-center">{error}</div>
-              )}
-
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Endereço de email
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="Digite seu email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-12 px-4 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
-
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Senha</Label>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Senha
+                  </Label>
                   <a
                     href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                    className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
                   >
                     Esqueceu a senha?
                   </a>
@@ -92,30 +115,41 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Digite sua senha"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-12 px-4 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
-
-              <Button type="submit" className="w-full">
-                Entrar
-              </Button>
             </div>
+            
+            <Button
+              type="submit"
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Entrar no sistema
+            </Button>
           </form>
-
-          <div className="bg-muted relative hidden md:block">
-            <img
-              src="/images/login/login.png"
-              alt="Imagem"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
-          </div>
         </CardContent>
       </Card>
-
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.
+      
+      {/* Footer */}
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+          <a href="#" className="hover:text-blue-600 transition-colors">
+            Ajuda
+          </a>
+          <a href="#" className="hover:text-blue-600 transition-colors">
+            Política de Privacidade
+          </a>
+          <a href="#" className="hover:text-blue-600 transition-colors">
+            Termos de Uso
+          </a>
+        </div>
+        <p className="text-xs text-gray-400">
+          © 2024 Minerva Porto. Todos os direitos reservados.
+        </p>
       </div>
     </div>
   )
