@@ -17,8 +17,8 @@ class Employee(models.Model):
     status = models.CharField(max_length=7, choices=STATUS, default='ATIVO')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employees_created', verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employees_updated', verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employees_created', verbose_name='Criado por', null=True, blank=True)
+    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employees_updated', verbose_name='Atualizado por', null=True, blank=True)
 
     def __str__(self):
         return self.full_name + " - " + self.cpf

@@ -43,7 +43,11 @@
       "Bash(\"venv/Scripts/python.exe\" manage.py runserver 8000)",
       "Bash(npx next-lint:*)",
       "Bash(npm run lint)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations ai_assistant)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py migrate)",
+      "Bash(del employeemigrations0003_remove_employeeaidpayment_employee_aid_and_more.py)"
     ],
     "deny": [],
     "additionalDirectories": [

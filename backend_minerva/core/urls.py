@@ -11,5 +11,6 @@ urlpatterns = [
     path('api/v1/budgetline/', include('budgetline.urls')),
     path('api/v1/aid/', include('aid.urls')),
     path('api/v1/contract/', include('contract.urls')),
+    path('api/v1/alice/', include('ai_assistant.urls')),
 
 ]

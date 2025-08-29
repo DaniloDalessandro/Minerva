@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'budgetline',
     'aid',
     'contract',
+    'ai_assistant',
     
 ]
 
@@ -180,6 +181,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Email padrão do remetente (aparece como quem enviou o e-mail)
 DEFAULT_FROM_EMAIL = 'noreply@sistemacontratos.local'
+
+# Configuração do Google Gemini AI
+GEMINI_API_KEY = 'AIzaSyA44SpR5MjGYDOMby0FDAhK5N-ZLjE3zCE'
 
 
 REST_FRAMEWORK = {
