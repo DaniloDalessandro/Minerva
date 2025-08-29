@@ -40,7 +40,10 @@
       "Bash(curl:*)",
       "Bash(mv:*)",
       "Bash(pkill:*)",
-      "Bash(\"venv/Scripts/python.exe\" manage.py runserver 8000)"
+      "Bash(\"venv/Scripts/python.exe\" manage.py runserver 8000)",
+      "Bash(npx next-lint:*)",
+      "Bash(npm run lint)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "additionalDirectories": [
