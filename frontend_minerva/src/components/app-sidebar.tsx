@@ -12,6 +12,7 @@ import {
   Wallet,
   Building2,
   Layers,
+  Bot,
 } from "lucide-react"
 import { useAuthContext } from "@/context/AuthContext"
 import { NavMain } from "@/components/nav-main"
@@ -59,30 +60,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems: NavItem[] = [
     {
       title: "Colaboradores",
-      url: "/employees",
+      url: "/colaboradores",
       icon: SquareTerminal,
       isActive: true,
       items: [
-        { title: "Buscar", url: "/employees" },
-        { title: "Adicionar", url: "/employees/new" },
+        { title: "Buscar", url: "/colaboradores" },
+        { title: "Adicionar", url: "/colaboradores/new" },
       ],
     },
     {
     title: "Auxílios",
-    url: "/aids",
+    url: "/auxilio",
     icon: HandCoins,
     items: [
-      { title: "Buscar", url: "/aids" },
-      { title: "Adicionar", url: "/aids/new" },
+      { title: "Buscar", url: "/auxilio" },
+      { title: "Buscar Todos", url: "/auxilios" },
+      { title: "Adicionar", url: "/auxilio/new" },
     ],
   },
   {
     title: "Contratos",
-    url: "/contracts",
+    url: "/contratos",
     icon: FileText,
     items: [
-      { title: "Buscar", url: "/contracts" },
-      { title: "Adicionar", url: "/contracts/new" },
+      { title: "Buscar", url: "/contratos" },
+      { title: "Adicionar", url: "/contratos/new" },
     ],
   },
   {
@@ -96,31 +98,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   },
   {
     title: "Orçamentos",
-    url: "/budgets",
+    url: "/orcamento",
     icon: Wallet,
     items: [
-      { title: "Buscar", url: "/budgets" },
-      { title: "Adicionar", url: "/budgets/new" },
+      { title: "Buscar", url: "/orcamento" },
+      { title: "Adicionar", url: "/orcamento/new" },
     ],
   },
   {
     title: "Setores",
-    url: "/sectors",
+    url: "/setor",
     icon: Building2,
     items: [
-      { title: "Buscar", url: "/sectors" },
-      { title: "Adicionar Direção", url: "/sectors/direction/new" },
-      { title: "Adicionar Gerencia", url: "/sectors/management/new" },
-      { title: "Adicionar Coordenação", url: "/sectors/coordination/new" },
+      { title: "Buscar", url: "/setor" },
+      { title: "Adicionar Direção", url: "/setor/direction/new" },
+      { title: "Adicionar Gerencia", url: "/setor/management/new" },
+      { title: "Adicionar Coordenação", url: "/setor/coordination/new" },
     ],
   },
   {
     title: "Centros",
-    url: "/centers",
+    url: "/centro",
     icon: Layers,
     items: [
-      { title: "Buscar", url: "/centers" },
-      { title: "Adicionar", url: "/centers/new" },
+      { title: "Buscar", url: "/centro" },
+      { title: "Adicionar", url: "/centro/new" },
+    ],
+  },
+  {
+    title: "Fale com Alice",
+    url: "/alice",
+    icon: Bot,
+    items: [
+      { title: "Chat", url: "/alice" },
     ],
   },
     
