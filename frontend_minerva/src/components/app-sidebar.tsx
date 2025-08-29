@@ -62,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: true,
       items: [
         { title: "Buscar", url: "/colaboradores" },
-        { title: "Adicionar", url: "/colaboradores/new" },
+        { title: "Adicionar", url: "/funcionario" },
       ],
     },
     {
@@ -72,7 +72,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [
         { title: "Buscar", url: "/auxilio" },
         { title: "Buscar Todos", url: "/auxilios" },
-        { title: "Adicionar", url: "/auxilio/new" },
+        { title: "Adicionar", url: "/auxilio" },
       ],
     },
     {
@@ -81,7 +81,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: FileText,
       items: [
         { title: "Buscar", url: "/contratos" },
-        { title: "Adicionar", url: "/contratos/new" },
+        { title: "Adicionar", url: "/contratos" },
       ],
     },
     {
@@ -90,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       items: [
         { title: "Buscar", url: "/linhas-orcamentarias" },
-        { title: "Adicionar", url: "/linhas-orcamentarias/new" },
+        { title: "Adicionar", url: "/linha-orcamentaria" },
       ],
     },
     {
@@ -99,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Wallet,
       items: [
         { title: "Buscar", url: "/orcamento" },
-        { title: "Adicionar", url: "/orcamento/new" },
+        { title: "Adicionar", url: "/orcamento" },
       ],
     },
     {
@@ -108,9 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Building2,
       items: [
         { title: "Buscar", url: "/setor" },
-        { title: "Adicionar Direção", url: "/setor/direction/new" },
-        { title: "Adicionar Gerencia", url: "/setor/management/new" },
-        { title: "Adicionar Coordenação", url: "/setor/coordination/new" },
+        { title: "Adicionar", url: "/setor" },
       ],
     },
     {
@@ -119,7 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Layers,
       items: [
         { title: "Buscar", url: "/centro" },
-        { title: "Adicionar", url: "/centro/new" },
+        { title: "Adicionar", url: "/centro" },
       ],
     },
     {
@@ -148,7 +146,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             user={{
               name: user.name || user.email.split("@")[0],
               email: user.email,
-              avatar: user.avatar || "/avatars/default.jpg",
+              avatar: user.avatar || "/avatars/default.svg",
             }}
           />
         </div>
@@ -172,7 +170,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           user={{
             name: user.name || user.email.split("@")[0],
             email: user.email,
-            avatar: user.avatar || "/avatars/default.jpg",
+            avatar: user.avatar || "/avatars/default.svg",
           }}
         />
       </SidebarFooter>
