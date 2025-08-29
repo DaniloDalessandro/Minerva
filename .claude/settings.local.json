@@ -30,7 +30,17 @@
       "Bash(pip install:*)",
       "Bash(venvScripts:*)",
       "Bash(\"venv/Scripts/python.exe\" -m pip install reportlab)",
-      "Bash(\"venv/Scripts/python.exe\" manage.py check)"
+      "Bash(\"venv/Scripts/python.exe\" manage.py check)",
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(.venvScriptsactivate.bat)",
+      "Bash(\"venv/Scripts/python.exe\" manage.py runserver)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(mv:*)",
+      "Bash(pkill:*)",
+      "Bash(\"venv/Scripts/python.exe\" manage.py runserver 8000)"
     ],
     "deny": [],
     "additionalDirectories": [
