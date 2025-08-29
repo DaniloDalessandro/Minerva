@@ -87,11 +87,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   },
   {
     title: "Linhas Orçamentárias",
-    url: "/budgetlines",
+    url: "/linhas-orcamentarias",
     icon: Landmark,
     items: [
-      { title: "Buscar", url: "/budgetlines" },
-      { title: "Adicionar", url: "/budgetlines/new" },
+      { title: "Buscar", url: "/linhas-orcamentarias" },
+      { title: "Adicionar", url: "/linhas-orcamentarias/new" },
     ],
   },
   {
