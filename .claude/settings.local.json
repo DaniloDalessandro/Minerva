@@ -47,7 +47,15 @@
       "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations ai_assistant)",
       "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations)",
       "Bash(\"venv\\Scripts\\python.exe\" manage.py migrate)",
-      "Bash(del employeemigrations0003_remove_employeeaidpayment_employee_aid_and_more.py)"
+      "Bash(del employeemigrations0003_remove_employeeaidpayment_employee_aid_and_more.py)",
+      "Bash(\"venv\\Scripts\\python.exe\" -m pip install google-generativeai)",
+      "Bash(del:*)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations employee)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py migrate employee 0003 --fake)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py runserver 8000)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py populate_database_schema)",
+      "Bash(if exist \"AuthContext.temp2.tsx\" echo \"AuthContext.temp2.tsx exists\")",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "additionalDirectories": [

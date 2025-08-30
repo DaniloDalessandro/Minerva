@@ -1,35 +1,350 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bot } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Bot, Send, User, Database, Clock, Hash, Loader2, MessageCircle, RefreshCw, Sparkles } from "lucide-react"
+import { aliceAPI, type ChatResponse } from "@/lib/api/alice"
+
+interface Message {
+  id: string
+  type: 'user' | 'assistant' | 'error'
+  content: string
+  timestamp: Date
+  metadata?: {
+    sql_query?: string
+    execution_time_ms?: number
+    result_count?: number
+    error_details?: string
+  }
+}
+
 
 export default function AlicePage() {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [inputMessage, setInputMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState<string>("")
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    // Adiciona mensagem inicial
+    const welcomeMessage: Message = {
+      id: "welcome",
+      type: "assistant",
+      content: "Olá! Eu sou a Alice, sua assistente virtual do Sistema Minerva. Posso ajudá-lo a consultar dados sobre contratos, orçamentos, funcionários e muito mais. Faça uma pergunta e eu transformarei ela em uma consulta SQL para buscar as informações que você precisa!",
+      timestamp: new Date()
+    }
+    setMessages([welcomeMessage])
+  }, [])
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim()) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: "user",
+      content: inputMessage.trim(),
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInputMessage("")
+    setIsLoading(true)
+
+    try {
+      const response = await aliceAPI.sendMessage({
+        message: inputMessage.trim(),
+        session_id: sessionId || undefined,
+        create_new_session: !sessionId
+      })
+
+      if (response.success) {
+        // Atualiza session_id se for uma nova sessão
+        if (!sessionId && response.session_id) {
+          setSessionId(response.session_id)
+        }
+
+        const assistantMessage: Message = {
+          id: Date.now().toString() + "_assistant",
+          type: "assistant",
+          content: response.response,
+          timestamp: new Date(),
+          metadata: {
+            sql_query: response.sql_query,
+            execution_time_ms: response.execution_time_ms,
+            result_count: response.result_count
+          }
+        }
+
+        setMessages(prev => [...prev, assistantMessage])
+      } else {
+        const errorMessage: Message = {
+          id: Date.now().toString() + "_error",
+          type: "error",
+          content: response.response || response.error || "Erro desconhecido",
+          timestamp: new Date(),
+          metadata: {
+            error_details: response.error
+          }
+        }
+
+        setMessages(prev => [...prev, errorMessage])
+      }
+    } catch (error) {
+      console.error("Erro no chat:", error)
+      
+      const errorMessage: Message = {
+        id: Date.now().toString() + "_error",
+        type: "error",
+        content: "Erro de conexão com o servidor. Tente novamente.",
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+      inputRef.current?.focus()
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  const startNewSession = () => {
+    setSessionId("")
+    setMessages([{
+      id: "welcome_new",
+      type: "assistant",
+      content: "Nova conversa iniciada! Como posso ajudá-lo?",
+      timestamp: new Date()
+    }])
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  }
+
+  const quickQuestions = [
+    "Quantos contratos ativos existem?",
+    "Qual o valor total dos orçamentos deste ano?",
+    "Liste os funcionários admitidos nos últimos 6 meses",
+    "Mostra os contratos que vencem nos próximos 30 dias",
+    "Qual o status dos auxílios concedidos?"
+  ]
+
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Fale com Alice</h2>
+        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Sparkles className="h-8 w-8 text-purple-500" />
+          Fale com Alice
+        </h2>
+        <Button 
+          variant="outline" 
+          onClick={startNewSession}
+          disabled={isLoading}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Nova Conversa
+        </Button>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Assistente Virtual Alice
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Olá! Eu sou a Alice, sua assistente virtual. Como posso te ajudar hoje?
-          </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+        {/* Chat Area */}
+        <Card className="col-span-3 flex flex-col">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-purple-500" />
+                Chat com Alice
+                {sessionId && (
+                  <Badge variant="secondary" className="text-xs">
+                    Sessão: {sessionId.slice(0, 8)}...
+                  </Badge>
+                )}
+              </div>
+              <Badge variant={isLoading ? "secondary" : "default"} className="flex items-center gap-1">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="h-3 w-3" />
+                    Online
+                  </>
+                )}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
           
-          <div className="flex gap-2">
-            <Button>
-              Iniciar Conversa
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <CardContent className="flex-1 flex flex-col p-0">
+            <ScrollArea className="flex-1 px-6">
+              <div className="space-y-4 py-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${
+                      message.type === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div className="flex gap-3 max-w-3xl">
+                      {message.type !== "user" && (
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white ${
+                          message.type === "error" ? "bg-red-500" : "bg-purple-500"
+                        }`}>
+                          {message.type === "error" ? "!" : <Bot className="h-4 w-4" />}
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <div
+                          className={`p-4 rounded-lg ${
+                            message.type === "user"
+                              ? "bg-blue-500 text-white ml-auto"
+                              : message.type === "error"
+                              ? "bg-red-50 border border-red-200"
+                              : "bg-gray-50 border"
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{formatTime(message.timestamp)}</span>
+                          
+                          {message.metadata && (
+                            <div className="flex items-center gap-4">
+                              {message.metadata.execution_time_ms && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {message.metadata.execution_time_ms}ms
+                                </div>
+                              )}
+                              {message.metadata.result_count !== undefined && (
+                                <div className="flex items-center gap-1">
+                                  <Hash className="h-3 w-3" />
+                                  {message.metadata.result_count} resultados
+                                </div>
+                              )}
+                              {message.metadata.sql_query && (
+                                <div className="flex items-center gap-1">
+                                  <Database className="h-3 w-3" />
+                                  SQL executado
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Mostra consulta SQL se disponível */}
+                        {message.metadata?.sql_query && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                              Ver consulta SQL executada
+                            </summary>
+                            <div className="mt-2 p-3 bg-gray-900 text-green-400 rounded text-xs font-mono overflow-x-auto">
+                              {message.metadata.sql_query}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                      
+                      {message.type === "user" && (
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                          <User className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+            
+            <Separator />
+            
+            <div className="p-6">
+              <div className="flex gap-2">
+                <Input
+                  ref={inputRef}
+                  placeholder="Digite sua pergunta aqui..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={sendMessage} 
+                  disabled={isLoading || !inputMessage.trim()}
+                  size="icon"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sidebar */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Sugestões de Perguntas</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {quickQuestions.map((question, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full text-left justify-start h-auto p-3 text-xs"
+                onClick={() => setInputMessage(question)}
+                disabled={isLoading}
+              >
+                {question}
+              </Button>
+            ))}
+            
+            <Separator className="my-4" />
+            
+            <div className="space-y-2">
+              <h4 className="text-xs font-medium text-muted-foreground">Dicas:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Faça perguntas específicas sobre dados</li>
+                <li>• Use linguagem natural</li>
+                <li>• Posso consultar contratos, orçamentos, funcionários</li>
+                <li>• Filtros por data são bem-vindos</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -24,7 +24,7 @@ class SQLInterpreterService:
             'contract_contractamendment', 'employee_employee',
             'sector_direction', 'sector_coordination', 'sector_management',
             'center_management_center', 'center_requesting_center',
-            'aid_assistance'
+            'aid_assistance', 'aid_assistanceemployee'
         }
         
     def get_database_schema(self) -> str:

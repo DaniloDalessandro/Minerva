@@ -62,17 +62,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: true,
       items: [
         { title: "Buscar", url: "/colaboradores" },
-        { title: "Adicionar", url: "/funcionario" },
+        { title: "Adicionar", url: "/colaboradores" },
       ],
     },
     {
       title: "Auxílios",
-      url: "/auxilio",
+      url: "/auxilios",
       icon: HandCoins,
       items: [
-        { title: "Buscar", url: "/auxilio" },
+        { title: "Buscar", url: "/auxilios" },
         { title: "Buscar Todos", url: "/auxilios" },
-        { title: "Adicionar", url: "/auxilio" },
+        { title: "Adicionar", url: "/auxilios" },
       ],
     },
     {
@@ -90,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       items: [
         { title: "Buscar", url: "/linhas-orcamentarias" },
-        { title: "Adicionar", url: "/linha-orcamentaria" },
+        { title: "Adicionar", url: "/linhas-orcamentarias" },
       ],
     },
     {
