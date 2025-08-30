@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth import authenticate
 from .utils.messages import LOGIN_MESSAGES
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -94,6 +93,8 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='first_name', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'avatar']
+        fields = ['id', 'name', 'email', 'first_name', 'last_name']
