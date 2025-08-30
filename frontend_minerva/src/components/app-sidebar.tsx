@@ -11,6 +11,7 @@ import {
   Building2,
   Layers,
   Bot,
+  BarChart3,
 } from "lucide-react"
 import { useAuthContext } from "@/context/AuthContext"
 import { NavMain } from "@/components/nav-main"
@@ -55,6 +56,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ]
 
   const navItems: NavItem[] = [
+    {
+      title: "Dashboards",
+      url: "/dashboard",
+      icon: BarChart3,
+      items: [
+        { title: "Visão Geral", url: "/dashboard" },
+        { title: "Contratos", url: "/dashboard/contratos" },
+        { title: "Orçamentos", url: "/dashboard/orcamentos" },
+        { title: "Auxilios", url: "/dashboard/auxilios" },
+      ],
+    },
     {
       title: "Colaboradores",
       url: "/colaboradores",
