@@ -12,6 +12,7 @@ import {
   Layers,
   Bot,
   BarChart3,
+  HelpCircle,
 } from "lucide-react"
 import { useAuthContext } from "@/context/AuthContext"
 import { NavMain } from "@/components/nav-main"
@@ -136,6 +137,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Fale com Alice",
       url: "/alice",
       icon: Bot,
+    },
+    {
+      title: "Ajuda",
+      url: "/ajuda",
+      icon: HelpCircle,
     },
   ]
 
