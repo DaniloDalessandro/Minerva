@@ -17,12 +17,6 @@ export const columns = (): ColumnDef<RequestingCenter>[] => [
     cell: ({ row }) => row.original.management_center?.name || "-",
   },
   {
-    accessorKey: "description",
-    header: "Descrição",
-    enableSorting: true,
-    cell: ({ row }) => row.original.description || "-",
-  },
-  {
     accessorKey: "created_at",
     header: "Criado em",
     enableSorting: true,

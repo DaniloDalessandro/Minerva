@@ -29,7 +29,6 @@ export default function ManagementCenterForm({
   const [formData, setFormData] = useState<any>({
     id: undefined,
     name: "",
-    description: "",
   });
 
   useEffect(() => {
@@ -37,10 +36,9 @@ export default function ManagementCenterForm({
       setFormData({
         id: initialData.id,
         name: initialData.name,
-        description: initialData.description || "",
       });
     } else {
-      setFormData({ id: undefined, name: "", description: "" });
+      setFormData({ id: undefined, name: "" });
     }
   }, [initialData]);
 
@@ -75,15 +73,6 @@ export default function ManagementCenterForm({
                 onChange={handleChange}
                 required
                 placeholder="Nome do Centro Gestor"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Descrição do Centro Gestor (opcional)"
               />
             </div>
           </div>

@@ -36,7 +36,6 @@ export default function RequestingCenterForm({
   const [formData, setFormData] = useState<any>({
     id: undefined,
     name: "",
-    description: "",
     management_center_id: 0,
   });
   const [managementCenters, setManagementCenters] = useState<ManagementCenter[]>([]);
@@ -58,11 +57,10 @@ export default function RequestingCenterForm({
       setFormData({
         id: initialData.id,
         name: initialData.name,
-        description: initialData.description || "",
         management_center_id: initialData.management_center?.id || 0
       });
     } else {
-      setFormData({ id: undefined, name: "", description: "", management_center_id: 0 });
+      setFormData({ id: undefined, name: "", management_center_id: 0 });
     }
   }, [initialData]);
 
@@ -120,15 +118,6 @@ export default function RequestingCenterForm({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Descrição do Centro Solicitante (opcional)"
-              />
             </div>
           </div>
 

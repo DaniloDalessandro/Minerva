@@ -32,11 +32,7 @@ export const columns: ColumnDef<Budget>[] = [
   {
     accessorKey: "category",
     header: "Categoria",
-    cell: ({ row }) => (
-      <Badge variant={row.original.category === 'CAPEX' ? 'default' : 'secondary'}>
-        {row.original.category}
-      </Badge>
-    ),
+    cell: ({ row }) => row.original.category,
     meta: {
       showFilterIcon: true,
     },
@@ -83,9 +79,7 @@ export const columns: ColumnDef<Budget>[] = [
       const isOptimistic = row.original.isOptimistic;
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={row.original.status === 'ATIVO' ? 'default' : 'secondary'}>
-            {row.original.status}
-          </Badge>
+          {row.original.status}
           {isOptimistic && (
             <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
               Salvando...

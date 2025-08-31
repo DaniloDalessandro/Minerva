@@ -11,12 +11,6 @@ export const columns = (): ColumnDef<ManagementCenter>[] => [
     },
   },
   {
-    accessorKey: "description",
-    header: "Descrição",
-    enableSorting: true,
-    cell: ({ row }) => row.original.description || "-",
-  },
-  {
     accessorKey: "created_at",
     header: "Criado em",
     enableSorting: true,

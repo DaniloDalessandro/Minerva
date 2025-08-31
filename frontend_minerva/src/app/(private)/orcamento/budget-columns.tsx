@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
@@ -91,11 +90,7 @@ export const budgetColumns = (
     header: "Categoria",
     cell: ({ row }) => {
       const category = row.getValue("category") as string
-      return (
-        <Badge variant={category === "CAPEX" ? "default" : "secondary"}>
-          {category}
-        </Badge>
-      )
+      return category
     },
   },
   {
@@ -139,11 +134,7 @@ export const budgetColumns = (
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string
-      return (
-        <Badge variant={status === "ATIVO" ? "default" : "secondary"}>
-          {status}
-        </Badge>
-      )
+      return status
     },
   },
   {
