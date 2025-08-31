@@ -176,8 +176,19 @@ class BudgetLine(models.Model):
         is_new = self.pk is None
         super().save(*args, **kwargs)
         
+        # Atualizar valores calculados do orçamento relacionado
+        if self.budget:
+            self.budget.update_calculated_amounts()
+        
         if not is_new:
             self.create_version("Atualização da linha orçamentária", kwargs.get('updated_by'))
+    
+    def delete(self, *args, **kwargs):
+        budget = self.budget
+        super().delete(*args, **kwargs)
+        # Atualizar valores calculados do orçamento relacionado
+        if budget:
+            budget.update_calculated_amounts()
 
     def create_version(self, change_reason, user=None):
         latest_version = self.versions.first()

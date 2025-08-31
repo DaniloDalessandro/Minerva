@@ -52,23 +52,35 @@ export function BudgetDetailsModal({ budget, isOpen, onClose }: BudgetDetailsMod
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Compact Header Information */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="font-semibold">{budget.year}</span>
-              <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'}>
-                {budget.category}
-              </Badge>
-              <Badge variant={budget.status === 'ATIVO' ? 'default' : 'secondary'}>
-                {budget.status}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BuildingIcon className="h-4 w-4" />
-              <span>{budget.management_center?.name}</span>
-            </div>
-          </div>
+          {/* Informações do Orçamento */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                Informações do Orçamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Ano</p>
+                  <p className="font-semibold">{budget.year}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Categoria</p>
+                  <p className="font-semibold">{budget.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Centro Gestor</p>
+                  <p className="font-semibold">{budget.management_center?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="font-semibold">{budget.status}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Compact Financial Information */}
           <Card>

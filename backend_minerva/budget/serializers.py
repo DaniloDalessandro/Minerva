@@ -14,14 +14,19 @@ class BudgetSerializer(serializers.ModelSerializer):
     created_by = UserInfoSerializer(read_only=True)
     updated_by = UserInfoSerializer(read_only=True)
     
+    # Campos calculados
+    used_amount = serializers.ReadOnlyField()
+    calculated_available_amount = serializers.ReadOnlyField()
+    
     class Meta:
         model = Budget
         fields = [
             'id', 'year', 'category', 'management_center', 
             'management_center_id', 'total_amount', 'available_amount', 'status',
+            'used_amount', 'calculated_available_amount',
             'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'available_amount']
+        read_only_fields = ['created_at', 'updated_at', 'available_amount', 'used_amount', 'calculated_available_amount']
 
 
 class BudgetDetailSerializer(BudgetSerializer):

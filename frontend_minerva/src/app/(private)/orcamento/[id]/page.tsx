@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { fetchBudgetById, Budget, createBudgetMovement, CreateBudgetMovementData, fetchBudgets } from "@/lib/api/budgets"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeftRightIcon, InfoIcon, TagIcon, CheckCircleIcon, FileTextIcon } from "lucide-react"
@@ -157,39 +156,59 @@ export default function BudgetDetailsPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <CalendarIcon className="h-3 w-3" />
                   Ano
                 </div>
-                <p className="text-lg font-semibold">{budget.year}</p>
+                <p className="text-base font-semibold">{budget.year}</p>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <TagIcon className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <TagIcon className="h-3 w-3" />
                   Tipo/Categoria
                 </div>
-                <Badge variant={budget.category === 'CAPEX' ? 'default' : 'secondary'} className="text-sm">
-                  {budget.category}
-                </Badge>
+                <p className="text-base font-semibold">{budget.category}</p>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <CheckCircleIcon className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <CheckCircleIcon className="h-3 w-3" />
                   Status
                 </div>
-                <Badge variant={budget.status === 'ATIVO' ? 'default' : 'secondary'} className="text-sm">
-                  {budget.status}
-                </Badge>
+                <p className="text-base font-semibold">{budget.status}</p>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <BuildingIcon className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <BuildingIcon className="h-3 w-3" />
                   Centro Gestor
                 </div>
                 <p className="text-base font-medium">{budget.management_center?.name || "Não informado"}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <DollarSignIcon className="h-3 w-3" />
+                  Valor Total
+                </div>
+                <p className="text-base font-semibold text-blue-600">{formatCurrency(budget.total_amount)}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <DollarSignIcon className="h-3 w-3" />
+                  Valor Disponível
+                </div>
+                <p className="text-base font-semibold text-green-600">{formatCurrency(budget.available_amount)}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <DollarSignIcon className="h-3 w-3" />
+                  Valor Utilizado
+                </div>
+                <p className="text-base font-semibold text-orange-600">{formatCurrency(usedAmount.toString())}</p>
               </div>
             </div>
             

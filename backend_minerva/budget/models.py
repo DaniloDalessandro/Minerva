@@ -4,6 +4,7 @@ from accounts.models import User
 from .utils.validators import validate_year
 from center.models import Management_Center
 from decimal import Decimal
+from django.db.models import Sum
 
 #========================================================================================================================================
 class Budget(models.Model):
@@ -43,6 +44,53 @@ class Budget(models.Model):
     updated_by = models.ForeignKey(User, related_name='budgets_updated', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
     
 
+    @property
+    def used_amount(self):
+        """Calcula o valor utilizado baseado na soma das linhas orçamentárias"""
+        total_budgeted = self.budget_lines.aggregate(
+            total=Sum('budgeted_amount')
+        )['total']
+        # Converte float para Decimal para compatibilidade
+        if total_budgeted is None:
+            return Decimal('0.00')
+        return Decimal(str(total_budgeted))
+    
+    @property
+    def calculated_available_amount(self):
+        """Calcula o valor disponível considerando movimentações"""
+        # Valor base é o total_amount
+        base_amount = Decimal(str(self.total_amount))
+        
+        # Soma das movimentações recebidas (incoming)
+        incoming_total = self.incoming_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        
+        # Soma das movimentações enviadas (outgoing) 
+        outgoing_total = self.outgoing_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        
+        # Valor usado pelas linhas orçamentárias
+        used_by_lines = self.used_amount
+        
+        # Disponível = total + recebido - enviado - usado
+        available = base_amount + incoming_total - outgoing_total - used_by_lines
+        return max(available, Decimal('0.00'))
+    
+    def update_calculated_amounts(self):
+        """Atualiza o available_amount com base nos cálculos automáticos"""
+        self.available_amount = self.calculated_available_amount
+        self.save(update_fields=['available_amount', 'updated_at'])
+    
+    def save(self, *args, **kwargs):
+        # Se não é uma atualização manual do available_amount, calcular automaticamente
+        if 'update_fields' not in kwargs or 'available_amount' not in kwargs.get('update_fields', []):
+            # Só calcular se já existe (não é criação inicial)
+            if self.pk:
+                self.available_amount = self.calculated_available_amount
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.category} {self.year} - {self.management_center.name}"
     
@@ -65,6 +113,20 @@ class BudgetMovement(models.Model):
     created_by = models.ForeignKey(User, related_name='budget_movements_created', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Criado por')
     updated_by = models.ForeignKey(User, related_name='budget_movements_updated', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Atualizado por')
     
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Atualizar os valores calculados dos orçamentos relacionados
+        self.source.update_calculated_amounts()
+        self.destination.update_calculated_amounts()
+    
+    def delete(self, *args, **kwargs):
+        source_budget = self.source
+        destination_budget = self.destination
+        super().delete(*args, **kwargs)
+        # Atualizar os valores calculados dos orçamentos relacionados
+        source_budget.update_calculated_amounts()
+        destination_budget.update_calculated_amounts()
+
     def __str__(self):
         return f"{self.source} -> {self.destination} ({self.amount})"
     
