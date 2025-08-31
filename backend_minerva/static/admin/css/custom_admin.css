@@ -1,0 +1,275 @@
+/* CSS customizado para corrigir sobreposições no Django Admin com Jazzmin */
+
+/* Reset e correções gerais */
+.form-row {
+    clear: both !important;
+    overflow: hidden !important;
+    margin-bottom: 15px !important;
+}
+
+.form-row:after {
+    content: "" !important;
+    display: table !important;
+    clear: both !important;
+}
+
+/* Correções específicas para filter_horizontal (seleção de grupos) */
+.selector {
+    position: relative !important;
+    margin: 20px 0 !important;
+    clear: both !important;
+    min-height: 250px !important;
+}
+
+.selector .selector-available,
+.selector .selector-chosen {
+    float: left !important;
+    width: calc(45% - 10px) !important;
+    margin: 0 5px !important;
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+}
+
+.selector .selector-chooser {
+    float: left !important;
+    width: 10% !important;
+    text-align: center !important;
+    margin-top: 80px !important;
+}
+
+.selector-chooser li {
+    list-style: none !important;
+    margin: 5px 0 !important;
+}
+
+.selector-chooser a {
+    display: inline-block !important;
+    padding: 8px 12px !important;
+    background: #007bff !important;
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    transition: background 0.3s !important;
+}
+
+.selector-chooser a:hover {
+    background: #0056b3 !important;
+}
+
+/* Cabeçalhos das listas */
+.selector-available h2,
+.selector-chosen h2 {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-bottom: 2px solid #007bff !important;
+    padding: 10px 15px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #495057 !important;
+    border-top-left-radius: 4px !important;
+    border-top-right-radius: 4px !important;
+}
+
+/* Listas de seleção */
+.selector-available select,
+.selector-chosen select {
+    width: 100% !important;
+    height: 180px !important;
+    border: none !important;
+    border-bottom-left-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+    padding: 5px !important;
+    font-size: 13px !important;
+}
+
+.selector-available select option,
+.selector-chosen select option {
+    padding: 5px 10px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.selector-available select option:hover,
+.selector-chosen select option:hover {
+    background: #e3f2fd !important;
+}
+
+/* Filtro de busca */
+.selector-filter {
+    padding: 10px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.selector-filter input {
+    width: 100% !important;
+    padding: 6px 10px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 3px !important;
+    font-size: 13px !important;
+}
+
+/* Correções para elementos inline */
+.inline-group {
+    margin-bottom: 25px !important;
+    clear: both !important;
+}
+
+.tabular .form-row {
+    border-bottom: 1px solid #eee !important;
+    padding: 8px 0 !important;
+}
+
+.stacked .form-row {
+    margin-bottom: 20px !important;
+    clear: both !important;
+}
+
+/* Melhorias para fieldsets */
+fieldset.module {
+    margin-bottom: 25px !important;
+    border: 1px solid #e1e5e9 !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+}
+
+fieldset.module h2 {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    color: white !important;
+    padding: 12px 15px !important;
+    margin: 0 !important;
+    border-top-left-radius: 6px !important;
+    border-top-right-radius: 6px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Espaçamento interno do fieldset */
+fieldset.module .form-row {
+    padding: 15px !important;
+    margin: 0 !important;
+}
+
+/* Botões de ação */
+.submit-row {
+    background: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+    padding: 15px 20px !important;
+    margin-top: 25px !important;
+    clear: both !important;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .selector .selector-available,
+    .selector .selector-chosen {
+        width: 100% !important;
+        float: none !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .selector .selector-chooser {
+        width: 100% !important;
+        float: none !important;
+        margin: 15px 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 10px !important;
+    }
+    
+    .selector-chooser li {
+        display: inline-block !important;
+    }
+    
+    .selector {
+        min-height: auto !important;
+    }
+}
+
+/* Ajustes para o tema Jazzmin */
+.main-content {
+    padding: 20px !important;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e1e5e9 !important;
+    margin-bottom: 20px !important;
+}
+
+/* Melhorias para labels */
+label {
+    font-weight: 600 !important;
+    color: #495057 !important;
+    margin-bottom: 5px !important;
+    display: block !important;
+}
+
+/* Inputs gerais */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    transition: border-color 0.3s !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+    outline: none !important;
+}
+
+/* Correção específica para evitar sobreposições em formulários complexos */
+.form-row .field-groups {
+    margin-bottom: 25px !important;
+}
+
+.form-row .field-groups .form-row {
+    margin-bottom: 15px !important;
+    padding-left: 0 !important;
+}
+
+/* Garantir que elementos flutuantes não causem problemas */
+.clearfix::after {
+    content: "" !important;
+    display: table !important;
+    clear: both !important;
+}
+
+/* Favicon e branding customizado */
+.navbar-brand img,
+.admin-branding img {
+    max-width: 32px !important;
+    max-height: 32px !important;
+    margin-right: 8px !important;
+}
+
+/* Ícone de navio no título */
+.navbar-brand::before,
+.admin-branding::before {
+    content: "⚓" !important;
+    font-size: 24px !important;
+    margin-right: 8px !important;
+    color: #007bff !important;
+}
+
+/* Customização do header */
+#header h1 a {
+    color: #007bff !important;
+}
+
+#header h1 a::before {
+    content: "⚓ " !important;
+    font-size: 24px !important;
+    margin-right: 8px !important;
+}

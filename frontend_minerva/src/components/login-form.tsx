@@ -56,15 +56,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       <div className="text-center space-y-4">
         <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
           <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3 3h18v2H3zm0 16h18v2H3zm8.5-12L9 10.5 7.5 9 9 7.5 10.5 9zm0 6L9 16.5 7.5 15 9 13.5 10.5 15z"/>
+            <path d="M12 2l-2 2v4c-2.5 1-4 3.5-4 6.5s2.5 5.5 6 5.5 6-2.5 6-5.5-1.5-5.5-4-6.5V4l-2-2zM8 14.5c0-2 1-3.5 2.5-4.5v4.5c0 .5.5 1 1 1h1c.5 0 1-.5 1-1V10c1.5 1 2.5 2.5 2.5 4.5 0 2-1.5 3.5-3.5 3.5s-3.5-1.5-3.5-3.5z"/>
           </svg>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Minerva Porto
+            Minerva
           </h1>
           <p className="text-gray-600 mt-2">
-            Faça login para acessar o sistema
+            Sistema de Gestão de Contratos
           </p>
         </div>
       </div>
@@ -148,7 +148,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           </a>
         </div>
         <p className="text-xs text-gray-400">
-          © 2024 Minerva Porto. Todos os direitos reservados.
+          © 2024 Minerva. Todos os direitos reservados.
         </p>
       </div>
     </div>

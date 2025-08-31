@@ -1,0 +1,86 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Correção para sobreposição de elementos no admin de usuários */
+.form-row .field-groups {
+    margin-bottom: 20px !important;
+}
+
+.form-row .field-groups .form-row {
+    margin-bottom: 10px !important;
+}
+
+/* Melhora o espaçamento do filter_horizontal */
+.selector {
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+}
+
+.selector .selector-chooser {
+    min-height: 200px !important;
+}
+
+.selector .selector-available, .selector .selector-chosen {
+    width: calc(50% - 25px) !important;
+}
+
+/* Garante que os elementos não se sobreponham */
+.form-row {
+    clear: both;
+    padding: 10px 0 !important;
+}
+
+/* Melhora a visualização dos grupos */
+.selector-available h2, .selector-chosen h2 {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 8px 10px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+}
+
+.selector-available select, .selector-chosen select {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+}
+
+/* Botões de movimentação entre listas */
+.selector-chooser li {
+    margin: 5px 0 !important;
+}
+
+.selector-chooser a {
+    padding: 5px 8px !important;
+    background: #007bff !important;
+    color: white !important;
+    border-radius: 3px !important;
+    text-decoration: none !important;
+}
+
+.selector-chooser a:hover {
+    background: #0056b3 !important;
+}
+
+/* Garante responsividade */
+@media (max-width: 768px) {
+    .selector .selector-available, .selector .selector-chosen {
+        width: 100% !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .selector-chooser {
+        text-align: center !important;
+        margin: 10px 0 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block field_sets %}
+    {% for fieldset in adminform %}
+        {% include "admin/includes/fieldset.html" %}
+    {% endfor %}
+{% endblock %}

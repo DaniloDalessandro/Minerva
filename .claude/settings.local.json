@@ -55,7 +55,9 @@
       "Bash(\"venv\\Scripts\\python.exe\" manage.py runserver 8000)",
       "Bash(\"venv\\Scripts\\python.exe\" manage.py populate_database_schema)",
       "Bash(if exist \"AuthContext.temp2.tsx\" echo \"AuthContext.temp2.tsx exists\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py collectstatic --noinput)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "additionalDirectories": [

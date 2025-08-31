@@ -13,11 +13,11 @@ import {
   Bot,
   BarChart3,
   HelpCircle,
+  Anchor,
 } from "lucide-react"
 import { useAuthContext } from "@/context/AuthContext"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -38,23 +38,10 @@ interface NavItem {
   }[]
 }
 
-interface Team {
-  name: string
-  logo: React.ComponentType<{ className?: string }>
-  plan: string
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthContext()
   const pathname = usePathname()
-
-  const teams: Team[] = [
-    {
-      name: "Minerva",
-      logo: GalleryVerticalEnd,
-      plan: "Gestão de contratos",
-    },
-  ]
 
   const navItems: NavItem[] = [
     {
@@ -154,7 +141,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
       <aside className="w-64 bg-white border-r flex flex-col" {...props}>
         <div className="p-4 border-b">
-          <TeamSwitcher teams={teams} />
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-700 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
+              <Anchor className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">Minerva</span>
+              <span className="truncate text-xs">Gestão de Contratos</span>
+            </div>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <NavMain items={navItems} />
@@ -176,7 +171,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={teams} />
+        <div className="flex h-14 items-center px-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-700 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
+              <Anchor className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">Minerva</span>
+              <span className="truncate text-xs">Gestão de Contratos</span>
+            </div>
+          </div>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
