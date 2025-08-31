@@ -174,12 +174,12 @@ export function BudgetMovementHistory({ budgetId, onNewMovement, onMovementChang
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
+                <TableHead className="font-bold">Data</TableHead>
+                <TableHead className="font-bold">Valor</TableHead>
+                <TableHead className="font-bold">Tipo</TableHead>
+                <TableHead className="font-bold">Origem</TableHead>
+                <TableHead className="font-bold">Destino</TableHead>
+                <TableHead className="w-[100px] font-bold">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

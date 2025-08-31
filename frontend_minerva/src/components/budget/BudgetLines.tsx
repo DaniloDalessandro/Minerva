@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
   ListIcon, 
   DollarSignIcon, 
@@ -131,7 +132,7 @@ export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudget
           ))}
         </div>
 
-        {/* Budget Lines List */}
+        {/* Budget Lines Table */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-900">Lista de Linhas Orçamentárias</h3>
           
@@ -144,122 +145,53 @@ export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudget
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {budgetLines.map((line) => (
-                <Card key={line.id} className="border hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                      {/* Description and Amount */}
-                      <div className="lg:col-span-4 space-y-2">
-                        <h4 className="font-semibold text-gray-900 leading-tight">
-                          {line.summary_description || "Descrição não informada"}
-                        </h4>
-                        <div className="flex items-center gap-1">
-                          <DollarSignIcon className="h-4 w-4 text-green-600" />
-                          <span className="text-lg font-bold text-green-600">
-                            {formatCurrency(line.budgeted_amount)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Management Center and Fiscal */}
-                      <div className="lg:col-span-3 space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <UserIcon className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">Centro:</span>
-                        </div>
-                        <p className="text-sm font-medium">{line.management_center_name}</p>
-                        <div className="flex items-center gap-1 text-sm">
-                          <UserIcon className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">Fiscal:</span>
-                        </div>
-                        <p className="text-sm">{line.main_fiscal_name}</p>
-                      </div>
-
-                      {/* Expense Type and Status */}
-                      <div className="lg:col-span-3 space-y-2">
-                        <Badge className={getExpenseTypeColor(line.expense_type)} variant="outline">
-                          <TagIcon className="h-3 w-3 mr-1" />
-                          {line.expense_type}
-                        </Badge>
-                        <div className="space-y-1">
-                          <Badge className={getStatusColor(line.process_status, 'process')} variant="outline">
-                            <CheckCircle2Icon className="h-3 w-3 mr-1" />
-                            {line.process_status}
-                          </Badge>
-                          <Badge className={getStatusColor(line.contract_status, 'contract')} variant="outline">
-                            <AlertCircleIcon className="h-3 w-3 mr-1" />
-                            {line.contract_status}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {/* Version Info and Actions */}
-                      <div className="lg:col-span-2 flex flex-col items-end gap-2">
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Versão</p>
-                          <Badge variant="secondary" className="text-xs">
-                            v{line.current_version}/{line.total_versions}
-                          </Badge>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewHistory(line.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <HistoryIcon className="h-3 w-3" />
-                          Histórico
-                          <ChevronRightIcon className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-bold">Descrição</TableHead>
+                  <TableHead className="font-bold">Valor Orçado</TableHead>
+                  <TableHead className="font-bold">Centro Gestor</TableHead>
+                  <TableHead className="font-bold">Fiscal</TableHead>
+                  <TableHead className="font-bold">Tipo de Despesa</TableHead>
+                  <TableHead className="w-[100px] font-bold">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {budgetLines.map((line) => (
+                  <TableRow key={line.id}>
+                    <TableCell>
+                      {line.summary_description || "Descrição não informada"}
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(line.budgeted_amount)}
+                    </TableCell>
+                    <TableCell>
+                      {line.management_center_name}
+                    </TableCell>
+                    <TableCell>
+                      {line.main_fiscal_name}
+                    </TableCell>
+                    <TableCell>
+                      {line.expense_type}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewHistory(line.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <HistoryIcon className="h-3 w-3" />
+                        Histórico
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
 
-        {/* Distribution Statistics */}
-        {(Object.keys(budgetLinesSummary.process_status_distribution).length > 0 || 
-          Object.keys(budgetLinesSummary.contract_status_distribution).length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t">
-            {/* Process Status Distribution */}
-            {Object.keys(budgetLinesSummary.process_status_distribution).length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-900">Distribuição por Status do Processo</h4>
-                <div className="space-y-2">
-                  {Object.entries(budgetLinesSummary.process_status_distribution).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between text-sm">
-                      <Badge className={getStatusColor(status, 'process')} variant="outline">
-                        {status}
-                      </Badge>
-                      <span className="font-medium">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Contract Status Distribution */}
-            {Object.keys(budgetLinesSummary.contract_status_distribution).length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-900">Distribuição por Status do Contrato</h4>
-                <div className="space-y-2">
-                  {Object.entries(budgetLinesSummary.contract_status_distribution).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between text-sm">
-                      <Badge className={getStatusColor(status, 'contract')} variant="outline">
-                        {status}
-                      </Badge>
-                      <span className="font-medium">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </CardContent>
 
       {/* Version History Dialog */}
