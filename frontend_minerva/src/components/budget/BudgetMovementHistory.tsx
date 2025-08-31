@@ -155,7 +155,7 @@ export function BudgetMovementHistory({ budgetId, onNewMovement, onMovementChang
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <HistoryIcon className="h-4 w-4" />
-            Histórico de Movimentações ({movements.length})
+            Histórico de Movimentações ({movements.filter(m => m.source?.id === budgetId || m.destination?.id === budgetId).length})
           </CardTitle>
           {onNewMovement && (
             <Button onClick={onNewMovement} className="flex items-center gap-2">
@@ -176,12 +176,17 @@ export function BudgetMovementHistory({ budgetId, onNewMovement, onMovementChang
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Movimentação</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Origem</TableHead>
+                <TableHead>Destino</TableHead>
                 <TableHead className="w-[100px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {movements.map((movement) => {
+              {movements.filter((movement) => {
+                // Mostrar apenas movimentações onde o orçamento atual é origem OU destino
+                return movement.source?.id === budgetId || movement.destination?.id === budgetId;
+              }).map((movement) => {
                 // Determinar a direção da movimentação em relação ao orçamento atual
                 const isOutgoing = movement.source?.id === budgetId
                 const direction = isOutgoing ? 'SAÍDA' : 'ENTRADA'
@@ -200,18 +205,21 @@ export function BudgetMovementHistory({ budgetId, onNewMovement, onMovementChang
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div className="font-medium">
-                          {direction} {isOutgoing ? 'para' : 'de'} {relatedBudget?.category} {relatedBudget?.year}
-                        </div>
-                        {relatedBudget?.management_center?.name && (
-                          <div className="text-xs text-muted-foreground">
-                            Centro: {relatedBudget.management_center.name}
-                          </div>
-                        )}
+                      <span className="text-sm">
+                        {direction}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {movement.source?.category}-{movement.source?.year}-{movement.source?.management_center?.name || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {movement.destination?.category}-{movement.destination?.year}-{movement.destination?.management_center?.name || 'N/A'}
                         {movement.notes && (
-                          <div className="text-xs text-muted-foreground">
-                            {movement.notes}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium">Obs:</span> {movement.notes}
                           </div>
                         )}
                       </div>

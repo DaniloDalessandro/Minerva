@@ -28,6 +28,7 @@ interface BudgetMovementFormProps {
   movement?: BudgetMovement
   budgets: Budget[]
   isLoading?: boolean
+  currentBudgetId?: number
 }
 
 export function BudgetMovementForm({
@@ -36,7 +37,8 @@ export function BudgetMovementForm({
   onSubmit,
   movement,
   budgets,
-  isLoading = false
+  isLoading = false,
+  currentBudgetId
 }: BudgetMovementFormProps) {
   const [formData, setFormData] = useState<CreateBudgetMovementData>({
     source: 0,
@@ -45,6 +47,7 @@ export function BudgetMovementForm({
     notes: ""
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showWarning, setShowWarning] = useState(false)
 
   useEffect(() => {
     if (movement) {
@@ -63,7 +66,18 @@ export function BudgetMovementForm({
       })
     }
     setErrors({})
+    setShowWarning(false)
   }, [movement])
+
+  useEffect(() => {
+    // Check if either source or destination is not the current budget
+    if (currentBudgetId && formData.source && formData.destination) {
+      const isRelatedToCurrentBudget = formData.source === currentBudgetId || formData.destination === currentBudgetId
+      setShowWarning(!isRelatedToCurrentBudget)
+    } else {
+      setShowWarning(false)
+    }
+  }, [formData.source, formData.destination, currentBudgetId])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -224,6 +238,27 @@ export function BudgetMovementForm({
             })()}
             {errors.amount && <span className="text-sm text-red-500">{errors.amount}</span>}
           </div>
+
+          {showWarning && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-amber-800">
+                    Atenção: Movimentação não relacionada ao orçamento atual
+                  </h3>
+                  <p className="mt-1 text-sm text-amber-700">
+                    Esta movimentação não envolve o orçamento que você está visualizando. 
+                    Verifique se a origem ou destino deve ser o orçamento atual para que a movimentação apareça no histórico.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>

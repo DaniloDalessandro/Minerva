@@ -347,6 +347,7 @@ export default function BudgetDetailsPage() {
         onSubmit={handleMovementSubmit}
         budgets={budgets}
         isLoading={isSubmitting}
+        currentBudgetId={budgetId}
       />
     </div>
   )
