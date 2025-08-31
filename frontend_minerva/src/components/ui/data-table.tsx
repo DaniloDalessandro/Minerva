@@ -291,94 +291,98 @@ export function DataTable({
 
                     return (
                       <TableHead key={header.id} className="font-semibold">
-                        <div className="flex items-center gap-1">
-                          {showFilterIcon && (
-                            <div className="relative">
-                              <Popover
-                                open={isFilterOpen}
-                                onOpenChange={(open) => {
-                                  if (open) {
-                                    setOpenFilterId(columnId);
-                                  } else {
-                                    setOpenFilterId(null);
-                                  }
-                                }}
-                              >
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setOpenFilterId(isFilterOpen ? null : columnId);
-                                    }}
-                                  >
-                                    <Filter
-                                      className={`h-4 w-4 ${
-                                        filterValue
-                                          ? "text-primary"
-                                          : "text-gray-400"
-                                      }`}
-                                    />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-60 p-3"
-                                  align="start"
-                                  onClick={(e) => e.stopPropagation()}
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-1 flex-1 min-w-0">
+                            {showFilterIcon && (
+                              <div className="relative flex-shrink-0">
+                                <Popover
+                                  open={isFilterOpen}
+                                  onOpenChange={(open) => {
+                                    if (open) {
+                                      setOpenFilterId(columnId);
+                                    } else {
+                                      setOpenFilterId(null);
+                                    }
+                                  }}
                                 >
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <h4 className="font-medium">
-                                        Filtrar {header.column.columnDef.header}
-                                      </h4>
-                                      {filterValue && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 px-2"
-                                          onClick={() => clearFilter(columnId)}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      )}
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 hover:bg-gray-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenFilterId(isFilterOpen ? null : columnId);
+                                      }}
+                                    >
+                                      <Filter
+                                        className={`h-3.5 w-3.5 ${
+                                          filterValue
+                                            ? "text-primary"
+                                            : "text-gray-400"
+                                        }`}
+                                      />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-60 p-3"
+                                    align="start"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-medium">
+                                          Filtrar {header.column.columnDef.header}
+                                        </h4>
+                                        {filterValue && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2"
+                                            onClick={() => clearFilter(columnId)}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                      <Input
+                                        placeholder={`Filtrar...`}
+                                        value={filterValue ?? ""}
+                                        onChange={(e) =>
+                                          handleFilterChange(
+                                            columnId,
+                                            e.target.value
+                                          )
+                                        }
+                                        autoFocus
+                                      />
                                     </div>
-                                    <Input
-                                      placeholder={`Filtrar...`}
-                                      value={filterValue ?? ""}
-                                      onChange={(e) =>
-                                        handleFilterChange(
-                                          columnId,
-                                          e.target.value
-                                        )
-                                      }
-                                      autoFocus
-                                    />
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          )}
-                          <div
-                            className="cursor-pointer select-none flex items-center"
-                            onClick={() =>
-                              header.column.getCanSort() &&
-                              header.column.toggleSorting()
-                            }
-                          >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
                             )}
-                            {header.column.getCanSort() && (
-                              <span className="ml-1 text-gray-400">
-                                {{
-                                  asc: "▲",
-                                  desc: "▼",
-                                }[header.column.getIsSorted()] ?? "↕"}
+                            <div
+                              className="cursor-pointer select-none flex items-center flex-1 min-w-0"
+                              onClick={() =>
+                                header.column.getCanSort() &&
+                                header.column.toggleSorting()
+                              }
+                            >
+                              <span className="truncate">
+                                {flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
                               </span>
-                            )}
+                              {header.column.getCanSort() && (
+                                <span className="ml-1 text-gray-400 flex-shrink-0">
+                                  {{
+                                    asc: "▲",
+                                    desc: "▼",
+                                  }[header.column.getIsSorted()] ?? "↕"}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </TableHead>
@@ -402,11 +406,25 @@ export function DataTable({
                       )
                     }
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-2">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const showFilterIcon = cell.column.columnDef.meta?.showFilterIcon;
+                      return (
+                        <TableCell key={cell.id} className="py-2">
+                          <div className="flex items-center w-full">
+                            <div className="flex items-center gap-1 flex-1 min-w-0">
+                              {showFilterIcon && (
+                                <div className="w-7 flex-shrink-0"></div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <span className="truncate block">
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (
