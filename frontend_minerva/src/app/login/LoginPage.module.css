@@ -37,3 +37,10 @@
     transform: translateX(-50%); /* Move by half the width for a seamless loop */
   }
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ocean {
+    height: 200px; /* Altura menor para telas pequenas */
+  }
+}

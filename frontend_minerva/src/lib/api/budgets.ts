@@ -24,6 +24,10 @@ export interface Budget {
   management_center_id?: number;
   total_amount: string;
   available_amount: string;
+  used_amount?: string;
+  calculated_available_amount?: string;
+  valor_remanejado_entrada?: string;
+  valor_remanejado_saida?: string;
   status: 'ATIVO' | 'INATIVO';
   created_at: string;
   updated_at: string;

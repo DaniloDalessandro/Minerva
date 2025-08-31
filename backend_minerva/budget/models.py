@@ -56,26 +56,36 @@ class Budget(models.Model):
         return Decimal(str(total_budgeted))
     
     @property
+    def valor_remanejado_entrada(self):
+        """Calcula o valor total recebido via movimentações (entradas)"""
+        incoming_total = self.incoming_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        return incoming_total
+    
+    @property
+    def valor_remanejado_saida(self):
+        """Calcula o valor total enviado via movimentações (saídas)"""
+        outgoing_total = self.outgoing_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        return outgoing_total
+    
+    @property
     def calculated_available_amount(self):
         """Calcula o valor disponível considerando movimentações"""
         # Valor base é o total_amount
         base_amount = Decimal(str(self.total_amount))
         
-        # Soma das movimentações recebidas (incoming)
-        incoming_total = self.incoming_movements.aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0.00')
-        
-        # Soma das movimentações enviadas (outgoing) 
-        outgoing_total = self.outgoing_movements.aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0.00')
+        # Movimentações
+        entrada = self.valor_remanejado_entrada
+        saida = self.valor_remanejado_saida
         
         # Valor usado pelas linhas orçamentárias
         used_by_lines = self.used_amount
         
-        # Disponível = total + recebido - enviado - usado
-        available = base_amount + incoming_total - outgoing_total - used_by_lines
+        # Disponível = total + entrada - saída - usado
+        available = base_amount + entrada - saida - used_by_lines
         return max(available, Decimal('0.00'))
     
     def update_calculated_amounts(self):

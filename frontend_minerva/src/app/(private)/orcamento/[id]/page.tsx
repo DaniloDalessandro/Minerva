@@ -125,8 +125,35 @@ export default function BudgetDetailsPage() {
     )
   }
 
-  const usedAmount = parseFloat(budget.total_amount) - parseFloat(budget.available_amount)
-  const usagePercentage = ((usedAmount / parseFloat(budget.total_amount)) * 100).toFixed(1)
+  // Usar valores calculados do backend
+  const usedAmount = parseFloat(budget.used_amount || '0')
+  const entradaAmount = parseFloat(budget.valor_remanejado_entrada || '0')
+  const saidaAmount = parseFloat(budget.valor_remanejado_saida || '0')
+  const totalAmount = parseFloat(budget.total_amount)
+  const availableAmount = parseFloat(budget.available_amount)
+  
+  // Verificar se os valores batem com a lógica: Disponível = Total + Entrada - Saída - Utilizado
+  const calculatedAvailable = totalAmount + entradaAmount - saidaAmount - usedAmount
+  
+  // Valor Total Atual = Total + Entrada
+  const valorTotalAtual = totalAmount + entradaAmount
+  
+  // Porcentagem correta: quanto foi consumido do Valor Total Atual
+  // Consumido = Valor Total Atual - Disponível
+  const consumido = valorTotalAtual - availableAmount
+  const percentageValue = valorTotalAtual > 0 ? (consumido / valorTotalAtual) * 100 : 0
+  
+  // Ajustar precisão: se for menor que 1%, mostrar 2 casas decimais
+  const usagePercentage = percentageValue < 1 && percentageValue > 0 
+    ? percentageValue.toFixed(2) 
+    : percentageValue.toFixed(1)
+  
+  // Debug da lógica (temporário)
+  if (Math.abs(calculatedAvailable - availableAmount) > 0.01) {
+    console.warn('Inconsistência nos valores do orçamento:')
+    console.warn(`Total: ${totalAmount}, Entrada: ${entradaAmount}, Saída: ${saidaAmount}, Utilizado: ${usedAmount}`)
+    console.warn(`Disponível (API): ${availableAmount}, Calculado: ${calculatedAvailable}`)
+  }
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -210,6 +237,26 @@ export default function BudgetDetailsPage() {
                 </div>
                 <p className="text-base font-semibold text-orange-600">{formatCurrency(usedAmount.toString())}</p>
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <DollarSignIcon className="h-3 w-3" />
+                  Remanejado (Entrada)
+                </div>
+                <p className="text-base font-semibold text-green-600">
+                  {formatCurrency(budget.valor_remanejado_entrada || '0')}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <DollarSignIcon className="h-3 w-3" />
+                  Remanejado (Saída)
+                </div>
+                <p className="text-base font-semibold text-red-600">
+                  {formatCurrency(budget.valor_remanejado_saida || '0')}
+                </p>
+              </div>
             </div>
             
             <Separator className="my-4" />
@@ -249,28 +296,26 @@ export default function BudgetDetailsPage() {
               Valores Orçamentários
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(budget.total_amount)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Disponível</p>
-                <p className="text-lg font-bold text-green-600">{formatCurrency(budget.available_amount)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Utilizado</p>
-                <p className="text-lg font-bold text-orange-600">{formatCurrency(usedAmount.toString())}</p>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Valor Total Atual</p>
+              <p className="text-3xl font-bold text-blue-600">{formatCurrency(valorTotalAtual.toString())}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total: {formatCurrency(budget.total_amount)} + Entrada: {formatCurrency(budget.valor_remanejado_entrada || '0')}
+              </p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
-                className="bg-orange-600 h-2 rounded-full" 
+                className="bg-orange-600 h-3 rounded-full transition-all duration-300" 
                 style={{width: `${usagePercentage}%`}}
               />
             </div>
-            <p className="text-sm text-center text-muted-foreground">{usagePercentage}% utilizado</p>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">{usagePercentage}% consumido</span>
+              <span className="text-muted-foreground">
+                {formatCurrency(consumido.toString())} / {formatCurrency(valorTotalAtual.toString())}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
