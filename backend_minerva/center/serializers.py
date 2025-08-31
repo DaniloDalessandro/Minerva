@@ -21,6 +21,11 @@ class ManagementCenterSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
+    def validate_name(self, value):
+        if value:
+            return value.upper()
+        return value
+
 
 # Serializer for the models in the centers app
 class RequestingCenterSerializer(serializers.ModelSerializer):
@@ -49,3 +54,8 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
             management_center = Management_Center.objects.get(id=management_center_id)
             validated_data['management_center'] = management_center
         return super().update(instance, validated_data)
+
+    def validate_name(self, value):
+        if value:
+            return value.upper()
+        return value

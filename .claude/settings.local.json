@@ -57,7 +57,12 @@
       "Bash(if exist \"AuthContext.temp2.tsx\" echo \"AuthContext.temp2.tsx exists\")",
       "Bash(powershell:*)",
       "Bash(\"venv\\Scripts\\python.exe\" manage.py collectstatic --noinput)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations center)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py makemigrations sector)",
+      "Bash(\"venv\\Scripts\\python.exe\" test_uppercase.py)",
+      "Bash(\"venv\\Scripts\\python.exe\" manage.py shell --command=\"\nfrom django.apps import apps\nfor app in apps.get_app_configs():\n    print(f''App: {app.label}'')\n    for model in app.get_models():\n        print(f''  Model: {model._meta.label}'')\n\")",
+      "Bash(\"venv\\Scripts\\python.exe\":*)"
     ],
     "deny": [],
     "additionalDirectories": [

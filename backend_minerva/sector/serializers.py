@@ -20,6 +20,11 @@ class DirectionSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
+    def validate_name(self, value):
+        if value:
+            return value.upper()
+        return value
+
 class ManagementSerializer(serializers.ModelSerializer):
     direction = DirectionSerializer(read_only=True)
     direction_id = serializers.IntegerField(write_only=True)
@@ -33,6 +38,11 @@ class ManagementSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'direction', 'direction_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
+    def validate_name(self, value):
+        if value:
+            return value.upper()
+        return value
+
 class CoordinationSerializer(serializers.ModelSerializer):
     management = ManagementSerializer(read_only=True)
     management_id = serializers.IntegerField(write_only=True)
@@ -45,3 +55,8 @@ class CoordinationSerializer(serializers.ModelSerializer):
         model = Coordination
         fields = ['id', 'name', 'management', 'management_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+
+    def validate_name(self, value):
+        if value:
+            return value.upper()
+        return value

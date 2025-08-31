@@ -40,7 +40,7 @@ export default function DirectionForm({
   }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, name: e.target.value });
+    setFormData({ ...formData, name: e.target.value.toUpperCase() });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

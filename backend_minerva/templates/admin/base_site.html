@@ -13,13 +13,32 @@
 <meta name="description" content="Sistema Minerva - Gestão de Contratos">
 
 <!-- PWA support -->
-<meta name="apple-mobile-web-app-title" content="Minerva">
-<meta name="application-name" content="Minerva">
+<meta name="apple-mobile-web-app-title" content="⚓ Minerva">
+<meta name="application-name" content="⚓ Minerva">
 
 <style>
-/* Adiciona ícone no título da página */
+/* Adiciona ícone de âncora no título da página */
 h1#site-name a::before {
-    content: "";
+    content: "⚓ ";
+    color: #007bff;
+    font-size: 1.2em;
+    margin-right: 0.3em;
+}
+
+/* Estilização adicional para o tema náutico */
+.module h2, .module caption, .inline-group h2 {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    color: white !important;
+}
+
+/* Header principal com âncora */
+#header {
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+}
+
+/* Branding do site */
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: white !important;
 }
 </style>
 {% endblock %}

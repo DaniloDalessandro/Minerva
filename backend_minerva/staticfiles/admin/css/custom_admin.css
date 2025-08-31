@@ -254,7 +254,7 @@ select:focus {
     margin-right: 8px !important;
 }
 
-/* Ícone de navio no título */
+/* Ícone de âncora no título principal */
 .navbar-brand::before,
 .admin-branding::before {
     content: "⚓" !important;
@@ -263,7 +263,7 @@ select:focus {
     color: #007bff !important;
 }
 
-/* Customização do header */
+/* Customização do header do admin */
 #header h1 a {
     color: #007bff !important;
 }
@@ -272,4 +272,66 @@ select:focus {
     content: "⚓ " !important;
     font-size: 24px !important;
     margin-right: 8px !important;
+}
+
+/* Estilização dos ícones do sidebar */
+.nav-sidebar .nav-link i {
+    color: #007bff !important;
+    margin-right: 8px !important;
+    width: 16px !important;
+    text-align: center !important;
+}
+
+/* Hover effect nos ícones */
+.nav-sidebar .nav-link:hover i {
+    color: #0056b3 !important;
+    transform: scale(1.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Ícones ativos */
+.nav-sidebar .nav-link.active i {
+    color: #ffffff !important;
+}
+
+/* Estilização do breadcrumb com ícones */
+.breadcrumb-item::before {
+    content: "⚓" !important;
+    color: #007bff !important;
+    margin-right: 4px !important;
+}
+
+/* Botões do admin com ícones */
+.btn-primary::before {
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 6px !important;
+}
+
+.btn-primary.addlink::before {
+    content: "\f067" !important; /* fas fa-plus */
+}
+
+.btn-primary.changelink::before {
+    content: "\f044" !important; /* fas fa-edit */
+}
+
+.btn-danger.deletelink::before {
+    content: "\f2ed" !important; /* fas fa-trash-alt */
+}
+
+/* Cards do dashboard com ícones */
+.card-header::before {
+    content: "⚓" !important;
+    color: #007bff !important;
+    margin-right: 8px !important;
+    font-size: 16px !important;
+}
+
+/* Login page customization */
+.login-form h1::before {
+    content: "⚓" !important;
+    color: #007bff !important;
+    margin-right: 8px !important;
+    font-size: 24px !important;
 }

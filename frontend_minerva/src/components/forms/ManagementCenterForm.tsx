@@ -45,7 +45,8 @@ export default function ManagementCenterForm({
   }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const value = e.target.id === 'name' ? e.target.value.toUpperCase() : e.target.value;
+    setFormData({ ...formData, [e.target.id]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

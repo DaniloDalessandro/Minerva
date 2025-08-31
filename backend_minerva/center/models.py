@@ -12,6 +12,11 @@ class Management_Center(models.Model):
     created_by = models.ForeignKey(User, related_name='centros_gertores_criados', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Criado por')
     updated_by = models.ForeignKey(User, related_name='centros_gestores_atualizados', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Atualizado por')
 
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
     
@@ -30,6 +35,11 @@ class Requesting_Center(models.Model):
     updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
     created_by = models.ForeignKey(User, related_name='centros_solicitantes_criados', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Criado por')
     updated_by = models.ForeignKey(User, related_name='centros_solicitantes_atualizados', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Atualizado por')
+
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
