@@ -33,6 +33,7 @@ export default function ColaboradoresPage() {
     updateColaborador: updateOptimisticColaborador
   } = useOptimisticColaboradores();
 
+
   // Pagination and filtering states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -232,9 +233,11 @@ export default function ColaboradoresPage() {
     }
   };
 
+
   return (
     <div className="container mx-auto py-1 px-2">
       <div className="space-y-2">
+        
         <DataTable
           columns={columns}
           data={colaboradores}
