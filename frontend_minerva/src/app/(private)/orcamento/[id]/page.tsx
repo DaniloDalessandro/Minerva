@@ -320,7 +320,15 @@ export default function BudgetDetailsPage() {
         </Card>
 
         {/* Budget Movements History */}
-        <BudgetMovementHistory budgetId={budget.id} onNewMovement={handleNewMovement} />
+        <BudgetMovementHistory 
+          budgetId={budget.id} 
+          onNewMovement={handleNewMovement} 
+          onMovementChange={async () => {
+            // Recarregar dados do orçamento quando há mudanças nas movimentações
+            const updatedBudget = await fetchBudgetById(budgetId)
+            setBudget(updatedBudget)
+          }}
+        />
 
         {/* Budget Lines */}
         {budget.budget_lines && budget.budget_lines_summary && (

@@ -249,7 +249,21 @@ class BudgetDetailSerializer(BudgetSerializer):
         return data
 
 class BudgetMovementSerializer(serializers.ModelSerializer):
+    # Nested representation for read operations
+    source = BudgetSerializer(read_only=True)
+    destination = BudgetSerializer(read_only=True)
+    # Write fields for creating/updating movements
+    source_id = serializers.IntegerField(write_only=True, required=True)
+    destination_id = serializers.IntegerField(write_only=True, required=True)
+    # User information for audit fields
+    created_by = UserInfoSerializer(read_only=True)
+    updated_by = UserInfoSerializer(read_only=True)
+    
     class Meta:
         model = BudgetMovement
-        fields = '__all__'
+        fields = [
+            'id', 'source', 'source_id', 'destination', 'destination_id', 
+            'amount', 'movement_date', 'notes', 
+            'created_at', 'updated_at', 'created_by', 'updated_by'
+        ]
         read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']

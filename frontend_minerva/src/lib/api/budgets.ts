@@ -308,10 +308,19 @@ export async function getBudgetMovementsByBudget(budgetId: number) {
   const data = await res.json();
   const movements = data.results || data;
   
+  // Debug log to see what we're getting
+  console.log(`getBudgetMovementsByBudget(${budgetId}):`);
+  console.log('API Response:', data);
+  console.log('Movements:', movements);
+  
   // Filter movements where this budget is either source or destination
-  const filteredMovements = movements.filter((movement: BudgetMovement) => 
-    movement.source?.id === budgetId || movement.destination?.id === budgetId
-  );
+  const filteredMovements = movements.filter((movement: BudgetMovement) => {
+    const isMatch = movement.source?.id === budgetId || movement.destination?.id === budgetId;
+    console.log(`Movement ${movement.id}: Source=${movement.source?.id}, Destination=${movement.destination?.id}, Match=${isMatch}`);
+    return isMatch;
+  });
+  
+  console.log(`Filtered movements for budget ${budgetId}:`, filteredMovements);
   
   return filteredMovements;
 }
