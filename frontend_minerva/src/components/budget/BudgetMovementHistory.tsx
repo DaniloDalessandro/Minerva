@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowRightIcon, HistoryIcon, PlusIcon, EditIcon, TrashIcon } from "lucide-react"
+import { ArrowRightIcon, HistoryIcon, PlusIcon, Pencil, Trash2 } from "lucide-react"
 import { BudgetMovement, getBudgetMovementsByBudget, deleteBudgetMovement, updateBudgetMovement } from "@/lib/api/budgets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -227,20 +227,22 @@ export function BudgetMovementHistory({ budgetId, onNewMovement, onMovementChang
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleEditMovement(movement)}
                           className="h-8 w-8 p-0"
+                          title="Editar"
                         >
-                          <EditIcon className="h-3 w-3" />
+                          <Pencil className="h-3 w-3" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteMovement(movement)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="h-8 w-8 p-0"
+                          title="Excluir"
                         >
-                          <TrashIcon className="h-3 w-3" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>

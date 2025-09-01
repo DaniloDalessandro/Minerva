@@ -17,7 +17,9 @@ import {
   CheckCircle2Icon,
   AlertCircleIcon,
   ChevronRightIcon,
-  PlusIcon
+  PlusIcon,
+  Pencil,
+  Trash2
 } from "lucide-react"
 import { BudgetLineListItem, BudgetLinesSummary } from "@/lib/api/budgets"
 import BudgetLineVersionHistory from "./BudgetLineVersionHistory"
@@ -26,9 +28,17 @@ interface BudgetLinesProps {
   budgetLines: BudgetLineListItem[]
   budgetLinesSummary: BudgetLinesSummary
   onCreateNewBudgetLine?: () => void
+  onEditBudgetLine?: (budgetLineId: number) => void
+  onDeleteBudgetLine?: (budgetLineId: number) => void
+  budgetInfo?: {
+    name: string
+    year: number
+    category: string
+    totalAmount: string
+  }
 }
 
-export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudgetLine }: BudgetLinesProps) {
+export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudgetLine, onEditBudgetLine, onDeleteBudgetLine, budgetInfo }: BudgetLinesProps) {
   const [selectedLineId, setSelectedLineId] = useState<number | null>(null)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
 
@@ -75,6 +85,7 @@ export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudget
     setIsHistoryDialogOpen(false)
     setSelectedLineId(null)
   }
+
 
   // Summary statistics cards
   const summaryCards = [
@@ -175,15 +186,30 @@ export function BudgetLines({ budgetLines, budgetLinesSummary, onCreateNewBudget
                       {line.expense_type}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewHistory(line.id)}
-                        className="flex items-center gap-1"
-                      >
-                        <HistoryIcon className="h-3 w-3" />
-                        Histórico
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {onEditBudgetLine && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEditBudgetLine(line.id)}
+                            className="h-8 w-8 p-0"
+                            title="Editar"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
+                        {onDeleteBudgetLine && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDeleteBudgetLine(line.id)}
+                            className="h-8 w-8 p-0"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

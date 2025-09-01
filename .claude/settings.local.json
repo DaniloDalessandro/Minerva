@@ -65,7 +65,8 @@
       "Bash(\"venv\\Scripts\\python.exe\":*)",
       "Bash(mkdir:*)",
       "Bash(call:*)",
-      "Bash(\"venv/Scripts/python.exe\" manage.py shell --command=\"\nfrom budget.models import BudgetMovement\nmovements = BudgetMovement.objects.all()\nprint(f''Total movimentacoes no banco: {movements.count()}'')\nfor m in movements:\n    print(f''Movement {m.id}: Source ID={m.source.id}, Destination ID={m.destination.id}'')\n\")"
+      "Bash(\"venv/Scripts/python.exe\" manage.py shell --command=\"\nfrom budget.models import BudgetMovement\nmovements = BudgetMovement.objects.all()\nprint(f''Total movimentacoes no banco: {movements.count()}'')\nfor m in movements:\n    print(f''Movement {m.id}: Source ID={m.source.id}, Destination ID={m.destination.id}'')\n\")",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "additionalDirectories": [
