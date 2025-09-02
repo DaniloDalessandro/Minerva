@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { Loader } from "./loader"
 
 export function NavigationProgressBar() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [progress, setProgress] = useState(0)
   const pathname = usePathname()
   const searchParams = useSearchParams()
