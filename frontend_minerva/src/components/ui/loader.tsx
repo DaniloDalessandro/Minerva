@@ -1,27 +1,18 @@
 // src/components/ui/loader.tsx
-export function Loader() {
+export function Loader({ progress }: { progress: number }) {
   return (
-    <div className="flex justify-center items-center h-24">
-      <svg
-        className="animate-spin h-8 w-8 text-primary"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        ></circle>
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-        ></path>
-      </svg>
+    <div className="relative flex h-24 w-24 items-center justify-center rounded-full">
+      <div
+        className="transition-all duration-200 absolute h-full w-full rounded-full"
+        style={{
+          background: `conic-gradient(#1e40af ${progress * 3.6}deg, #d1d5db ${progress * 3.6}deg)`,
+        }}
+      ></div>
+      <div className="relative h-[calc(100%-1rem)] w-[calc(100%-1rem)] rounded-full bg-background flex items-center justify-center">
+        <span className="text-xl font-bold text-foreground">{`${Math.round(
+          progress
+        )}%`}</span>
+      </div>
     </div>
   )
 }
