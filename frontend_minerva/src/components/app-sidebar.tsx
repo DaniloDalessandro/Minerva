@@ -96,7 +96,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Colaboradores",
       url: "/colaboradores",
       icon: SquareTerminal,
-      isActive: true,
       items: [
         { title: "Buscar", url: "/colaboradores" },
         { title: "Adicionar", url: "/colaboradores", action: "colaborador" },

@@ -171,11 +171,6 @@ export default function AlicePage() {
               <div className="flex items-center gap-2">
                 <Bot className="h-5 w-5 text-purple-500" />
                 Chat com Alice
-                {sessionId && (
-                  <Badge variant="secondary" className="text-xs">
-                    Sessão: {sessionId.slice(0, 8)}...
-                  </Badge>
-                )}
               </div>
               <Badge variant={isLoading ? "secondary" : "default"} className="flex items-center gap-1">
                 {isLoading ? (
@@ -227,42 +222,8 @@ export default function AlicePage() {
                         
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{formatTime(message.timestamp)}</span>
-                          
-                          {message.metadata && (
-                            <div className="flex items-center gap-4">
-                              {message.metadata.execution_time_ms && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {message.metadata.execution_time_ms}ms
-                                </div>
-                              )}
-                              {message.metadata.result_count !== undefined && (
-                                <div className="flex items-center gap-1">
-                                  <Hash className="h-3 w-3" />
-                                  {message.metadata.result_count} resultados
-                                </div>
-                              )}
-                              {message.metadata.sql_query && (
-                                <div className="flex items-center gap-1">
-                                  <Database className="h-3 w-3" />
-                                  SQL executado
-                                </div>
-                              )}
-                            </div>
-                          )}
                         </div>
 
-                        {/* Mostra consulta SQL se disponível */}
-                        {message.metadata?.sql_query && (
-                          <details className="mt-2">
-                            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
-                              Ver consulta SQL executada
-                            </summary>
-                            <div className="mt-2 p-3 bg-gray-900 text-green-400 rounded text-xs font-mono overflow-x-auto">
-                              {message.metadata.sql_query}
-                            </div>
-                          </details>
-                        )}
                       </div>
                       
                       {message.type === "user" && (
