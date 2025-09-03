@@ -43,7 +43,9 @@ import {
   Clock,
   CheckCircle,
   Maximize2,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 
 // Mock data for charts
@@ -179,12 +181,15 @@ function ChartCard({
 export default function Page() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
   const [chartStates, setChartStates] = useState<ChartStates>({
     contractStatus: { fullscreen: false },
     monthlyValues: { fullscreen: false },
     budgetUtilization: { fullscreen: false },
     contractTimeline: { fullscreen: false },
   })
+
+  const totalPages = 3
 
 
   // Toggle fullscreen state for a chart
@@ -196,6 +201,355 @@ export default function Page() {
         fullscreen: !prev[chartKey].fullscreen
       }
     }))
+  }
+
+  // Navigation functions
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1)
+    }
+  }
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1)
+    }
+  }
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  // Render page content based on current page
+  const renderPageContent = () => {
+    switch (currentPage) {
+      case 1:
+        return (
+          <div className="h-full flex flex-col gap-4">
+            {/* Metrics Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Total de Contratos</p>
+                      <div className="flex items-center">
+                        <h3 className="text-2xl font-bold">68</h3>
+                        <div className="flex items-center ml-2 text-green-600">
+                          <TrendingUp className="h-4 w-4 mr-1" />
+                          <span className="text-xs font-medium">+12%</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">vs. mês anterior</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Users className="h-8 w-8 text-purple-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Colaboradores</p>
+                      <div className="flex items-center">
+                        <h3 className="text-2xl font-bold">156</h3>
+                        <div className="flex items-center ml-2 text-green-600">
+                          <TrendingUp className="h-4 w-4 mr-1" />
+                          <span className="text-xs font-medium">+5%</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">ativos no sistema</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Orçamentos</p>
+                      <div className="flex items-center">
+                        <h3 className="text-2xl font-bold">{formatCurrency(18750000)}</h3>
+                        <div className="flex items-center ml-2 text-green-600">
+                          <TrendingUp className="h-4 w-4 mr-1" />
+                          <span className="text-xs font-medium">+8%</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">valor total disponível</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Heart className="h-8 w-8 text-red-500" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Auxílios Ativos</p>
+                      <div className="flex items-center">
+                        <h3 className="text-2xl font-bold">42</h3>
+                        <div className="flex items-center ml-2 text-red-500">
+                          <TrendingDown className="h-4 w-4 mr-1" />
+                          <span className="text-xs font-medium">-3%</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">em andamento</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Charts */}
+            <div className="flex-1 grid gap-4 md:grid-cols-2">
+              {/* Contract Status Distribution */}
+              <ChartCard
+                title="Distribuição de Status dos Contratos"
+                chartKey="contractStatus"
+                chartStates={chartStates}
+                onToggleFullscreen={toggleFullscreen}
+              >
+                <PieChart>
+                  <Pie
+                    data={contractStatusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                  >
+                    {contractStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ChartCard>
+
+              {/* Monthly Contract Values */}
+              <ChartCard
+                title="Valores Mensais de Contratos"
+                chartKey="monthlyValues"
+                chartStates={chartStates}
+                onToggleFullscreen={toggleFullscreen}
+              >
+                <AreaChart data={monthlyContractValues}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      name === 'value' ? formatCurrency(value as number) : value,
+                      name === 'value' ? 'Valor Total' : 'Contratos'
+                    ]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ChartCard>
+            </div>
+          </div>
+        )
+      
+      case 2:
+        return (
+          <div className="h-full flex flex-col gap-4">
+            {/* Secondary Charts */}
+            <div className="flex-1 grid gap-4 md:grid-cols-2">
+              {/* Budget Utilization */}
+              <ChartCard
+                title="Utilização de Orçamento por Categoria"
+                chartKey="budgetUtilization"
+                chartStates={chartStates}
+                onToggleFullscreen={toggleFullscreen}
+              >
+                <BarChart data={budgetUtilizationData} layout="horizontal">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
+                  <YAxis dataKey="category" type="category" width={80} />
+                  <Tooltip
+                    formatter={(value, name) => [
+                      formatCurrency(value as number),
+                      name === 'utilizado' ? 'Utilizado' : 'Total Disponível'
+                    ]}
+                  />
+                  <Bar dataKey="total" fill="#e5e7eb" name="total" />
+                  <Bar dataKey="utilizado" fill="#10b981" name="utilizado" />
+                </BarChart>
+              </ChartCard>
+
+              {/* Contract Timeline Activity */}
+              <ChartCard
+                title="Atividade de Contratos por Mês"
+                chartKey="contractTimeline"
+                chartStates={chartStates}
+                onToggleFullscreen={toggleFullscreen}
+              >
+                <LineChart data={contractTimelineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="novos" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    name="Novos Contratos"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="renovados" 
+                    stroke="#f59e0b" 
+                    strokeWidth={2}
+                    name="Renovados"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="finalizados" 
+                    stroke="#ef4444" 
+                    strokeWidth={2}
+                    name="Finalizados"
+                  />
+                </LineChart>
+              </ChartCard>
+            </div>
+
+            {/* Expiring Contracts Summary */}
+            <div className="flex-shrink-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-amber-500" />
+                    Contratos Próximos ao Vencimento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-001</p>
+                        <p className="text-xs text-muted-foreground">Vence em 15 dias</p>
+                      </div>
+                      <span className="text-amber-600 font-semibold">R$ 85.000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-003</p>
+                        <p className="text-xs text-muted-foreground">Vence em 22 dias</p>
+                      </div>
+                      <span className="text-amber-600 font-semibold">R$ 120.000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-007</p>
+                        <p className="text-xs text-muted-foreground">Vence em 28 dias</p>
+                      </div>
+                      <span className="text-amber-600 font-semibold">R$ 95.500</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )
+
+      case 3:
+        return (
+          <div className="h-full flex flex-col gap-6 justify-center">
+            {/* Recently Approved Contracts + Performance Summary */}
+            <div className="grid gap-6 md:grid-cols-2 max-w-6xl mx-auto w-full">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    Contratos Recém Aprovados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-015</p>
+                        <p className="text-xs text-muted-foreground">Aprovado hoje</p>
+                      </div>
+                      <span className="text-green-600 font-semibold">R$ 275.000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-016</p>
+                        <p className="text-xs text-muted-foreground">Aprovado ontem</p>
+                      </div>
+                      <span className="text-green-600 font-semibold">R$ 150.000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Contrato #2024-017</p>
+                        <p className="text-xs text-muted-foreground">Aprovado há 2 dias</p>
+                      </div>
+                      <span className="text-green-600 font-semibold">R$ 89.000</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumo de Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span>Contratos no Prazo</span>
+                        <span className="font-medium">92%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span>Utilização do Orçamento</span>
+                        <span className="font-medium">78%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '78%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span>Satisfação Interna</span>
+                        <span className="font-medium">87%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: '87%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   useEffect(() => {
@@ -245,307 +599,63 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      
-      {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total de Contratos</p>
-                <div className="flex items-center">
-                  <h3 className="text-2xl font-bold">68</h3>
-                  <div className="flex items-center ml-2 text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">+12%</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">vs. mês anterior</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Colaboradores</p>
-                <div className="flex items-center">
-                  <h3 className="text-2xl font-bold">156</h3>
-                  <div className="flex items-center ml-2 text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">+5%</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">ativos no sistema</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Orçamentos</p>
-                <div className="flex items-center">
-                  <h3 className="text-2xl font-bold">{formatCurrency(18750000)}</h3>
-                  <div className="flex items-center ml-2 text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">+8%</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">valor total disponível</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Heart className="h-8 w-8 text-red-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Auxílios Ativos</p>
-                <div className="flex items-center">
-                  <h3 className="text-2xl font-bold">42</h3>
-                  <div className="flex items-center ml-2 text-red-500">
-                    <TrendingDown className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">-3%</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">em andamento</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] p-4 pt-0">
+      {/* Page Content */}
+      <div className="flex-1 overflow-hidden transition-all duration-300 ease-in-out">
+        {renderPageContent()}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Contract Status Distribution */}
-        <ChartCard
-          title="Distribuição de Status dos Contratos"
-          chartKey="contractStatus"
-          chartStates={chartStates}
-          onToggleFullscreen={toggleFullscreen}
-        >
-          <PieChart>
-            <Pie
-              data={contractStatusData}
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
-              label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-            >
-              {contractStatusData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ChartCard>
+      {/* Navigation */}
+      <div className="flex-shrink-0 mt-4 border-t border-gray-200 pt-4">
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          {/* Previous Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+            className="flex items-center gap-2 h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
 
-        {/* Monthly Contract Values */}
-        <ChartCard
-          title="Valores Mensais de Contratos"
-          chartKey="monthlyValues"
-          chartStates={chartStates}
-          onToggleFullscreen={toggleFullscreen}
-        >
-          <AreaChart data={monthlyContractValues}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis tickFormatter={(value) => formatCurrency(value)} />
-            <Tooltip 
-              formatter={(value, name) => [
-                name === 'value' ? formatCurrency(value as number) : value,
-                name === 'value' ? 'Valor Total' : 'Contratos'
-              ]}
-            />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#3b82f6"
-              fill="#3b82f6"
-              fillOpacity={0.2}
-            />
-          </AreaChart>
-        </ChartCard>
+          {/* Page Indicators */}
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageNumber = index + 1
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => goToPage(pageNumber)}
+                  className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-200 ${
+                    currentPage === pageNumber
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              )
+            })}
+          </div>
 
-        {/* Budget Utilization */}
-        <ChartCard
-          title="Utilização de Orçamento por Categoria"
-          chartKey="budgetUtilization"
-          chartStates={chartStates}
-          onToggleFullscreen={toggleFullscreen}
-        >
-          <BarChart data={budgetUtilizationData} layout="horizontal">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-            <YAxis dataKey="category" type="category" width={80} />
-            <Tooltip
-              formatter={(value, name) => [
-                formatCurrency(value as number),
-                name === 'utilizado' ? 'Utilizado' : 'Total Disponível'
-              ]}
-            />
-            <Bar dataKey="total" fill="#e5e7eb" name="total" />
-            <Bar dataKey="utilizado" fill="#10b981" name="utilizado" />
-          </BarChart>
-        </ChartCard>
+          <div className="text-sm text-muted-foreground font-medium">
+            {currentPage}/{totalPages}
+          </div>
 
-        {/* Contract Timeline Activity */}
-        <ChartCard
-          title="Atividade de Contratos por Mês"
-          chartKey="contractTimeline"
-          chartStates={chartStates}
-          onToggleFullscreen={toggleFullscreen}
-        >
-          <LineChart data={contractTimelineData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="novos" 
-              stroke="#10b981" 
-              strokeWidth={2}
-              name="Novos Contratos"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="renovados" 
-              stroke="#f59e0b" 
-              strokeWidth={2}
-              name="Renovados"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="finalizados" 
-              stroke="#ef4444" 
-              strokeWidth={2}
-              name="Finalizados"
-            />
-          </LineChart>
-        </ChartCard>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-500" />
-              Contratos Próximos ao Vencimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-001</p>
-                  <p className="text-xs text-muted-foreground">Vence em 15 dias</p>
-                </div>
-                <span className="text-amber-600 font-semibold">R$ 85.000</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-003</p>
-                  <p className="text-xs text-muted-foreground">Vence em 22 dias</p>
-                </div>
-                <span className="text-amber-600 font-semibold">R$ 120.000</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-007</p>
-                  <p className="text-xs text-muted-foreground">Vence em 28 dias</p>
-                </div>
-                <span className="text-amber-600 font-semibold">R$ 95.500</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Contratos Recém Aprovados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-015</p>
-                  <p className="text-xs text-muted-foreground">Aprovado hoje</p>
-                </div>
-                <span className="text-green-600 font-semibold">R$ 275.000</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-016</p>
-                  <p className="text-xs text-muted-foreground">Aprovado ontem</p>
-                </div>
-                <span className="text-green-600 font-semibold">R$ 150.000</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Contrato #2024-017</p>
-                  <p className="text-xs text-muted-foreground">Aprovado há 2 dias</p>
-                </div>
-                <span className="text-green-600 font-semibold">R$ 89.000</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Resumo de Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm">
-                  <span>Contratos no Prazo</span>
-                  <span className="font-medium">92%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm">
-                  <span>Utilização do Orçamento</span>
-                  <span className="font-medium">78%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '78%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm">
-                  <span>Satisfação Interna</span>
-                  <span className="font-medium">87%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-purple-500 h-2 rounded-full" style={{ width: '87%' }}></div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Next Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-2 h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )
