@@ -4,7 +4,12 @@
       "Bash(tree:*)",
       "Bash(npx next dev:*)",
       "Bash(taskkill:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(python manage.py:*)",
+      "Bash(\"venv\\Scripts\\activate.bat\")",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": [],

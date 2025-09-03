@@ -7,6 +7,7 @@ import { fetchBudgets, Budget, createBudget, updateBudget, deleteBudget } from "
 import { fetchManagementCenters } from "@/lib/api/centers";
 import BudgetForm from "@/components/forms/BudgetForm";
 import { useOptimisticBudgets } from "@/hooks/useOptimisticBudgets";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,8 @@ export default function BudgetPage() {
   useEffect(() => {
     loadBudgets();
   }, [loadBudgets]);
+
+  useRegisterRefresh('orcamentos', loadBudgets);
 
   const handleViewDetails = (budget: Budget) => {
     // Open budget details in new tab

@@ -7,6 +7,7 @@ import { fetchColaboradores, Colaborador, createColaborador, updateColaborador, 
 import { fetchDirections, fetchManagements, fetchCoordinations } from "@/lib/api/colaboradores";
 import ColaboradorForm from "@/components/forms/ColaboradorForm";
 import { useOptimisticColaboradores } from "@/hooks/useOptimisticColaboradores";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,6 +87,9 @@ export default function ColaboradoresPage() {
   useEffect(() => {
     loadColaboradores();
   }, [loadColaboradores]);
+
+  // Register refresh function for AppSidebar
+  useRegisterRefresh('colaboradores', loadColaboradores);
 
   // Check for edit mode from session storage (when coming back from details page)
   useEffect(() => {

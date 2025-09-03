@@ -7,6 +7,7 @@ import { fetchBudgetLines, BudgetLine, createBudgetLine, updateBudgetLine, delet
 import { fetchBudgets, fetchManagementCenters, fetchRequestingCenters, fetchEmployees } from "@/lib/api/budgetlines";
 import BudgetLineForm from "@/components/forms/BudgetLineForm";
 import { useOptimisticBudgetLines } from "@/hooks/useOptimisticBudgetLines";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,8 @@ export default function LinhasOrcamentariasPage() {
   useEffect(() => {
     loadBudgetLines();
   }, [loadBudgetLines]);
+
+  useRegisterRefresh('linhas-orcamentarias', loadBudgetLines);
 
   // Check for edit mode from session storage (when coming back from details page)
   useEffect(() => {

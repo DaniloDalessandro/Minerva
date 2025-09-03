@@ -7,6 +7,7 @@ import { fetchAuxilios, Auxilio, createAuxilio, updateAuxilio, deleteAuxilio } f
 import { fetchColaboradores, fetchBudgetLines } from "@/lib/api/auxilios";
 import AuxilioForm from "@/components/forms/AuxilioForm";
 import { useOptimisticAuxilios } from "@/hooks/useOptimisticAuxilios";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,9 @@ export default function AuxiliosPage() {
   useEffect(() => {
     loadAuxilios();
   }, [loadAuxilios]);
+
+  // Register refresh function for AppSidebar
+  useRegisterRefresh('auxilios', loadAuxilios);
 
   // Check for edit mode from session storage (when coming back from details page)
   useEffect(() => {

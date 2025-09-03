@@ -30,6 +30,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { columns as directionColumns } from "./columns/directions";
 import { columns as managementColumns } from "./columns/managements";
 import { columns as coordinationColumns } from "./columns/coordinations";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,6 +171,13 @@ export default function SetoresPage() {
     coordinationSearch,
     coordinationSorting,
   ]);
+
+  // Create a combined load function for all sectors
+  const loadSetores = async () => {
+    await Promise.all([loadDirections(), loadManagements(), loadCoordinations()]);
+  };
+
+  useRegisterRefresh('setores', loadSetores);
 
   // Delete handlers
   const handleDeleteDirection = async () => {

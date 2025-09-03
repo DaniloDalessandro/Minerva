@@ -138,7 +138,7 @@ export async function fetchColaboradores(
     params.append('ordering', ordering)
   }
 
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/employees/?${params}`)
+  const response = await authFetch(`http://localhost:8000/api/v1/employee/?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch colaboradores')
   }
@@ -146,7 +146,7 @@ export async function fetchColaboradores(
 }
 
 export async function fetchColaboradorById(id: number): Promise<Colaborador> {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/employees/${id}/`)
+  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/`)
   if (!response.ok) {
     throw new Error('Failed to fetch colaborador')
   }
@@ -154,7 +154,7 @@ export async function fetchColaboradorById(id: number): Promise<Colaborador> {
 }
 
 export async function createColaborador(data: CreateColaboradorData) {
-  const response = await authFetch('http://localhost:8000/api/v1/employee/employees/create/', {
+  const response = await authFetch('http://localhost:8000/api/v1/employee/create/', {
     method: 'POST',
     body: JSON.stringify(data)
   })
@@ -166,7 +166,7 @@ export async function createColaborador(data: CreateColaboradorData) {
 }
 
 export async function updateColaborador(data: CreateColaboradorData) {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/employees/${data.id}/update/`, {
+  const response = await authFetch(`http://localhost:8000/api/v1/employee/${data.id}/update/`, {
     method: 'PUT',
     body: JSON.stringify(data)
   })
@@ -178,7 +178,7 @@ export async function updateColaborador(data: CreateColaboradorData) {
 }
 
 export async function deleteColaborador(id: number) {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/employees/${id}/delete/`, {
+  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/delete/`, {
     method: 'DELETE'
   })
   if (!response.ok) {

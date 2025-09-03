@@ -1,5 +1,7 @@
 // /lib/api/coordinations.ts
 
+import { authFetch } from "./authFetch";
+
 export interface Coordination {
   id: number;
   name: string;
@@ -17,7 +19,6 @@ export interface Coordination {
 const API_BASE_URL = "http://localhost:8000/api/v1/sector/coordinations/";
 
 export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "") {
-  const token = localStorage.getItem("access");
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -31,24 +32,15 @@ export async function fetchCoordinations(page = 1, pageSize = 10, search = "", o
     params.append("ordering", ordering);
   }
   
-  const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar coordenações");
   const json = await res.json();
   return json;
 }
 
 export async function createCoordination(data: { name: string, management_id: number }) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}create/`, {
+  const res = await authFetch(`${API_BASE_URL}create/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Erro ao criar coordenação");
@@ -57,13 +49,8 @@ export async function createCoordination(data: { name: string, management_id: nu
 
 
 export async function updateCoordination(data: { id: number; name: string, management_id: number }) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${data.id}/update/`, {
+  const res = await authFetch(`${API_BASE_URL}${data.id}/update/`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({ name: data.name, management_id: data.management_id }),
   });
   if (!res.ok) throw new Error("Erro ao atualizar coordenação");
@@ -71,12 +58,8 @@ export async function updateCoordination(data: { id: number; name: string, manag
 }
 
 export async function deleteCoordination(id: number) {
-  const token = localStorage.getItem("access");
-  const res = await fetch(`${API_BASE_URL}${id}/delete/`, {
+  const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   if (!res.ok) throw new Error("Erro ao deletar coordenação");
   return true;

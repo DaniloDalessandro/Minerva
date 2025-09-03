@@ -21,6 +21,7 @@ import RequestingCenterForm from "@/components/forms/RequestingCenterForm";
 import { DataTable } from "@/components/ui/data-table";
 import { columns as managementCenterColumns } from "./columns/management-centers";
 import { columns as requestingCenterColumns } from "./columns/requesting-centers";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,6 +122,13 @@ export default function CentrosPage() {
     requestingCenterSearch,
     requestingCenterSorting,
   ]);
+
+  // Create a combined load function for centers
+  const loadCenters = async () => {
+    await Promise.all([loadManagementCenters(), loadRequestingCenters()]);
+  };
+
+  useRegisterRefresh('centros', loadCenters);
 
   // Delete handlers
   const handleDeleteManagementCenter = async () => {

@@ -16,6 +16,19 @@ import {
   Anchor,
 } from "lucide-react"
 import { useAuthContext } from "@/context/AuthContext"
+import { useDataRefresh } from "@/contexts/DataRefreshContext"
+import { toast } from "@/hooks/use-toast"
+
+// Import API functions
+import { createColaborador } from "@/lib/api/colaboradores"
+import { createAuxilio } from "@/lib/api/auxilios"
+import { createContract } from "@/lib/api/contratos"
+import { createBudgetLine } from "@/lib/api/budgetlines"
+import { createBudget } from "@/lib/api/budgets"
+import { createDirection } from "@/lib/api/directions"
+import { createManagement } from "@/lib/api/managements"
+import { createCoordination } from "@/lib/api/coordinations"
+import { createManagementCenter, createRequestingCenter } from "@/lib/api/centers"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -54,6 +67,7 @@ interface NavItem {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthContext()
+  const { triggerRefresh } = useDataRefresh()
   const pathname = usePathname()
   
   // Form dialog states
@@ -212,9 +226,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.colaborador}
           handleClose={() => closeFormDialog('colaborador')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Colaborador criado:', data)
-            closeFormDialog('colaborador')
+          onSubmit={async (data) => {
+            try {
+              await createColaborador(data)
+              toast({
+                title: "Sucesso",
+                description: "Colaborador criado com sucesso!",
+              })
+              closeFormDialog('colaborador')
+              // Refresh the current page data
+              triggerRefresh('colaboradores')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar colaborador",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -224,9 +252,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.auxilio}
           handleClose={() => closeFormDialog('auxilio')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Auxílio criado:', data)
-            closeFormDialog('auxilio')
+          onSubmit={async (data) => {
+            try {
+              await createAuxilio(data)
+              toast({
+                title: "Sucesso",
+                description: "Auxílio criado com sucesso!",
+              })
+              closeFormDialog('auxilio')
+              triggerRefresh('auxilios')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar auxílio",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -236,9 +277,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.contrato}
           handleClose={() => closeFormDialog('contrato')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Contrato criado:', data)
-            closeFormDialog('contrato')
+          onSubmit={async (data) => {
+            try {
+              await createContract(data)
+              toast({
+                title: "Sucesso",
+                description: "Contrato criado com sucesso!",
+              })
+              closeFormDialog('contrato')
+              triggerRefresh('contratos')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar contrato",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -248,9 +302,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.linhaOrcamentaria}
           handleClose={() => closeFormDialog('linhaOrcamentaria')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Linha Orçamentária criada:', data)
-            closeFormDialog('linhaOrcamentaria')
+          onSubmit={async (data) => {
+            try {
+              await createBudgetLine(data)
+              toast({
+                title: "Sucesso",
+                description: "Linha Orçamentária criada com sucesso!",
+              })
+              closeFormDialog('linhaOrcamentaria')
+              triggerRefresh('linhas-orcamentarias')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar linha orçamentária",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -260,9 +327,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.orcamento}
           handleClose={() => closeFormDialog('orcamento')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Orçamento criado:', data)
-            closeFormDialog('orcamento')
+          onSubmit={async (data) => {
+            try {
+              await createBudget(data)
+              toast({
+                title: "Sucesso",
+                description: "Orçamento criado com sucesso!",
+              })
+              closeFormDialog('orcamento')
+              triggerRefresh('orcamentos')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar orçamento",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -273,9 +353,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.centro}
           handleClose={() => closeFormDialog('centro')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Centro Gestor criado:', data)
-            closeFormDialog('centro')
+          onSubmit={async (data) => {
+            try {
+              await createManagementCenter(data)
+              toast({
+                title: "Sucesso",
+                description: "Centro Gestor criado com sucesso!",
+              })
+              closeFormDialog('centro')
+              triggerRefresh('centros')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar centro gestor",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -285,9 +378,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.centroSolicitante}
           handleClose={() => closeFormDialog('centroSolicitante')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Centro Solicitante criado:', data)
-            closeFormDialog('centroSolicitante')
+          onSubmit={async (data) => {
+            try {
+              await createRequestingCenter(data)
+              toast({
+                title: "Sucesso",
+                description: "Centro Solicitante criado com sucesso!",
+              })
+              closeFormDialog('centroSolicitante')
+              triggerRefresh('centros')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar centro solicitante",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -297,9 +403,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.direcao}
           handleClose={() => closeFormDialog('direcao')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Direção criada:', data)
-            closeFormDialog('direcao')
+          onSubmit={async (data) => {
+            try {
+              await createDirection({ name: data.name })
+              toast({
+                title: "Sucesso",
+                description: "Direção criada com sucesso!",
+              })
+              closeFormDialog('direcao')
+              triggerRefresh('setores')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar direção",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -309,9 +428,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.gerencia}
           handleClose={() => closeFormDialog('gerencia')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Gerência criada:', data)
-            closeFormDialog('gerencia')
+          onSubmit={async (data) => {
+            try {
+              await createManagement({ name: data.name })
+              toast({
+                title: "Sucesso",
+                description: "Gerência criada com sucesso!",
+              })
+              closeFormDialog('gerencia')
+              triggerRefresh('setores')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar gerência",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}
@@ -321,9 +453,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           open={dialogState.coordenacao}
           handleClose={() => closeFormDialog('coordenacao')}
           initialData={null}
-          onSubmit={(data) => {
-            console.log('Coordenação criada:', data)
-            closeFormDialog('coordenacao')
+          onSubmit={async (data) => {
+            try {
+              await createCoordination({ name: data.name })
+              toast({
+                title: "Sucesso",
+                description: "Coordenação criada com sucesso!",
+              })
+              closeFormDialog('coordenacao')
+              triggerRefresh('setores')
+            } catch (error: any) {
+              toast({
+                title: "Erro",
+                description: error.message || "Erro ao criar coordenação",
+                variant: "destructive",
+              })
+            }
           }}
         />
       )}

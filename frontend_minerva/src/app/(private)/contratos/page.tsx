@@ -7,6 +7,7 @@ import { fetchContracts, Contract, createContract, updateContract, deleteContrac
 import { fetchEmployees, fetchBudgetLines } from "@/lib/api/contratos";
 import ContractForm from "@/components/forms/ContractForm";
 import { useOptimisticContracts } from "@/hooks/useOptimisticContracts";
+import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,8 @@ export default function ContratosPage() {
   useEffect(() => {
     loadContracts();
   }, [loadContracts]);
+
+  useRegisterRefresh('contratos', loadContratos);
 
   // Check for edit mode from session storage (when coming back from details page)
   useEffect(() => {
