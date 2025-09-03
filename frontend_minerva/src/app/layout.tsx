@@ -25,9 +25,13 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   themeColor: '#1e40af',
-  viewport: 'width=device-width, initial-scale=1',
   applicationName: 'Minerva',
   keywords: ['minerva', 'emap', 'gestão', 'contratos'],
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

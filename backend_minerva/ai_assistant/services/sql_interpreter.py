@@ -333,6 +333,11 @@ class SQLInterpreterService:
         """
         try:
             with connection.cursor() as cursor:
+                # Remove ponto e vírgula final se existir
+                sql_query = sql_query.strip()
+                if sql_query.endswith(';'):
+                    sql_query = sql_query[:-1]
+                
                 # Adiciona LIMIT se não existir
                 if 'LIMIT' not in sql_query.upper():
                     sql_query += ' LIMIT 100'

@@ -145,13 +145,6 @@ export default function AlicePage() {
     })
   }
 
-  const quickQuestions = [
-    "Quantos contratos ativos existem?",
-    "Qual o valor total dos orçamentos deste ano?",
-    "Liste os funcionários admitidos nos últimos 6 meses",
-    "Mostra os contratos que vencem nos próximos 30 dias",
-    "Qual o status dos auxílios concedidos?"
-  ]
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -170,9 +163,9 @@ export default function AlicePage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+      <div className="grid grid-cols-1 gap-6 h-[calc(100vh-200px)]">
         {/* Chat Area */}
-        <Card className="col-span-3 flex flex-col">
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -201,7 +194,7 @@ export default function AlicePage() {
           </CardHeader>
           
           <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 px-6">
+            <ScrollArea className="flex-1 px-6 max-h-[calc(100vh-300px)]">
               <div className="space-y-4 py-4">
                 {messages.map((message) => (
                   <div
@@ -309,38 +302,6 @@ export default function AlicePage() {
                   )}
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sidebar */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Sugestões de Perguntas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {quickQuestions.map((question, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="w-full text-left justify-start h-auto p-3 text-xs"
-                onClick={() => setInputMessage(question)}
-                disabled={isLoading}
-              >
-                {question}
-              </Button>
-            ))}
-            
-            <Separator className="my-4" />
-            
-            <div className="space-y-2">
-              <h4 className="text-xs font-medium text-muted-foreground">Dicas:</h4>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Faça perguntas específicas sobre dados</li>
-                <li>• Use linguagem natural</li>
-                <li>• Posso consultar contratos, orçamentos, funcionários</li>
-                <li>• Filtros por data são bem-vindos</li>
-              </ul>
             </div>
           </CardContent>
         </Card>
