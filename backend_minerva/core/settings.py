@@ -225,17 +225,132 @@ SIMPLE_JWT = {
     
 }
 
-# Configuração básica do Jazzmin
+# Configuração do Jazzmin
 JAZZMIN_SETTINGS = {
     "site_title": "Minerva Admin",
     "site_header": "Minerva",
     "site_brand": "Minerva",
+    "site_logo": "img/logo.svg",
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_icon": "img/favicon.svg",  # Favicon customizado com âncora
     "welcome_sign": "Bem-vindo ao Sistema Minerva",
-    "copyright": "Minerva © 2024",
+    "copyright": "Minerva © 2024 - Sistema de Gestão",
+    
+    # Sidebar
     "show_sidebar": True,
     "navigation_expanded": True,
+    
+    # Top Menu
     "topmenu_links": [
         {"name": "Início", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Ver Site", "url": "/", "new_window": True},
     ],
+    
+    # User Menu
+    "usermenu_links": [
+        {"name": "Perfil", "url": "admin:password_change", "icon": "fas fa-user-cog"},
+    ],
+    
+    # Ícones por aplicação/modelo
+    "icons": {
+        # Autenticação e Usuários
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "accounts": "fas fa-user-shield",
+        "accounts.User": "fas fa-user-tie",
+        
+        # Funcionários
+        "employee": "fas fa-id-badge",
+        "employee.Employee": "fas fa-user-hard-hat",
+        
+        # Centros
+        "center": "fas fa-building",
+        "center.Management_Center": "fas fa-building-user",
+        "center.Requesting_Center": "fas fa-building-flag",
+        
+        # Setores
+        "sector": "fas fa-sitemap",
+        "sector.Direction": "fas fa-compass",
+        "sector.Management": "fas fa-network-wired",
+        "sector.Coordination": "fas fa-project-diagram",
+        
+        # Orçamento
+        "budget": "fas fa-calculator",
+        "budget.Budget": "fas fa-coins",
+        "budgetline": "fas fa-chart-line",
+        "budgetline.BudgetLine": "fas fa-list-ol",
+        
+        # Contratos
+        "contract": "fas fa-file-contract",
+        "contract.Contract": "fas fa-handshake",
+        
+        # Auxílios/Assistência
+        "aid": "fas fa-hands-helping",
+        "aid.Assistance": "fas fa-hand-holding-heart",
+        
+        # IA Assistant
+        "ai_assistant": "fas fa-robot",
+        "ai_assistant.ConversationSession": "fas fa-comments",
+        
+        # Admin
+        "admin.LogEntry": "fas fa-history",
+    },
+    
+    # Ícones padrão
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-file",
+    
+    # Configurações de UI
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs"
+    },
+    
+    # Configurações de tema
+    "theme": "default",
+    "dark_mode_theme": None,
+    
+    # Links customizados
+    "custom_links": {
+        "accounts": [{
+            "name": "Gerenciar Usuários",
+            "url": "admin:accounts_user_changelist",
+            "icon": "fas fa-users-cog",
+            "permissions": ["accounts.view_user"]
+        }],
+        "budget": [{
+            "name": "Dashboard Financeiro",
+            "url": "admin:budget_budget_changelist",
+            "icon": "fas fa-chart-pie",
+            "permissions": ["budget.view_budget"]
+        }],
+        "contract": [{
+            "name": "Relatório de Contratos",
+            "url": "admin:contract_contract_changelist",
+            "icon": "fas fa-file-chart-column",
+            "permissions": ["contract.view_contract"]
+        }]
+    },
+    
+    # Ordem dos apps
+    "order_with_respect_to": [
+        "accounts",
+        "employee", 
+        "center",
+        "sector",
+        "budget",
+        "budgetline",
+        "contract",
+        "aid",
+        "ai_assistant",
+        "auth"
+    ],
+    
+    # Configurações adicionais
+    "show_ui_builder": False,
+    "related_modal_active": False,
 }
 
