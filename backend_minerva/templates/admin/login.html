@@ -1,166 +1,76 @@
-{% extends "admin/login.html" %}
-{% load static %}
+{% extends "registration/base.html" %}
 
-{% block extrastyle %}
-    {{ block.super }}
-    <style>
-        /* Fundo azul e branco para a página de login */
-        body.login {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #ffffff 100%) !important;
-            background-attachment: fixed !important;
-            min-height: 100vh !important;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-        }
+{% load i18n jazzmin %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
-        /* Container do formulário de login */
-        #content {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border-radius: 15px !important;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3) !important;
-            border: 2px solid rgba(59, 130, 246, 0.2) !important;
-            margin: 50px auto !important;
-            max-width: 400px !important;
-            padding: 40px !important;
-            backdrop-filter: blur(10px) !important;
-        }
-
-        /* Título principal com âncora */
-        #content h1 {
-            text-align: center !important;
-            color: #1e3a8a !important;
-            font-size: 2rem !important;
-            margin-bottom: 30px !important;
-            font-weight: 600 !important;
-        }
-
-        /* Remove o ícone padrão e adiciona âncora */
-        #content h1 a::before {
-            content: "⚓" !important;
-            font-size: 2.5rem !important;
-            display: block !important;
-            margin-bottom: 10px !important;
-            color: #3b82f6 !important;
-        }
-
-        /* Texto "Minerva Administrativo" */
-        #content h1 a {
-            color: #1e3a8a !important;
-            text-decoration: none !important;
-            font-weight: 600 !important;
-        }
-
-        #content h1 a:hover {
-            color: #3b82f6 !important;
-        }
-
-        /* Substitui o texto do link */
-        #content h1 a {
-            font-size: 0 !important;
-        }
-
-        #content h1 a::after {
-            content: "Minerva Administrativo" !important;
-            font-size: 2rem !important;
-            display: block !important;
-            color: #1e3a8a !important;
-        }
-
-        /* Estilização dos campos do formulário */
-        .form-row {
-            margin-bottom: 20px !important;
-        }
-
-        .form-row label {
-            display: block !important;
-            color: #1e3a8a !important;
-            font-weight: 500 !important;
-            margin-bottom: 8px !important;
-            font-size: 1rem !important;
-        }
-
-        .form-row input[type="text"],
-        .form-row input[type="password"] {
-            width: 100% !important;
-            padding: 12px 16px !important;
-            border: 2px solid #e5e7eb !important;
-            border-radius: 8px !important;
-            font-size: 1rem !important;
-            background: #ffffff !important;
-            transition: all 0.3s ease !important;
-            box-sizing: border-box !important;
-        }
-
-        .form-row input[type="text"]:focus,
-        .form-row input[type="password"]:focus {
-            outline: none !important;
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-        }
-
-        /* Botão de login */
-        .submit-row input[type="submit"] {
-            width: 100% !important;
-            padding: 12px 20px !important;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3) !important;
-        }
-
-        .submit-row input[type="submit"]:hover {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4) !important;
-        }
-
-        .submit-row input[type="submit"]:active {
-            transform: translateY(0) !important;
-        }
-
-        /* Mensagens de erro */
-        .errorlist {
-            background: rgba(239, 68, 68, 0.1) !important;
-            border: 1px solid rgba(239, 68, 68, 0.3) !important;
-            border-radius: 6px !important;
-            padding: 12px !important;
-            margin-bottom: 20px !important;
-            color: #dc2626 !important;
-        }
-
-        .errorlist li {
-            list-style: none !important;
-            font-size: 0.9rem !important;
-        }
-
-        /* Footer */
-        #footer {
-            text-align: center !important;
-            margin-top: 30px !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            font-size: 0.9rem !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        /* Responsividade */
-        @media (max-width: 480px) {
-            #content {
-                margin: 20px !important;
-                padding: 30px 20px !important;
-                max-width: none !important;
-            }
-
-            #content h1 a::after {
-                font-size: 1.5rem !important;
-            }
-
-            #content h1 a::before {
-                font-size: 2rem !important;
-            }
-        }
-    </style>
+{% block content %}
+    <p class="login-box-msg">{{ jazzmin_settings.welcome_sign }}</p>
+    <form action="{{ app_path }}" method="post">
+        {% csrf_token %}
+        {% if user.is_authenticated %}
+            <p class="errornote">
+                <div class="callout callout-danger">
+                    <p>
+                        {% blocktrans trimmed %}
+                            You are authenticated as {{ username }}, but are not authorized to
+                            access this page. Would you like to login to a different account?
+                        {% endblocktrans %}
+                    </p>
+                </div>
+            </p>
+        {% endif %}
+        {% if form.errors %}
+            {% if form.username.errors %}
+                <div class="callout callout-danger">
+                    <p>{{ form.username.label }}: {{ form.username.errors|join:', ' }}</p>
+                </div>
+            {% endif %}
+            {% if form.password.errors %}
+                <div class="callout callout-danger">
+                    <p>{{ form.password.label }}: {{ form.password.errors|join:', ' }}</p>
+                </div>
+            {% endif %}
+            {% if form.non_field_errors %}
+                <div class="callout callout-danger">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+        <div class="input-group mb-3">
+            <input type="text" name="username" class="form-control" placeholder="{{ form.username.label }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-user"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" name="password" class="form-control" placeholder="{{ form.password.label }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-lock"></span>
+                </div>
+            </div>
+        </div>
+        {% url 'admin_password_reset' as password_reset_url %}
+        {% if password_reset_url %}
+            <div class="mb-3">
+                <div class="password-reset-link" style="text-align: center;">
+                    <a href="{{ password_reset_url }}">
+                        {% trans 'Forgotten your password or username?' %}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn {{ jazzmin_ui.button_classes.primary }} btn-block">
+                    {% trans "Log in" %}
+                </button>
+            </div>
+        </div>
+    </form>
 {% endblock %}

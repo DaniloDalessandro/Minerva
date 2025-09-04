@@ -25,6 +25,9 @@
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva\\templates\\admin/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva\\templates\\admin\\auth\\user/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva\\core/**)",
+      "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva/**)",
+      "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva\\venv\\Lib\\site-packages\\jazzmin\\templates\\admin/**)",
+      "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva\\venv\\Lib\\site-packages\\jazzmin\\templates\\registration/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\backend_minerva/**)"
     ],
     "deny": [],
