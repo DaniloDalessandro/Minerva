@@ -225,152 +225,17 @@ SIMPLE_JWT = {
     
 }
 
+# Configuração básica do Jazzmin
 JAZZMIN_SETTINGS = {
-    "site_title": "Minerva 1.0.0",
-    "site_header": "Minerva 1.0.0", 
-    "site_brand": "Minerva 1.0.0",
-    
-    # Favicon e logo usando emoji de âncora
-    "site_icon": None,
-    "site_logo": None,
-    "login_logo": None,
-    
-    # UI Tweaks para corrigir sobreposições
-    "custom_css": "admin/css/custom_admin.css",
-    "use_google_fonts_cdn": True,
-    "show_ui_builder": False,
-    
-    # Configurações de tema
-    "theme": "default",
-    "dark_mode_theme": None,
-    
-    # Formato de formulário para melhor visualização
-    "changeform_format": "vertical_tabs",
-    "changeform_format_overrides": {
-        "accounts.user": "single",
-        "auth.user": "single",
-        "auth.group": "single"
-    },
-    
-    # Ícones personalizados para models (apenas um ícone por model)
-    "icons": {
-        # Django Admin
-        "admin.LogEntry": "fas fa-history",
-        
-        # Auth (Django padrão)
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "auth.Permission": "fas fa-key",
-        
-        # Content Types
-        "contenttypes.ContentType": "fas fa-tag",
-        
-        # Sessions
-        "sessions.Session": "fas fa-user-clock",
-        
-        # Auth Token
-        "authtoken.Token": "fas fa-ticket-alt",
-        "authtoken.TokenProxy": "fas fa-id-card-alt",
-        
-        # Accounts (Usuários customizados)
-        "accounts.User": "fas fa-user-tie",
-        
-        # Employee (Colaboradores)
-        "employee.Employee": "fas fa-id-badge",
-        
-        # Center (Centros)
-        "center.Management_Center": "fas fa-building-user",
-        "center.Requesting_Center": "fas fa-building-flag",
-        
-        # Sector (Setores)
-        "sector.Direction": "fas fa-compass",
-        "sector.Management": "fas fa-layer-group",
-        "sector.Coordination": "fas fa-project-diagram",
-        
-        # Budget (Orçamentos)
-        "budget.Budget": "fas fa-file-invoice-dollar",
-        "budget.BudgetMovement": "fas fa-exchange-alt",
-        
-        # Budget Line (Linhas Orçamentárias)
-        "budgetline.BudgetLine": "fas fa-list-alt",
-        "budgetline.BudgetLineMovement": "fas fa-arrows-alt-h",
-        "budgetline.BudgetLineVersion": "fas fa-code-branch",
-        
-        # Contract (Contratos)
-        "contract.Contract": "fas fa-file-contract",
-        "contract.ContractInstallment": "fas fa-calendar-check",
-        "contract.ContractAmendment": "fas fa-file-signature",
-        
-        # Aid (Auxílios)
-        "aid.Assistance": "fas fa-hand-holding-heart",
-        
-        # AI Assistant (Assistente IA)
-        "ai_assistant.ConversationSession": "fas fa-comments",
-        "ai_assistant.ConversationMessage": "fas fa-comment-alt",
-        "ai_assistant.QueryLog": "fas fa-search",
-        "ai_assistant.DatabaseSchema": "fas fa-database",
-        "ai_assistant.AliceConfiguration": "fas fa-cog",
-    },
-    
-    # Ícones padrão
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    
-    # Menu lateral
+    "site_title": "Minerva Admin",
+    "site_header": "Minerva",
+    "site_brand": "Minerva",
+    "welcome_sign": "Bem-vindo ao Sistema Minerva",
+    "copyright": "Minerva © 2024",
     "show_sidebar": True,
     "navigation_expanded": True,
-    
-    # Links no topo
     "topmenu_links": [
         {"name": "Início", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Ver Site", "url": "/", "new_window": True},
     ],
-    
-    # Links no menu do usuário
-    "usermenu_links": [
-        {"name": "Suporte", "url": "https://github.com/user/repo/issues", "new_window": True},
-    ],
-    
-    # Texto de boas-vindas
-    "welcome_sign": "Bem-vindo ao Sistema Minerva",
-    "copyright": "Minerva © 2024 - Sistema de Gestão de Contratos",
-    
-    # Ordenação do menu
-    "order_with_respect_to": [
-        "accounts", 
-        "employee", 
-        "center", 
-        "sector", 
-        "budget", 
-        "budgetline", 
-        "contract", 
-        "aid", 
-        "ai_assistant", 
-        "auth"
-    ],
-    
-    # Links personalizados
-    "custom_links": {
-        "center": [{
-            "name": "Relatório de Centros", 
-            "url": "admin:center_management_center_changelist", 
-            "permissions": ["center.view_management_center"]
-        }],
-        "sector": [{
-            "name": "Organograma", 
-            "url": "admin:sector_direction_changelist", 
-            "permissions": ["sector.view_direction"]
-        }],
-        "budget": [{
-            "name": "Dashboard Financeiro", 
-            "url": "admin:budget_budget_changelist", 
-            "permissions": ["budget.view_budget"]
-        }]
-    },
-    
-    # Configurações adicionais de UI
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-    "related_modal_active": False,
-    "language_chooser": False,
 }
+
