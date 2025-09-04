@@ -60,7 +60,7 @@ export default function ContratosPage() {
   };
 
   // Load contracts function
-  const loadContracts = useCallback(async () => {
+  const loadContratos = useCallback(async () => {
     try {
       setLoading(true);
       console.log("🔄 Loading contracts with params:", { page, pageSize, search, sorting, filters });
@@ -84,8 +84,8 @@ export default function ContratosPage() {
   }, [page, pageSize, search, sorting, filters, setContracts, setTotalCount, setLoading]);
 
   useEffect(() => {
-    loadContracts();
-  }, [loadContracts]);
+    loadContratos();
+  }, [loadContratos]);
 
   useRegisterRefresh('contratos', loadContratos);
 
@@ -127,7 +127,7 @@ export default function ContratosPage() {
     if (contractToDelete?.id) {
       try {
         await deleteContract(contractToDelete.id);
-        await loadContracts(); // Reload the list
+        await loadContratos(); // Reload the list
         if (contracts.length === 1 && page > 1) {
           setPage(page - 1);
         }
