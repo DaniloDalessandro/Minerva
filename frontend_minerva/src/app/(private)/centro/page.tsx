@@ -284,14 +284,20 @@ export default function CentrosPage() {
         open={openManagementCenterForm}
         handleClose={() => setOpenManagementCenterForm(false)}
         initialData={editingManagementCenter}
+        existingNames={managementCenters.map(center => center.name)}
         onSubmit={async (data) => {
-          if (data.id) {
-            await updateManagementCenter(data);
-          } else {
-            await createManagementCenter(data);
+          try {
+            if (data.id) {
+              await updateManagementCenter(data);
+            } else {
+              await createManagementCenter(data);
+            }
+            await loadManagementCenters();
+            setOpenManagementCenterForm(false);
+          } catch (error) {
+            console.error("Erro ao salvar centro gestor:", error);
+            // O erro será tratado no formulário
           }
-          await loadManagementCenters();
-          setOpenManagementCenterForm(false);
         }}
       />
       <AlertDialog
@@ -319,14 +325,22 @@ export default function CentrosPage() {
         open={openRequestingCenterForm}
         handleClose={() => setOpenRequestingCenterForm(false)}
         initialData={editingRequestingCenter}
+        existingNames={requestingCenters
+          .filter(center => !editingRequestingCenter || center.management_center.id === editingRequestingCenter.management_center.id)
+          .map(center => center.name)}
         onSubmit={async (data) => {
-          if (data.id) {
-            await updateRequestingCenter(data);
-          } else {
-            await createRequestingCenter(data);
+          try {
+            if (data.id) {
+              await updateRequestingCenter(data);
+            } else {
+              await createRequestingCenter(data);
+            }
+            await loadRequestingCenters();
+            setOpenRequestingCenterForm(false);
+          } catch (error) {
+            console.error("Erro ao salvar centro solicitante:", error);
+            // O erro será tratado no formulário
           }
-          await loadRequestingCenters();
-          setOpenRequestingCenterForm(false);
         }}
       />
       <AlertDialog

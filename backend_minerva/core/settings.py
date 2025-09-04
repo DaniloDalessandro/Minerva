@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.HierarchicalPermissionMiddleware',  # Middleware de permissões hierárquicas
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -78,6 +79,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.middleware.user_permission_context',  # Context processor de permissões
             ],
         },
     },
@@ -224,9 +226,9 @@ SIMPLE_JWT = {
 }
 
 JAZZMIN_SETTINGS = {
-    "site_title": "⚓ Minerva 1.0.0",
-    "site_header": "⚓ Minerva 1.0.0", 
-    "site_brand": "⚓ Minerva 1.0.0",
+    "site_title": "Minerva 1.0.0",
+    "site_header": "Minerva 1.0.0", 
+    "site_brand": "Minerva 1.0.0",
     
     # Favicon e logo usando emoji de âncora
     "site_icon": None,
@@ -237,6 +239,10 @@ JAZZMIN_SETTINGS = {
     "custom_css": "admin/css/custom_admin.css",
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
+    
+    # Configurações de tema
+    "theme": "default",
+    "dark_mode_theme": None,
     
     # Formato de formulário para melhor visualização
     "changeform_format": "vertical_tabs",
@@ -326,8 +332,8 @@ JAZZMIN_SETTINGS = {
     ],
     
     # Texto de boas-vindas
-    "welcome_sign": "⚓ Bem-vindo ao Sistema Minerva",
-    "copyright": "⚓ Minerva © 2024 - Sistema de Gestão de Contratos",
+    "welcome_sign": "Bem-vindo ao Sistema Minerva",
+    "copyright": "Minerva © 2024 - Sistema de Gestão de Contratos",
     
     # Ordenação do menu
     "order_with_respect_to": [

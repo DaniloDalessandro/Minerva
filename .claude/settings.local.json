@@ -9,7 +9,9 @@
       "Bash(npm run build:*)",
       "Bash(python manage.py:*)",
       "Bash(\"venv\\Scripts\\activate.bat\")",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(venvScriptsactivate.bat)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": [],

@@ -3,11 +3,12 @@ from django.core.validators import MinValueValidator
 from accounts.models import User
 from .utils.validators import validate_year
 from center.models import Management_Center
+from accounts.permissions import HierarchicalPermissionMixin
 from decimal import Decimal
 from django.db.models import Sum
 
 #========================================================================================================================================
-class Budget(models.Model):
+class Budget(models.Model, HierarchicalPermissionMixin):
     BUDGET_CLASSES = [
         ('CAPEX', 'CAPEX'),
         ('OPEX', 'OPEX'),
@@ -103,6 +104,36 @@ class Budget(models.Model):
 
     def __str__(self):
         return f"{self.category} {self.year} - {self.management_center.name}"
+    
+    @classmethod
+    def get_objects_by_direction(cls, direction):
+        """Retorna orçamentos baseados na direção"""
+        # Assumindo que management_center tem relação com direção
+        # Adapte conforme sua estrutura de dados
+        return cls.objects.filter(
+            management_center__direction=direction
+        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'direction') else cls.objects.none()
+    
+    @classmethod
+    def get_objects_by_management(cls, management):
+        """Retorna orçamentos baseados na gerência"""
+        return cls.objects.filter(
+            management_center__management=management
+        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'management') else cls.objects.none()
+    
+    @classmethod
+    def get_objects_by_coordination(cls, coordination):
+        """Retorna orçamentos baseados na coordenação - filtro principal"""
+        return cls.objects.filter(
+            management_center__coordination=coordination
+        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'coordination') else cls.objects.none()
+    
+    @classmethod
+    def get_objects_by_user(cls, user):
+        """Retorna orçamentos que o usuário específico pode ver"""
+        if user.employee and user.employee.coordination:
+            return cls.get_objects_by_coordination(user.employee.coordination)
+        return cls.objects.none()
     
     class Meta:
         unique_together = ['year', 'category', 'management_center']

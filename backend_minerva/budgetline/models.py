@@ -4,8 +4,9 @@ from accounts.models import User
 from budget.models import Budget
 from employee.models import Employee
 from center.models import Management_Center, Requesting_Center
+from accounts.permissions import HierarchicalPermissionMixin
 
-class BudgetLine(models.Model):
+class BudgetLine(models.Model, HierarchicalPermissionMixin):
     budget = models.ForeignKey(Budget, on_delete=models.PROTECT, related_name='budget_lines',verbose_name='Orçamento')
     BUDGET_CATEGORY_CHOICES = [
         ('CAPEX', 'CAPEX'),
@@ -218,6 +219,34 @@ class BudgetLine(models.Model):
 
     def __str__(self):
         return self.summary_description or "Linha orçamentaria desconhecida"
+
+    @classmethod
+    def get_objects_by_direction(cls, direction):
+        """Retorna linhas orçamentárias baseadas na direção"""
+        return cls.objects.filter(
+            budget__management_center__direction=direction
+        )
+    
+    @classmethod
+    def get_objects_by_management(cls, management):
+        """Retorna linhas orçamentárias baseadas na gerência"""
+        return cls.objects.filter(
+            budget__management_center__management=management
+        )
+    
+    @classmethod
+    def get_objects_by_coordination(cls, coordination):
+        """Retorna linhas orçamentárias baseadas na coordenação - filtro principal"""
+        return cls.objects.filter(
+            budget__management_center__coordination=coordination
+        )
+    
+    @classmethod
+    def get_objects_by_user(cls, user):
+        """Retorna linhas orçamentárias que o usuário específico pode ver"""
+        if user.employee and user.employee.coordination:
+            return cls.get_objects_by_coordination(user.employee.coordination)
+        return cls.objects.none()
 
     class Meta:
         verbose_name = 'Linha Orçamentária'

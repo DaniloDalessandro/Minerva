@@ -2,11 +2,41 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 from rest_framework import filters
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Management_Center, Requesting_Center
 from .serializers import ManagementCenterSerializer, RequestingCenterSerializer
 from .utils.messages import CENTRO_GESTOR_MSGS, CENTRO_SOLICITANTE_MSGS
+
+
+def format_validation_errors(errors):
+    """
+    Format validation errors in a Zod-like structure for consistent frontend handling
+    """
+    formatted_errors = {}
+    
+    for field, field_errors in errors.items():
+        if isinstance(field_errors, list):
+            # Handle simple list of error messages
+            formatted_errors[field] = {
+                'field': field,
+                'code': 'validation_error',
+                'message': field_errors[0] if field_errors else 'Erro de validação'
+            }
+        elif isinstance(field_errors, dict):
+            # Handle structured error dict
+            formatted_errors[field] = field_errors
+        else:
+            # Handle string error
+            formatted_errors[field] = {
+                'field': field,
+                'code': 'validation_error',
+                'message': str(field_errors)
+            }
+    
+    return formatted_errors
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -32,12 +62,27 @@ class ManagementCenterCreateView(generics.CreateAPIView):
         serializer.save(created_by=self.request.user, updated_by=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        resp = super().create(request, *args, **kwargs)
-        resp.data = {
-            'message': CENTRO_GESTOR_MSGS['success_created'],
-            'data': resp.data
-        }
-        return resp
+        try:
+            resp = super().create(request, *args, **kwargs)
+            resp.data = {
+                'success': True,
+                'message': CENTRO_GESTOR_MSGS['success_created'],
+                'data': resp.data
+            }
+            return resp
+        except ValidationError as e:
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except DjangoValidationError as e:
+            errors = e.message_dict if hasattr(e, 'message_dict') else {'non_field_errors': [str(e)]}
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(errors)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ManagementCenterDetailView(generics.RetrieveAPIView):
@@ -55,12 +100,27 @@ class ManagementCenterUpdateView(generics.UpdateAPIView):
         serializer.save(updated_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        resp = super().update(request, *args, **kwargs)
-        resp.data = {
-            'message': CENTRO_GESTOR_MSGS['success_updated'],
-            'data': resp.data
-        }
-        return resp
+        try:
+            resp = super().update(request, *args, **kwargs)
+            resp.data = {
+                'success': True,
+                'message': CENTRO_GESTOR_MSGS['success_updated'],
+                'data': resp.data
+            }
+            return resp
+        except ValidationError as e:
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except DjangoValidationError as e:
+            errors = e.message_dict if hasattr(e, 'message_dict') else {'non_field_errors': [str(e)]}
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(errors)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ManagementCenterDeleteView(generics.DestroyAPIView):
@@ -100,12 +160,27 @@ class RequestingCenterCreateView(generics.CreateAPIView):
         serializer.save(created_by=self.request.user, updated_by=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        resp = super().create(request, *args, **kwargs)
-        resp.data = {
-            'message': CENTRO_SOLICITANTE_MSGS['success_created'],
-            'data': resp.data
-        }
-        return resp
+        try:
+            resp = super().create(request, *args, **kwargs)
+            resp.data = {
+                'success': True,
+                'message': CENTRO_SOLICITANTE_MSGS['success_created'],
+                'data': resp.data
+            }
+            return resp
+        except ValidationError as e:
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except DjangoValidationError as e:
+            errors = e.message_dict if hasattr(e, 'message_dict') else {'non_field_errors': [str(e)]}
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(errors)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RequestingCenterDetailView(generics.RetrieveAPIView):
@@ -123,12 +198,27 @@ class RequestingCenterUpdateView(generics.UpdateAPIView):
         serializer.save(updated_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        resp = super().update(request, *args, **kwargs)
-        resp.data = {
-            'message': CENTRO_SOLICITANTE_MSGS['success_updated'],
-            'data': resp.data
-        }
-        return resp
+        try:
+            resp = super().update(request, *args, **kwargs)
+            resp.data = {
+                'success': True,
+                'message': CENTRO_SOLICITANTE_MSGS['success_updated'],
+                'data': resp.data
+            }
+            return resp
+        except ValidationError as e:
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(e.detail)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except DjangoValidationError as e:
+            errors = e.message_dict if hasattr(e, 'message_dict') else {'non_field_errors': [str(e)]}
+            return Response({
+                'success': False,
+                'message': 'Erro de validação',
+                'errors': format_validation_errors(errors)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RequestingCenterDeleteView(generics.DestroyAPIView):

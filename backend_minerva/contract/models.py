@@ -3,10 +3,11 @@ from django.core.validators import MinValueValidator
 from accounts.models import User
 from employee.models import Employee
 from budgetline.models import BudgetLine
+from accounts.permissions import HierarchicalPermissionMixin
 from django.utils import timezone
 from .services.services_contract import generate_protocol_number
 
-class Contract(models.Model):
+class Contract(models.Model, HierarchicalPermissionMixin):
     budget_line = models.ForeignKey(BudgetLine, on_delete=models.PROTECT, related_name='contracts')
     protocol_number = models.CharField(max_length=7, unique=True, blank=True, editable=False, verbose_name='Contrato')
     signing_date = models.DateField(null=True, blank=True, verbose_name='Data de Assinatura')
@@ -44,6 +45,34 @@ class Contract(models.Model):
 
     def __str__(self):
         return self.protocol_number
+
+    @classmethod
+    def get_objects_by_direction(cls, direction):
+        """Retorna contratos baseados na direção através da linha orçamentária"""
+        return cls.objects.filter(
+            budget_line__budget__management_center__direction=direction
+        )
+    
+    @classmethod
+    def get_objects_by_management(cls, management):
+        """Retorna contratos baseados na gerência através da linha orçamentária"""
+        return cls.objects.filter(
+            budget_line__budget__management_center__management=management
+        )
+    
+    @classmethod
+    def get_objects_by_coordination(cls, coordination):
+        """Retorna contratos baseados na coordenação através da linha orçamentária - filtro principal"""
+        return cls.objects.filter(
+            budget_line__budget__management_center__coordination=coordination
+        )
+    
+    @classmethod
+    def get_objects_by_user(cls, user):
+        """Retorna contratos que o usuário específico pode ver"""
+        if user.employee and user.employee.coordination:
+            return cls.get_objects_by_coordination(user.employee.coordination)
+        return cls.objects.none()
 
     class Meta:
         verbose_name = 'Contrato'

@@ -49,7 +49,18 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    def save(self, *args, **kwargs):
+        # Se employee está definido e email não está definido, usar email do employee
+        if self.employee and not self.email:
+            self.email = self.employee.email
+        # Se employee mudou, atualizar email
+        elif self.employee and self.email != self.employee.email:
+            self.email = self.employee.email
+        super().save(*args, **kwargs)
+
     def __str__(self):
+        if self.employee:
+            return f"{self.employee.full_name} ({self.employee.cpf})"
         return self.email
 
     class Meta:
