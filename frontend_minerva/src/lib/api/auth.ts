@@ -42,5 +42,11 @@ export async function logout(): Promise<void> {
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('access')
     localStorage.removeItem('refresh')
+    localStorage.removeItem('user_id')
+    localStorage.removeItem('user_email')
+    localStorage.removeItem('user_name')
+    
+    // Remover cookie
+    document.cookie = 'access=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
   }
 }

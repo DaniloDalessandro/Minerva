@@ -5,27 +5,29 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
   // Define public routes that don't require authentication
-  const publicRoutes = ['/login']
+  const publicRoutes = ['/login', '/demo-validation', '/demo-sector-validation']
   
   // Check if the current path is public
-  const isPublicRoute = publicRoutes.includes(pathname)
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
   
-  // Get the token from cookies or check if we're on a public route
+  // Get the token from cookies
   const token = request.cookies.get('access')?.value
   
   // If no token and trying to access protected route, redirect to login
-  if (!token && !isPublicRoute) {
+  // Note: We only do a basic check here since localStorage verification happens on client-side
+  if (!token && !isPublicRoute && pathname !== '/') {
     const loginUrl = new URL('/login', request.url)
     // Store the original URL to redirect after login
     loginUrl.searchParams.set('returnUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
   
-  // If authenticated and trying to access login page, redirect to dashboard
+  // If trying to access login while potentially authenticated (has cookie), redirect to dashboard
   if (token && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
+  // Allow access to root path and let client-side handle the redirect
   return NextResponse.next()
 }
 

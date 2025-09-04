@@ -39,20 +39,30 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const login = useCallback((token: string, userData: UserData) => {
+    // Armazenar no localStorage (compatibilidade com código existente)
     localStorage.setItem("access", token);
     localStorage.setItem("user_id", userData.id);
     localStorage.setItem("user_email", userData.email);
     localStorage.setItem("user_name", userData.name);
+    
+    // Também definir cookie para o middleware
+    document.cookie = `access=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
+    
     setAccessToken(token);
     setUser(userData);
   }, []);
 
   const logout = useCallback(() => {
+    // Remover do localStorage
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("user_id");
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_name");
+    
+    // Remover cookie
+    document.cookie = 'access=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    
     setUser(null);
     setAccessToken(null);
   }, []);
