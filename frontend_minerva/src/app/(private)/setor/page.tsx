@@ -401,14 +401,19 @@ export default function SetoresPage() {
         open={openDirectionForm}
         handleClose={() => setOpenDirectionForm(false)}
         initialData={editingDirection}
+        existingNames={directions.map(direction => direction.name)}
         onSubmit={async (data) => {
-          if (data.id) {
-            await updateDirection(data);
-          } else {
-            await createDirection(data);
+          try {
+            if (data.id) {
+              await updateDirection(data);
+            } else {
+              await createDirection(data);
+            }
+            await loadDirections();
+            setOpenDirectionForm(false);
+          } catch (error) {
+            console.error("Erro ao salvar direção:", error);
           }
-          await loadDirections();
-          setOpenDirectionForm(false);
         }}
       />
       <AlertDialog
@@ -436,14 +441,21 @@ export default function SetoresPage() {
         open={openManagementForm}
         handleClose={() => setOpenManagementForm(false)}
         initialData={editingManagement}
+        existingNames={managements
+          .filter(management => !editingManagement || management.direction === editingManagement.direction)
+          .map(management => management.name)}
         onSubmit={async (data) => {
-          if (data.id) {
-            await updateManagement(data);
-          } else {
-            await createManagement(data);
+          try {
+            if (data.id) {
+              await updateManagement(data);
+            } else {
+              await createManagement(data);
+            }
+            await loadManagements();
+            setOpenManagementForm(false);
+          } catch (error) {
+            console.error("Erro ao salvar gerência:", error);
           }
-          await loadManagements();
-          setOpenManagementForm(false);
         }}
       />
       <AlertDialog
@@ -471,14 +483,21 @@ export default function SetoresPage() {
         open={openCoordinationForm}
         handleClose={() => setOpenCoordinationForm(false)}
         initialData={editingCoordination}
+        existingNames={coordinations
+          .filter(coordination => !editingCoordination || coordination.management === editingCoordination.management)
+          .map(coordination => coordination.name)}
         onSubmit={async (data) => {
-          if (data.id) {
-            await updateCoordination(data);
-          } else {
-            await createCoordination(data);
+          try {
+            if (data.id) {
+              await updateCoordination(data);
+            } else {
+              await createCoordination(data);
+            }
+            await loadCoordinations();
+            setOpenCoordinationForm(false);
+          } catch (error) {
+            console.error("Erro ao salvar coordenação:", error);
           }
-          await loadCoordinations();
-          setOpenCoordinationForm(false);
         }}
       />
       <AlertDialog
