@@ -6,7 +6,7 @@ import { fetchColaboradorById, fetchColaboradorContratos, fetchColaboradorAuxili
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { CalendarIcon, UserIcon, BuildingIcon, InfoIcon, PhoneIcon, MailIcon, MapPinIcon, BanknotesIcon, FileTextIcon, EditIcon, ContainerIcon, GiftIcon } from "lucide-react"
+import { Calendar, User, Building, Info, Phone, Mail, MapPin, Banknote, Edit, Container, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { 
@@ -251,7 +251,7 @@ export default function ColaboradorDetailsPage() {
           <p className="text-sm text-muted-foreground">Detalhes completos do colaborador</p>
         </div>
         <Button onClick={handleEditColaborador} className="flex items-center gap-2">
-          <EditIcon className="h-4 w-4" />
+          <Edit className="h-4 w-4" />
           Editar Colaborador
         </Button>
       </div>
@@ -261,7 +261,7 @@ export default function ColaboradorDetailsPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5" />
+              <User className="h-5 w-5" />
               Dados Pessoais
             </CardTitle>
           </CardHeader>
@@ -270,7 +270,7 @@ export default function ColaboradorDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <UserIcon className="h-4 w-4" />
+                  <User className="h-4 w-4" />
                   Nome Completo
                 </div>
                 <p className="text-lg font-semibold">{colaborador.full_name}</p>
@@ -278,7 +278,7 @@ export default function ColaboradorDetailsPage() {
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <InfoIcon className="h-4 w-4" />
+                  <Info className="h-4 w-4" />
                   CPF
                 </div>
                 <p className="text-base font-mono">{colaborador.cpf}</p>
@@ -286,7 +286,7 @@ export default function ColaboradorDetailsPage() {
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <MailIcon className="h-4 w-4" />
+                  <Mail className="h-4 w-4" />
                   Email
                 </div>
                 <p className="text-base font-mono">{colaborador.email}</p>
@@ -295,7 +295,7 @@ export default function ColaboradorDetailsPage() {
               {colaborador.phone && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <PhoneIcon className="h-4 w-4" />
+                    <Phone className="h-4 w-4" />
                     Telefone
                   </div>
                   <p className="text-base font-mono">{colaborador.phone}</p>
@@ -305,7 +305,7 @@ export default function ColaboradorDetailsPage() {
               {colaborador.birth_date && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <CalendarIcon className="h-4 w-4" />
+                    <Calendar className="h-4 w-4" />
                     Data de Nascimento
                   </div>
                   <p className="text-base">{formatDate(colaborador.birth_date)}</p>
@@ -314,7 +314,7 @@ export default function ColaboradorDetailsPage() {
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <InfoIcon className="h-4 w-4" />
+                  <Info className="h-4 w-4" />
                   Status
                 </div>
                 <Badge variant={getStatusVariant(colaborador.status)} className="text-sm">
@@ -332,7 +332,7 @@ export default function ColaboradorDetailsPage() {
                 {colaborador.employee_id && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <InfoIcon className="h-4 w-4" />
+                      <Info className="h-4 w-4" />
                       Matrícula
                     </div>
                     <p className="text-base">{colaborador.employee_id}</p>
@@ -342,7 +342,7 @@ export default function ColaboradorDetailsPage() {
                 {colaborador.position && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <UserIcon className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                       Cargo
                     </div>
                     <p className="text-base">{colaborador.position}</p>
@@ -352,7 +352,7 @@ export default function ColaboradorDetailsPage() {
                 {colaborador.department && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <BuildingIcon className="h-4 w-4" />
+                      <Building className="h-4 w-4" />
                       Departamento
                     </div>
                     <p className="text-base">{colaborador.department}</p>
@@ -362,7 +362,7 @@ export default function ColaboradorDetailsPage() {
                 {colaborador.admission_date && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <CalendarIcon className="h-4 w-4" />
+                      <Calendar className="h-4 w-4" />
                       Data de Admissão
                     </div>
                     <p className="text-base">{formatDate(colaborador.admission_date)}</p>
@@ -379,7 +379,7 @@ export default function ColaboradorDetailsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <BuildingIcon className="h-4 w-4" />
+                    <Building className="h-4 w-4" />
                     Direção
                   </div>
                   <p className="text-base">{colaborador.direction?.name || "N/A"}</p>
@@ -387,7 +387,7 @@ export default function ColaboradorDetailsPage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <BuildingIcon className="h-4 w-4" />
+                    <Building className="h-4 w-4" />
                     Gerência
                   </div>
                   <p className="text-base">{colaborador.management?.name || "N/A"}</p>
@@ -395,7 +395,7 @@ export default function ColaboradorDetailsPage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <BuildingIcon className="h-4 w-4" />
+                    <Building className="h-4 w-4" />
                     Coordenação
                   </div>
                   <p className="text-base">{colaborador.coordination?.name || "N/A"}</p>
@@ -413,7 +413,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.street && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <MapPinIcon className="h-4 w-4" />
+                          <MapPin className="h-4 w-4" />
                           Logradouro
                         </div>
                         <p className="text-base">{colaborador.street}</p>
@@ -423,7 +423,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.city && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <MapPinIcon className="h-4 w-4" />
+                          <MapPin className="h-4 w-4" />
                           Cidade
                         </div>
                         <p className="text-base">{colaborador.city} - {colaborador.state}</p>
@@ -433,7 +433,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.postal_code && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <MapPinIcon className="h-4 w-4" />
+                          <MapPin className="h-4 w-4" />
                           CEP
                         </div>
                         <p className="text-base">{colaborador.postal_code}</p>
@@ -454,7 +454,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.bank_name && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <BanknotesIcon className="h-4 w-4" />
+                          <Banknote className="h-4 w-4" />
                           Banco
                         </div>
                         <p className="text-base">{colaborador.bank_name}</p>
@@ -464,7 +464,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.bank_agency && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <BanknotesIcon className="h-4 w-4" />
+                          <Banknote className="h-4 w-4" />
                           Agência
                         </div>
                         <p className="text-base">{colaborador.bank_agency}</p>
@@ -474,7 +474,7 @@ export default function ColaboradorDetailsPage() {
                     {colaborador.bank_account && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <BanknotesIcon className="h-4 w-4" />
+                          <Banknote className="h-4 w-4" />
                           Conta
                         </div>
                         <p className="text-base">{colaborador.bank_account}</p>
@@ -490,7 +490,7 @@ export default function ColaboradorDetailsPage() {
             {/* Informações de auditoria */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 <span>Criado em {formatDateTime(colaborador.created_at)}</span>
                 {colaborador.created_by && (
                   <span className="font-medium">
@@ -501,7 +501,7 @@ export default function ColaboradorDetailsPage() {
                 )}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 <span>Atualizado em {formatDateTime(colaborador.updated_at)}</span>
                 {colaborador.updated_by && (
                   <span className="font-medium">
@@ -520,7 +520,7 @@ export default function ColaboradorDetailsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 justify-between">
               <div className="flex items-center gap-2">
-                <ContainerIcon className="h-5 w-5" />
+                <Container className="h-5 w-5" />
                 Contratos Relacionados
               </div>
               <Badge variant="outline" className="text-sm">
@@ -539,7 +539,7 @@ export default function ColaboradorDetailsPage() {
               />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <ContainerIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <Container className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Este colaborador não está vinculado a nenhum contrato como fiscal.</p>
               </div>
             )}
@@ -551,7 +551,7 @@ export default function ColaboradorDetailsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 justify-between">
               <div className="flex items-center gap-2">
-                <GiftIcon className="h-5 w-5" />
+                <Gift className="h-5 w-5" />
                 Auxílios Recebidos
               </div>
               <Badge variant="outline" className="text-sm">
@@ -646,7 +646,7 @@ export default function ColaboradorDetailsPage() {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <GiftIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Este colaborador não possui auxílios cadastrados.</p>
               </div>
             )}

@@ -252,50 +252,50 @@ JAZZMIN_SETTINGS = {
         {"name": "Perfil", "url": "admin:password_change", "icon": "fas fa-user-cog"},
     ],
     
-    # Ícones por aplicação/modelo
+    # Ícones por aplicação/modelo - Modernizados e coesos
     "icons": {
         # Autenticação e Usuários
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
+        "auth": "fas fa-shield-alt",
+        "auth.user": "fas fa-user-circle",
         "auth.Group": "fas fa-users",
         "accounts": "fas fa-user-shield",
-        "accounts.User": "fas fa-user-tie",
+        "accounts.User": "fas fa-id-card",
         
         # Funcionários
-        "employee": "fas fa-id-badge",
-        "employee.Employee": "fas fa-user-hard-hat",
+        "employee": "fas fa-address-card",
+        "employee.Employee": "fas fa-user-tag",
         
         # Centros
         "center": "fas fa-building",
-        "center.Management_Center": "fas fa-building-user",
-        "center.Requesting_Center": "fas fa-building-flag",
+        "center.Management_Center": "fas fa-warehouse",
+        "center.Requesting_Center": "fas fa-store-alt",
         
         # Setores
         "sector": "fas fa-sitemap",
         "sector.Direction": "fas fa-compass",
-        "sector.Management": "fas fa-network-wired",
+        "sector.Management": "fas fa-cogs",
         "sector.Coordination": "fas fa-project-diagram",
         
         # Orçamento
-        "budget": "fas fa-calculator",
-        "budget.Budget": "fas fa-coins",
+        "budget": "fas fa-chart-pie",
+        "budget.Budget": "fas fa-wallet",
         "budgetline": "fas fa-chart-line",
-        "budgetline.BudgetLine": "fas fa-list-ol",
+        "budgetline.BudgetLine": "fas fa-list-alt",
         
         # Contratos
-        "contract": "fas fa-file-contract",
+        "contract": "fas fa-file-signature",
         "contract.Contract": "fas fa-handshake",
         
         # Auxílios/Assistência
-        "aid": "fas fa-hands-helping",
-        "aid.Assistance": "fas fa-hand-holding-heart",
+        "aid": "fas fa-hand-holding-usd",
+        "aid.Assistance": "fas fa-heart",
         
         # IA Assistant
-        "ai_assistant": "fas fa-robot",
-        "ai_assistant.ConversationSession": "fas fa-comments",
+        "ai_assistant": "fas fa-brain",
+        "ai_assistant.ConversationSession": "fas fa-comment-dots",
         
         # Admin
-        "admin.LogEntry": "fas fa-history",
+        "admin.LogEntry": "fas fa-clipboard-list",
     },
     
     # Ícones padrão
@@ -312,6 +312,11 @@ JAZZMIN_SETTINGS = {
     # Configurações de tema
     "theme": "default",
     "dark_mode_theme": None,
+    
+    # Modern UI improvements
+    "show_ui_builder": False,
+    "related_modal_active": False,
+    "use_google_fonts_cdn": True,
     
     # Links customizados
     "custom_links": {
@@ -349,8 +354,5 @@ JAZZMIN_SETTINGS = {
         "auth"
     ],
     
-    # Configurações adicionais
-    "show_ui_builder": False,
-    "related_modal_active": False,
 }
 

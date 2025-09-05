@@ -1,242 +1,59 @@
-{% extends "jazzmin/admin/login.html" %}
+{% extends "admin/login.html" %}
 {% load static %}
 
 {% block extrastyle %}
     {{ block.super }}
     <style>
-        /* Maritime theme background for Jazzmin login */
-        body {
-            background: linear-gradient(135deg, #004d7a 0%, #005580 25%, #0066a0 50%, #007bcc 75%, #0099ff 100%) !important;
-            background-size: 400% 400% !important;
-            animation: ocean-wave 15s ease-in-out infinite !important;
-            min-height: 100vh !important;
-            position: relative !important;
-            overflow-x: hidden !important;
-        }
-
-        @keyframes ocean-wave {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Wave pattern overlay */
-        body::before {
-            content: "" !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background-image: 
-                url('data:image/svg+xml,<svg width="100" height="20" viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg"><path d="M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.383 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z" fill="rgba(255,255,255,0.1)" fill-rule="evenodd"/></svg>') !important;
-            animation: waves 20s linear infinite !important;
-            pointer-events: none !important;
-            z-index: -1 !important;
-        }
-
-        @keyframes waves {
-            0% { background-position-x: 0; }
-            100% { background-position-x: 100px; }
-        }
-
-        /* Maritime bubbles effect */
-        body::after {
-            content: "" !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 2px, transparent 2px),
-                radial-gradient(circle at 60% 40%, rgba(255,255,255,0.15) 1px, transparent 1px),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 3px, transparent 3px),
-                radial-gradient(circle at 40% 90%, rgba(255,255,255,0.12) 2px, transparent 2px),
-                radial-gradient(circle at 90% 30%, rgba(255,255,255,0.08) 1px, transparent 1px) !important;
-            background-size: 200px 200px, 300px 300px, 150px 150px, 250px 250px, 180px 180px !important;
-            animation: float-bubbles 30s ease-in-out infinite !important;
-            pointer-events: none !important;
-            z-index: -1 !important;
-        }
-
-        @keyframes float-bubbles {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-20px) rotate(120deg); }
-            66% { transform: translateY(-10px) rotate(240deg); }
-        }
-
-        /* Login card styling */
-        .login-page .login-box,
-        .card,
-        .login-card-body {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(15px) !important;
-            border-radius: 20px !important;
-            box-shadow: 0 20px 60px rgba(0, 77, 122, 0.4) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            animation: float-in 1s ease-out !important;
-        }
-
-        @keyframes float-in {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Login title with anchor */
-        .login-logo a,
-        .login-box-msg,
-        h1,
-        .card-header {
-            text-align: center !important;
-            color: #004d7a !important;
-            font-weight: bold !important;
-            text-shadow: 0 2px 10px rgba(0, 77, 122, 0.2) !important;
-        }
-
-        .login-logo a::before,
-        .card-header::before,
-        h1::before {
-            content: "⚓ " !important;
-            font-size: 2rem !important;
-            margin-right: 10px !important;
-            color: #007bcc !important;
-            text-shadow: 0 0 20px rgba(0, 123, 204, 0.6) !important;
-            filter: drop-shadow(0 0 5px rgba(0, 123, 204, 0.4)) !important;
-            animation: anchor-glow 2s ease-in-out infinite alternate !important;
-        }
-
-        @keyframes anchor-glow {
-            from { text-shadow: 0 0 20px rgba(0, 123, 204, 0.6); }
-            to { text-shadow: 0 0 30px rgba(0, 123, 204, 0.8); }
-        }
-
-        /* Form inputs */
-        .form-control,
-        input[type="text"],
-        input[type="password"],
-        input[type="email"] {
-            border: 2px solid rgba(0, 123, 255, 0.3) !important;
-            border-radius: 10px !important;
-            padding: 15px 20px !important;
-            background: rgba(255, 255, 255, 0.9) !important;
-            backdrop-filter: blur(5px) !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(0, 77, 122, 0.1) !important;
-            font-size: 1rem !important;
-        }
-
-        .form-control:focus,
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        input[type="email"]:focus {
-            outline: none !important;
-            border-color: #007bcc !important;
-            box-shadow: 0 0 0 3px rgba(0, 123, 204, 0.2), 0 6px 20px rgba(0, 77, 122, 0.2) !important;
-            transform: translateY(-2px) !important;
-        }
-
-        /* Submit button */
-        .btn-primary,
-        input[type="submit"] {
-            width: 100% !important;
-            padding: 15px 30px !important;
-            background: linear-gradient(135deg, #007bcc 0%, #004d7a 100%) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 10px !important;
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 6px 25px rgba(0, 123, 204, 0.3) !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1px !important;
-        }
-
-        .btn-primary:hover,
-        input[type="submit"]:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 10px 35px rgba(0, 123, 204, 0.4) !important;
-            background: linear-gradient(135deg, #0099ff 0%, #007bcc 100%) !important;
-        }
-
-        .btn-primary:active,
-        input[type="submit"]:active {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 15px rgba(0, 123, 204, 0.3) !important;
-        }
-
-        /* Form labels */
-        label {
-            color: #004d7a !important;
-            font-weight: 600 !important;
-            margin-bottom: 8px !important;
-        }
-
-        /* Error messages */
-        .alert-danger,
-        .errorlist {
-            background: rgba(220, 53, 69, 0.1) !important;
-            border: 2px solid rgba(220, 53, 69, 0.3) !important;
-            border-radius: 8px !important;
-            padding: 15px !important;
-            margin-bottom: 20px !important;
-            backdrop-filter: blur(5px) !important;
-            color: #dc3545 !important;
-        }
-
-        /* Footer */
-        .login-page-footer,
-        footer {
-            text-align: center !important;
-            margin-top: 30px !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            font-size: 0.9rem !important;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        /* Override any specific Jazzmin styles */
+        /* Ensure compatibility with the main login template */
         .login-page {
             background: transparent !important;
         }
-
-        .login-box {
-            margin: 7% auto !important;
+        
+        /* Modern input icons */
+        .input-group-text .fas.fa-user::before {
+            content: "\f007" !important; /* Modern user icon */
+        }
+        
+        .input-group-text .fas.fa-lock::before {
+            content: "\f023" !important; /* Modern lock icon */
         }
 
-        /* Additional maritime touches */
-        .input-group-text {
-            background: rgba(0, 123, 204, 0.1) !important;
-            border-color: rgba(0, 123, 255, 0.3) !important;
-            color: #007bcc !important;
+        /* Enhanced focus states for better accessibility */
+        .form-control:focus {
+            outline: 2px solid #3b82f6 !important;
+            outline-offset: 2px !important;
         }
 
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .login-box {
-                margin: 5% 10% !important;
-            }
-            
-            .login-logo a::before,
-            .card-header::before,
-            h1::before {
-                font-size: 1.5rem !important;
-            }
+        /* Improved button focus state */
+        .btn-primary:focus {
+            outline: 2px solid #93c5fd !important;
+            outline-offset: 2px !important;
+        }
+
+        /* Accessibility improvements */
+        .login-box-msg {
+            font-size: 1.3rem !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Enhanced error states */
+        .callout-danger {
+            border-left: 4px solid #ef4444 !important;
+            animation: shake 0.5s ease-in-out !important;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
     </style>
 {% endblock %}
 
 {% block footer %}
-    <div class="login-page-footer">
+    <div class="login-page-footer" style="text-align: center; margin-top: 30px; color: rgba(255, 255, 255, 0.9); font-size: 0.95rem;">
         <p><strong>⚓ Minerva © 2024</strong></p>
-        <p>🌊 Sistema de Gestão de Contratos Marítimos</p>
-        <p>Navegando pelos mares da gestão eficiente</p>
+        <p>Sistema de Gestão Administrativo</p>
+        <p>Navegando com eficiência e modernidade</p>
     </div>
 {% endblock %}

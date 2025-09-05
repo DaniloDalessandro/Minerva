@@ -59,12 +59,13 @@
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\components\\ui/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\app\\(private)/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\components/**)",
-      "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\hooks/**)"
+      "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\hooks/**)",
+      "Bash(timeout 15s npm run dev)"
     ],
     "deny": [],
-    "ask": [],
     "additionalDirectories": [
       "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
-    ]
+    ],
+    "ask": []
   }
 }
