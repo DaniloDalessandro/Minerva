@@ -4,7 +4,7 @@ from django.contrib.auth.admin import GroupAdmin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import User
+from .models import User, BlacklistedToken
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -166,6 +166,39 @@ class CustomGroupAdmin(GroupAdmin):
 # Desregistrar o GroupAdmin padrão e registrar o customizado
 admin.site.unregister(Group)
 admin.site.register(Group, CustomGroupAdmin)
+
+@admin.register(BlacklistedToken)
+class BlacklistedTokenAdmin(admin.ModelAdmin):
+    list_display = ['get_token_preview', 'user', 'reason', 'blacklisted_at']
+    list_filter = ['reason', 'blacklisted_at', 'user']
+    search_fields = ['user__email', 'reason', 'jti']
+    readonly_fields = ['jti', 'token', 'user', 'blacklisted_at']
+    ordering = ['-blacklisted_at']
+    
+    def get_token_preview(self, obj):
+        """Exibe uma prévia do token"""
+        return format_html(
+            '<span style="font-family: monospace; background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">{}...{}</span>',
+            obj.jti[:8],
+            obj.jti[-8:] if len(obj.jti) > 16 else ''
+        )
+    get_token_preview.short_description = 'Token ID'
+    
+    def has_add_permission(self, request):
+        """Não permite adicionar tokens manualmente"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Não permite editar tokens"""
+        return False
+    
+    actions = ['cleanup_expired_tokens']
+    
+    def cleanup_expired_tokens(self, request, queryset):
+        """Action para limpar tokens expirados"""
+        deleted_count = BlacklistedToken.cleanup_expired()
+        self.message_user(request, f'{deleted_count} tokens expirados foram removidos.')
+    cleanup_expired_tokens.short_description = 'Limpar tokens expirados'
 
 # Registrar o User com o CustomUserAdmin
 admin.site.register(User, CustomUserAdmin)

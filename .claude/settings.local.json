@@ -60,12 +60,18 @@
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\app\\(private)/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\components/**)",
       "Read(/C:\\Users\\danilo.ecopel\\Documents\\PROJETOS\\MINERVA\\Minerva\\frontend_minerva\\src\\hooks/**)",
-      "Bash(timeout 15s npm run dev)"
+      "Bash(timeout 15s npm run dev)",
+      "Bash(call venvScriptsactivate.bat)",
+      "Bash(.venvScriptspython.exe manage.py makemigrations accounts)",
+      "Bash(venvScripts:*)",
+      "Bash(venv\\Scripts\\activate.bat:*)",
+      "Bash(powershell:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
+    "ask": [],
     "additionalDirectories": [
       "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
-    ],
-    "ask": []
+    ]
   }
 }

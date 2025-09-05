@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer
+from .models import BlacklistedToken
 
 from .serializers import (
     LoginSerializer,
@@ -89,10 +90,35 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        try:
+            # Obter o token do header Authorization
+            auth_header = request.META.get('HTTP_AUTHORIZATION')
+            if auth_header and auth_header.startswith('Bearer '):
+                token_string = auth_header.split(' ')[1]
+                
+                # Adicionar o token à blacklist
+                BlacklistedToken.add_token(token_string, request.user, 'logout')
+                print(f"Token adicionado à blacklist para usuário {request.user.email}")
+            
+            # Também blacklist o refresh token se fornecido
+            refresh_token = request.data.get('refresh_token')
+            if refresh_token:
+                try:
+                    refresh = RefreshToken(refresh_token)
+                    BlacklistedToken.add_token(str(refresh.access_token), request.user, 'logout_refresh')
+                except Exception as e:
+                    print(f"Erro ao processar refresh token: {e}")
+            
+        except Exception as e:
+            print(f"Erro ao adicionar token à blacklist: {e}")
+        
         response = Response({'message': LOGOUT_MESSAGES['success']})
 
+        # Limpar cookies
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
 
         return response
 

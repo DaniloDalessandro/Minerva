@@ -66,3 +66,71 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Usuário"
         verbose_name_plural = "Usuários"
+
+
+class BlacklistedToken(models.Model):
+    """
+    Modelo para armazenar tokens que foram invalidados (logout, etc)
+    """
+    jti = models.CharField(max_length=255, unique=True)  # JWT ID
+    token = models.TextField()  # Token completo para verificação adicional
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blacklisted_tokens')
+    blacklisted_at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=255, default='logout')
+    
+    class Meta:
+        db_table = 'blacklisted_tokens'
+        verbose_name = "Token Invalidado"
+        verbose_name_plural = "Tokens Invalidados"
+        indexes = [
+            models.Index(fields=['jti']),
+            models.Index(fields=['user', 'blacklisted_at']),
+        ]
+    
+    def __str__(self):
+        return f"Token {self.jti[:10]}... invalidado para {self.user.email}"
+
+    @classmethod
+    def is_blacklisted(cls, token: str) -> bool:
+        """Verifica se um token está na blacklist"""
+        try:
+            from rest_framework_simplejwt.tokens import AccessToken
+            decoded_token = AccessToken(token)
+            jti = decoded_token.get('jti')
+            return cls.objects.filter(jti=jti).exists()
+        except Exception as e:
+            # CORREÇÃO CRÍTICA: Log do erro mas NÃO considerar automaticamente como blacklisted
+            print(f"Aviso ao verificar blacklist para token: {e}")
+            return False  # Token com problemas de decodificação não é necessariamente blacklisted
+
+    @classmethod
+    def add_token(cls, token: str, user, reason: str = 'logout'):
+        """Adiciona um token à blacklist"""
+        try:
+            from rest_framework_simplejwt.tokens import AccessToken
+            decoded_token = AccessToken(token)
+            jti = decoded_token.get('jti')
+            
+            cls.objects.get_or_create(
+                jti=jti,
+                defaults={
+                    'token': token,
+                    'user': user,
+                    'reason': reason
+                }
+            )
+            return True
+        except Exception as e:
+            print(f"Erro ao adicionar token à blacklist: {e}")
+            return False
+
+    @classmethod
+    def cleanup_expired(cls):
+        """Remove tokens expirados da blacklist"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Remove tokens com mais de 7 dias (tempo de vida máximo do JWT)
+        cutoff_date = timezone.now() - timedelta(days=7)
+        deleted_count = cls.objects.filter(blacklisted_at__lt=cutoff_date).delete()[0]
+        return deleted_count

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext"; // ✅ importe aqui
+import { InterceptorProvider } from "@/contexts/InterceptorContext";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress-bar";
 
 const geistSans = Geist({
@@ -53,8 +54,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <NavigationProgressBar />
-          {children}
+          <InterceptorProvider>
+            <NavigationProgressBar />
+            {children}
+          </InterceptorProvider>
         </AuthProvider>
       </body>
     </html>

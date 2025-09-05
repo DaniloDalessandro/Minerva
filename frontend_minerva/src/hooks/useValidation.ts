@@ -1,5 +1,13 @@
 import { useCallback, useRef } from 'react';
 
+// Função para ler cookies
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
 // Hook para debounce de validação
 export function useDebounce<T extends any[]>(
   callback: (...args: T) => void,
@@ -42,7 +50,7 @@ export function useDuplicateValidation() {
         `http://localhost:8000/api/v1/center/management-centers/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${getCookie('access')}`,
             'Content-Type': 'application/json',
           },
         }
@@ -75,7 +83,7 @@ export function useDuplicateValidation() {
         `http://localhost:8000/api/v1/center/requesting-centers/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${getCookie('access')}`,
             'Content-Type': 'application/json',
           },
         }
