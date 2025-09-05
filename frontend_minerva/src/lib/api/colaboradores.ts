@@ -127,11 +127,29 @@ export async function fetchColaboradores(
     params.append('ordering', ordering)
   }
 
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/?${params}`)
+  const url = `http://localhost:8000/api/v1/employee/?${params}`;
+  console.log("👥 Buscando colaboradores:", url);
+  
+  const response = await authFetch(url)
+  console.log("📡 Resposta API colaboradores:", response.status);
+  
   if (!response.ok) {
-    throw new Error('Failed to fetch colaboradores')
+    console.error("❌ Erro na resposta:", response.status, response.statusText);
+    throw new Error(`Erro ao buscar colaboradores: ${response.status}`)
   }
-  return response.json()
+
+  const data = await response.json()
+  console.log("📊 Dados colaboradores recebidos:", {
+    count: data.count,
+    results: data.results?.length || 0,
+    firstResult: data.results?.[0] ? {
+      id: data.results[0].id,
+      name: data.results[0].full_name,
+      email: data.results[0].email
+    } : null
+  });
+
+  return data
 }
 
 export async function fetchColaboradorById(id: number): Promise<Colaborador> {

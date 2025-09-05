@@ -3,25 +3,26 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser,DjangoModelPermissions,IsAuthenticated
 from .models import Employee
 from .utils.access_control import get_employee_queryset
-from .serializers import EmployeeSerializer
+from .serializers import EmployeeSerializer, EmployeeWriteSerializer
 from .utils.messages import EMPLOYEE_MESSAGES
-from accounts.mixins import HierarchicalFilterMixin
 
-# Listar funcionários
-class EmployeeListView(generics.ListAPIView, HierarchicalFilterMixin):
+# Listar funcionarios - SEM FILTRO HIERARQUICO (todos podem ver todos)
+class EmployeeListView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Usar novo sistema hierárquico em vez do antigo
-        return self.get_hierarchical_employees_queryset(self.request.user)
+        print(f"Usuario fazendo requisicao: {self.request.user.email}")
+        queryset = Employee.objects.all()
+        print(f"Total employees retornados: {queryset.count()}")
+        return queryset
 
-# Criar funcionário
+# Criar funcionario
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    serializer_class = EmployeeWriteSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(
@@ -30,49 +31,48 @@ class EmployeeCreateView(generics.CreateAPIView):
         )
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        response.data = {
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        instance = write_serializer.save(
+            created_by=self.request.user,
+            updated_by=self.request.user
+        )
+        read_serializer = EmployeeSerializer(instance)
+        return Response({
             'message': EMPLOYEE_MESSAGES['created'],
-            'data': response.data
-        }
-        return response
-    
-    def get_queryset(self):
-        return get_employee_queryset(self.request.user, super().get_queryset())
+            'data': read_serializer.data
+        }, status=status.HTTP_201_CREATED)
 
 
-# Visualizar funcionário
+# Visualizar funcionario
 class EmployeeRetrieveView(generics.RetrieveAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return get_employee_queryset(self.request.user, super().get_queryset())
-
-# Atualizar funcionário
+# Atualizar funcionario
 class EmployeeUpdateView(generics.UpdateAPIView):
     queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    serializer_class = EmployeeWriteSerializer
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        response.data['message'] = EMPLOYEE_MESSAGES['updated']
-        return response
-    
-    def get_queryset(self):
-        return get_employee_queryset(self.request.user, super().get_queryset())
+        instance = self.get_object()
+        write_serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
+        write_serializer.is_valid(raise_exception=True)
+        updated_instance = write_serializer.save(updated_by=request.user)
+        read_serializer = EmployeeSerializer(updated_instance)
+        return Response({
+            'message': EMPLOYEE_MESSAGES['updated'],
+            **read_serializer.data
+        })
 
-# Excluir funcionário
+# Excluir funcionario
 class EmployeeDeleteView(generics.DestroyAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    permission_classes = [IsAuthenticated]
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
         return Response({'message': EMPLOYEE_MESSAGES['deleted']}, status=status.HTTP_204_NO_CONTENT)
-    
-    def get_queryset(self):
-        return get_employee_queryset(self.request.user, super().get_queryset())
