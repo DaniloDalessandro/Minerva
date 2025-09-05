@@ -14,7 +14,21 @@ class EmployeeListView(generics.ListAPIView):
 
     def get_queryset(self):
         print(f"Usuario fazendo requisicao: {self.request.user.email}")
-        queryset = Employee.objects.all()
+        queryset = Employee.objects.select_related('direction', 'management', 'coordination').all()
+        
+        # Apply search filter if provided
+        search = self.request.query_params.get('search', None)
+        if search:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(full_name__icontains=search) |
+                Q(cpf__icontains=search) |
+                Q(email__icontains=search) |
+                Q(direction__name__icontains=search) |
+                Q(management__name__icontains=search) |
+                Q(coordination__name__icontains=search)
+            )
+        
         print(f"Total employees retornados: {queryset.count()}")
         return queryset
 

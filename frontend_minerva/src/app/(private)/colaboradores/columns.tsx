@@ -34,6 +34,9 @@ export const columns: ColumnDef<Colaborador>[] = [
       const directionName = row.original.direction?.name;
       return <span>{directionName || "-"}</span>;
     },
+    meta: {
+      showFilterIcon: true,
+    },
   },
   {
     accessorKey: "management",
@@ -43,6 +46,9 @@ export const columns: ColumnDef<Colaborador>[] = [
       const managementName = row.original.management?.name;
       return <span>{managementName || "-"}</span>;
     },
+    meta: {
+      showFilterIcon: true,
+    },
   },
   {
     accessorKey: "coordination",
@@ -51,6 +57,9 @@ export const columns: ColumnDef<Colaborador>[] = [
     cell: ({ row }) => {
       const coordinationName = row.original.coordination?.name;
       return <span>{coordinationName || "-"}</span>;
+    },
+    meta: {
+      showFilterIcon: true,
     },
   },
   {
