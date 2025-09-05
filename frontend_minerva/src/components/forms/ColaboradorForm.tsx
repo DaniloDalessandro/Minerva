@@ -37,13 +37,13 @@ interface Direction {
 interface Management {
   id: number;
   name: string;
-  direction: number;
+  direction: number | { id: number; name: string };
 }
 
 interface Coordination {
   id: number;
   name: string;
-  management: number;
+  management: number | { id: number; name: string };
 }
 
 export default function ColaboradorForm({
@@ -59,11 +59,7 @@ export default function ColaboradorForm({
     email: "",
     cpf: "",
     phone: "",
-    birth_date: "",
-    employee_id: "",
     position: "",
-    department: "",
-    admission_date: "",
     direction: 0,
     management: 0,
     coordination: 0,
@@ -120,15 +116,34 @@ export default function ColaboradorForm({
 
   // Filter managements based on selected direction
   useEffect(() => {
+    console.log("🔄 Filtrando gerências para direção:", formData.direction);
+    console.log("📊 Total de gerências disponíveis:", managements.length);
+    
     if (formData.direction > 0) {
-      const filtered = managements.filter(mgmt => mgmt.direction === formData.direction);
+      console.log("🔍 Estrutura das gerências:", managements.slice(0, 3).map(m => ({
+        id: m.id,
+        name: m.name,
+        direction: m.direction,
+        directionType: typeof m.direction
+      })));
+      
+      const filtered = managements.filter(mgmt => {
+        const directionId = typeof mgmt.direction === 'object' ? mgmt.direction.id : mgmt.direction;
+        return directionId === formData.direction;
+      });
+      console.log("✅ Gerências filtradas:", filtered.length, filtered.map(m => {
+        const dirId = typeof m.direction === 'object' ? m.direction.id : m.direction;
+        return `${m.name} (dir: ${dirId})`;
+      }));
       setFilteredManagements(filtered);
       
       // Reset management and coordination if current selection is not valid
       if (formData.management > 0 && !filtered.find(m => m.id === formData.management)) {
+        console.log("🔄 Resetando gerência/coordenação - seleção atual não é válida");
         setFormData(prev => ({ ...prev, management: 0, coordination: 0 }));
       }
     } else {
+      console.log("❌ Nenhuma direção selecionada - limpando gerências");
       setFilteredManagements([]);
       setFormData(prev => ({ ...prev, management: 0, coordination: 0 }));
     }
@@ -136,15 +151,26 @@ export default function ColaboradorForm({
 
   // Filter coordinations based on selected management
   useEffect(() => {
+    console.log("🔄 Filtrando coordenações para gerência:", formData.management);
+    
     if (formData.management > 0) {
-      const filtered = coordinations.filter(coord => coord.management === formData.management);
+      const filtered = coordinations.filter(coord => {
+        const managementId = typeof coord.management === 'object' ? coord.management.id : coord.management;
+        return managementId === formData.management;
+      });
+      console.log("✅ Coordenações filtradas:", filtered.length, filtered.map(c => {
+        const mgmtId = typeof c.management === 'object' ? c.management.id : c.management;
+        return `${c.name} (mgmt: ${mgmtId})`;
+      }));
       setFilteredCoordinations(filtered);
       
       // Reset coordination if current selection is not valid
       if (formData.coordination > 0 && !filtered.find(c => c.id === formData.coordination)) {
+        console.log("🔄 Resetando coordenação - seleção atual não é válida");
         setFormData(prev => ({ ...prev, coordination: 0 }));
       }
     } else {
+      console.log("❌ Nenhuma gerência selecionada - limpando coordenações");
       setFilteredCoordinations([]);
       setFormData(prev => ({ ...prev, coordination: 0 }));
     }
@@ -160,11 +186,7 @@ export default function ColaboradorForm({
           email: initialData.email || "",
           cpf: initialData.cpf || "",
           phone: initialData.phone || "",
-          birth_date: initialData.birth_date || "",
-          employee_id: initialData.employee_id || "",
           position: initialData.position || "",
-          department: initialData.department || "",
-          admission_date: initialData.admission_date || "",
           direction: initialData.direction?.id || 0,
           management: initialData.management?.id || 0,
           coordination: initialData.coordination?.id || 0,
@@ -178,11 +200,7 @@ export default function ColaboradorForm({
           email: "",
           cpf: "",
           phone: "",
-          birth_date: "",
-          employee_id: "",
           position: "",
-          department: "",
-          admission_date: "",
           direction: 0,
           management: 0,
           coordination: 0,
@@ -372,16 +390,6 @@ export default function ColaboradorForm({
                   />
                   {errors.phone && <span className="text-sm text-red-500">{errors.phone}</span>}
                 </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="birth_date">Data de Nascimento</Label>
-                  <Input
-                    id="birth_date"
-                    type="date"
-                    value={formData.birth_date}
-                    onChange={handleChange}
-                  />
-                </div>
               </div>
             </div>
 
@@ -391,42 +399,12 @@ export default function ColaboradorForm({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="employee_id">Matrícula</Label>
-                  <Input
-                    id="employee_id"
-                    value={formData.employee_id}
-                    onChange={handleChange}
-                    placeholder="Número da matrícula"
-                  />
-                </div>
-
-                <div className="grid gap-2">
                   <Label htmlFor="position">Cargo</Label>
                   <Input
                     id="position"
                     value={formData.position}
                     onChange={handleChange}
                     placeholder="Cargo do colaborador"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="department">Departamento</Label>
-                  <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={handleChange}
-                    placeholder="Departamento"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="admission_date">Data de Admissão</Label>
-                  <Input
-                    id="admission_date"
-                    type="date"
-                    value={formData.admission_date}
-                    onChange={handleChange}
                   />
                 </div>
 

@@ -87,6 +87,28 @@ class APIAuthenticationMiddleware:
         return response
 
 
+class HierarchicalPermissionMiddleware:
+    """
+    Middleware para injetar filtros hierárquicos automaticamente em requisições da API
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        # Apenas aplicar em rotas da API e se usuário autenticado
+        if (request.path.startswith('/api/') and 
+            hasattr(request, 'user') and 
+            request.user.is_authenticated):
+            
+            # Adicionar filtro hierárquico ao request para uso nas views
+            from accounts.mixins import HierarchicalFilterMixin
+            request.hierarchical_filter = HierarchicalFilterMixin()
+            
+        response = self.get_response(request)
+        return response
+
+
 class AdminAuthRedirectMiddleware:
     """
     Middleware específico para o Django Admin

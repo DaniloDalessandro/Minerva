@@ -69,10 +69,13 @@ export default function ManagementForm({
   useEffect(() => {
     async function loadDirections() {
       try {
-        const data = await fetchDirections(1, 1000);
-        setDirections(data.results);
+        console.log("🔍 Carregando direções...");
+        const data = await fetchDirections(1, 1000, "", "name");
+        console.log("📊 Dados recebidos:", data);
+        console.log("📋 Direções encontradas:", data.results?.length || 0);
+        setDirections(data.results || []);
       } catch (error) {
-        console.error("Erro ao carregar direções:", error);
+        console.error("❌ Erro ao carregar direções:", error);
       }
     }
     loadDirections();
@@ -117,14 +120,9 @@ export default function ManagementForm({
       }
 
       // Se não encontrou localmente, verifica na API
-      const response = await fetch(
-        `http://localhost:8000/api/v1/sector/managements/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const { authFetch } = await import("@/lib/api/authFetch");
+      const response = await authFetch(
+        `http://localhost:8000/api/v1/sector/managements/?search=${encodeURIComponent(name.trim())}&page_size=1000`
       );
 
       if (response.ok) {

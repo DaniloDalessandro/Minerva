@@ -32,13 +32,13 @@ export function InterceptorProvider({ children }: { children: React.ReactNode })
           if (url.includes(baseUrl) || url.includes('/api/v1/')) {
             const currentRetries = retryCount.get(url) || 0;
             
-            // Permitir até 2 tentativas antes de logout
-            if (currentRetries < 2) {
-              console.warn(`Interceptado erro 401 tentativa ${currentRetries + 1}/3 para ${url}`);
+            // Permitir até 5 tentativas antes de logout
+            if (currentRetries < 5) {
+              console.warn(`Interceptado erro 401 tentativa ${currentRetries + 1}/6 para ${url}`);
               retryCount.set(url, currentRetries + 1);
               
-              // Aguardar um pouco antes de retry
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              // Aguardar mais tempo antes de retry
+              await new Promise(resolve => setTimeout(resolve, 3000));
               
               // Tentar novamente
               return originalFetch(input, init);

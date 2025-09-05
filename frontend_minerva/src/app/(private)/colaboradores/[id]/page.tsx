@@ -302,16 +302,6 @@ export default function ColaboradorDetailsPage() {
                 </div>
               )}
 
-              {colaborador.birth_date && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    Data de Nascimento
-                  </div>
-                  <p className="text-base">{formatDate(colaborador.birth_date)}</p>
-                </div>
-              )}
-
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <Info className="h-4 w-4" />
@@ -329,16 +319,6 @@ export default function ColaboradorDetailsPage() {
             <div className="space-y-3">
               <h4 className="font-semibold text-gray-800">Dados Funcionais</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {colaborador.employee_id && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Info className="h-4 w-4" />
-                      Matrícula
-                    </div>
-                    <p className="text-base">{colaborador.employee_id}</p>
-                  </div>
-                )}
-
                 {colaborador.position && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -349,25 +329,6 @@ export default function ColaboradorDetailsPage() {
                   </div>
                 )}
 
-                {colaborador.department && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Building className="h-4 w-4" />
-                      Departamento
-                    </div>
-                    <p className="text-base">{colaborador.department}</p>
-                  </div>
-                )}
-
-                {colaborador.admission_date && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      Data de Admissão
-                    </div>
-                    <p className="text-base">{formatDate(colaborador.admission_date)}</p>
-                  </div>
-                )}
               </div>
             </div>
 

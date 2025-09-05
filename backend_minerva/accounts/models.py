@@ -130,7 +130,7 @@ class BlacklistedToken(models.Model):
         from django.utils import timezone
         from datetime import timedelta
         
-        # Remove tokens com mais de 7 dias (tempo de vida máximo do JWT)
+        # Remove tokens com mais de 7 dias (tempo de vida máximo do refresh token)
         cutoff_date = timezone.now() - timedelta(days=7)
         deleted_count = cls.objects.filter(blacklisted_at__lt=cutoff_date).delete()[0]
         return deleted_count

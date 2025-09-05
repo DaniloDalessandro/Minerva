@@ -32,9 +32,18 @@ export async function fetchManagements(page = 1, pageSize = 10, search = "", ord
     params.append("ordering", ordering);
   }
   
-  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
-  if (!res.ok) throw new Error("Erro ao buscar gerências");
+  const url = `${API_BASE_URL}?${params.toString()}`;
+  console.log("🏢 Fazendo requisição de gerências para:", url);
+  
+  const res = await authFetch(url);
+  console.log("📡 Resposta da API de gerências:", res.status, res.statusText);
+  
+  if (!res.ok) throw new Error(`Erro ao buscar gerências: ${res.status}`);
+  
   const json = await res.json();
+  console.log("🔍 JSON de gerências recebido:", json);
+  console.log("📊 Quantidade de gerências:", json.results?.length || 0);
+  
   return json;
 }
 

@@ -7,15 +7,7 @@ export interface Colaborador {
   email: string
   cpf: string
   phone?: string
-  birth_date?: string
-  employee_id?: string
   position?: string
-  department?: string
-  admission_date?: string
-  street?: string
-  city?: string
-  state?: string
-  postal_code?: string
   direction?: {
     id: number
     name: string
@@ -30,9 +22,6 @@ export interface Colaborador {
     name: string
     management: number
   }
-  bank_name?: string
-  bank_agency?: string
-  bank_account?: string
   status: 'ATIVO' | 'INATIVO' | 'FERIAS' | 'AFASTADO'
   created_at: string
   updated_at: string
@@ -219,28 +208,43 @@ export async function getColaborador(id: number) {
 
 // Função para buscar setores para os dropdowns
 export async function fetchDirections(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/sector/directions/')
+  console.log("🎯 Buscando direções para colaborador...");
+  const url = 'http://localhost:8000/api/v1/sector/directions/?page_size=1000&ordering=name';
+  const response = await authFetch(url)
+  console.log("📡 Resposta direções colaborador:", response.status);
+  
   if (!response.ok) {
     throw new Error('Failed to fetch directions')
   }
   const data = await response.json()
+  console.log("📊 Direções colaborador encontradas:", data.results?.length || 0);
   return data.results || data
 }
 
 export async function fetchManagements(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/sector/managements/')
+  console.log("🏢 Buscando gerências para colaborador...");
+  const url = 'http://localhost:8000/api/v1/sector/managements/?page_size=1000&ordering=name';
+  const response = await authFetch(url)
+  console.log("📡 Resposta gerências colaborador:", response.status);
+  
   if (!response.ok) {
     throw new Error('Failed to fetch managements')
   }
   const data = await response.json()
+  console.log("📊 Gerências colaborador encontradas:", data.results?.length || 0);
   return data.results || data
 }
 
 export async function fetchCoordinations(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/sector/coordinations/')
+  console.log("🎯 Buscando coordenações para colaborador...");
+  const url = 'http://localhost:8000/api/v1/sector/coordinations/?page_size=1000&ordering=name';
+  const response = await authFetch(url)
+  console.log("📡 Resposta coordenações colaborador:", response.status);
+  
   if (!response.ok) {
     throw new Error('Failed to fetch coordinations')
   }
   const data = await response.json()
+  console.log("📊 Coordenações colaborador encontradas:", data.results?.length || 0);
   return data.results || data
 }

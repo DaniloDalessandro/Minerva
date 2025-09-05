@@ -25,7 +25,6 @@ interface UserProfileData {
   email: string
   avatar: string
   phone?: string
-  department?: string
   position?: string
 }
 
@@ -37,7 +36,6 @@ export function UserProfileForm({ isOpen, onClose }: UserProfileFormProps) {
     email: "",
     avatar: "",
     phone: "",
-    department: "",
     position: "",
   })
 
@@ -48,7 +46,6 @@ export function UserProfileForm({ isOpen, onClose }: UserProfileFormProps) {
         email: user.email || "",
         avatar: user.avatar || "",
         phone: user.phone || "",
-        department: user.department || "",
         position: user.position || "",
       })
     }
@@ -204,16 +201,6 @@ export function UserProfileForm({ isOpen, onClose }: UserProfileFormProps) {
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="department">Departamento</Label>
-                <Input
-                  id="department"
-                  type="text"
-                  value={formData.department}
-                  onChange={handleInputChange("department")}
-                  placeholder="Seu departamento"
-                />
-              </div>
             </div>
           </div>
 

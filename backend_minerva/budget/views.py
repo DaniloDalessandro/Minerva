@@ -15,10 +15,11 @@ from .utils.messages import BUDGET_MSGS, BUDGET_MOVEMENT_MSGS
 from .utils.pdf_generator import generate_budget_pdf, generate_budget_summary_pdf
 from center.models import Management_Center
 from center.serializers import ManagementCenterSerializer
+from accounts.mixins import HierarchicalFilterMixin
 
 
 # Budget Views
-class BudgetListView(generics.ListAPIView):
+class BudgetListView(generics.ListAPIView, HierarchicalFilterMixin):
     queryset = Budget.objects.select_related('management_center', 'created_by', 'updated_by')
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
@@ -26,14 +27,27 @@ class BudgetListView(generics.ListAPIView):
     search_fields = ['year', 'category', 'management_center__name']
     ordering_fields = ['year', 'category', 'total_amount', 'management_center__name', 'created_at', 'updated_at']
     ordering = ['-created_at']
+    
+    def get_queryset(self):
+        """Aplicar filtro hierárquico baseado no usuário"""
+        queryset = super().get_queryset()
+        return self.filter_queryset_by_hierarchy(queryset, self.request.user, 'management_center')
 
 
-class BudgetCreateView(generics.CreateAPIView):
+class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_create(self, serializer):
+        # Verificar se o usuário pode criar budget para o centro especificado
+        management_center = serializer.validated_data.get('management_center')
+        accessible_centers = self.get_accessible_management_centers(self.request.user)
+        
+        if management_center not in accessible_centers:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Você não tem permissão para criar budgets para este centro gestor.")
+            
         serializer.save(created_by=self.request.user, updated_by=self.request.user)
 
     def create(self, request, *args, **kwargs):

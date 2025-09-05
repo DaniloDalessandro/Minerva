@@ -31,9 +31,18 @@ export async function fetchDirections(page = 1, pageSize = 10, search = "", orde
     params.append("ordering", ordering);
   }
   
-  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
-  if (!res.ok) throw new Error("Erro ao buscar direções");
+  const url = `${API_BASE_URL}?${params.toString()}`;
+  console.log("🌐 Fazendo requisição para:", url);
+  
+  const res = await authFetch(url);
+  console.log("📡 Resposta da API:", res.status, res.statusText);
+  
+  if (!res.ok) throw new Error(`Erro ao buscar direções: ${res.status}`);
+  
   const json = await res.json();
+  console.log("🔍 JSON recebido:", json);
+  console.log("📊 Quantidade de direções:", json.results?.length || 0);
+  
   return json; // espera {results: [...], count: total, ...}
 }
 

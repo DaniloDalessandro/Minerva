@@ -113,3 +113,111 @@ class Requesting_Center(models.Model):
         verbose_name_plural = 'Centros Solicitantes'
         unique_together = ('management_center', 'name')
         ordering = ['name']
+
+#=================================================================================================================
+
+class CenterHierarchy(models.Model):
+    """
+    Modelo para associar centros de custo com hierarquia organizacional
+    Permite implementar permissões baseadas na estrutura organizacional
+    """
+    management_center = models.ForeignKey(
+        Management_Center, 
+        on_delete=models.CASCADE, 
+        related_name='hierarchy_associations',
+        verbose_name='Centro Gestor'
+    )
+    
+    direction = models.ForeignKey(
+        'sector.Direction', 
+        on_delete=models.CASCADE, 
+        null=True, blank=True,
+        verbose_name='Direção'
+    )
+    
+    management = models.ForeignKey(
+        'sector.Management', 
+        on_delete=models.CASCADE, 
+        null=True, blank=True,
+        verbose_name='Gerência'
+    )
+    
+    coordination = models.ForeignKey(
+        'sector.Coordination', 
+        on_delete=models.CASCADE, 
+        null=True, blank=True,
+        verbose_name='Coordenação'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    created_by = models.ForeignKey(
+        User, 
+        related_name='center_hierarchies_created', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        verbose_name='Criado por'
+    )
+
+    def clean(self):
+        """Validação para garantir hierarquia consistente"""
+        errors = {}
+        
+        # Se tem coordenação, deve ter gerência
+        if self.coordination and not self.management:
+            errors['management'] = 'Coordenação requer uma Gerência associada.'
+            
+        # Se tem gerência, deve ter direção
+        if self.management and not self.direction:
+            errors['direction'] = 'Gerência requer uma Direção associada.'
+            
+        # Se tem coordenação, ela deve pertencer à gerência especificada
+        if self.coordination and self.management:
+            if self.coordination.management != self.management:
+                errors['coordination'] = 'Coordenação deve pertencer à Gerência especificada.'
+                
+        # Se tem gerência, ela deve pertencer à direção especificada  
+        if self.management and self.direction:
+            if self.management.direction != self.direction:
+                errors['management'] = 'Gerência deve pertencer à Direção especificada.'
+        
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        parts = [str(self.management_center)]
+        if self.direction:
+            parts.append(f"Dir: {self.direction.name}")
+        if self.management:
+            parts.append(f"Ger: {self.management.name}")
+        if self.coordination:
+            parts.append(f"Coord: {self.coordination.name}")
+        return " → ".join(parts)
+
+    @property
+    def hierarchy_level(self):
+        """Retorna o nível hierárquico mais específico"""
+        if self.coordination:
+            return 'coordination'
+        elif self.management:
+            return 'management'
+        elif self.direction:
+            return 'direction'
+        return 'management_center'
+
+    class Meta:
+        verbose_name = 'Associação Centro-Hierarquia'
+        verbose_name_plural = 'Associações Centro-Hierarquia'
+        unique_together = [
+            ('management_center', 'direction', 'management', 'coordination')
+        ]
+        indexes = [
+            models.Index(fields=['direction']),
+            models.Index(fields=['management']), 
+            models.Index(fields=['coordination']),
+            models.Index(fields=['management_center']),
+        ]

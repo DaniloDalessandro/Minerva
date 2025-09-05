@@ -48,18 +48,6 @@ export const columns: ColumnDef<Colaborador>[] = [
     },
   },
   {
-    accessorKey: "department",
-    header: "Departamento", 
-    enableSorting: true,
-    cell: ({ row }) => {
-      const department = row.original.department;
-      return department || "-";
-    },
-    meta: {
-      showFilterIcon: true,
-    },
-  },
-  {
     accessorKey: "direction",
     header: "Direção",
     enableSorting: false,
@@ -156,21 +144,6 @@ export const columns: ColumnDef<Colaborador>[] = [
     },
     meta: {
       showFilterIcon: true,
-    },
-  },
-  {
-    accessorKey: "admission_date",
-    header: "Data de Admissão",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const admissionDate = row.original.admission_date;
-      if (!admissionDate) return "-";
-      
-      return new Date(admissionDate).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
     },
   },
   {

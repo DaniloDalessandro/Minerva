@@ -78,8 +78,8 @@ export async function authFetch(
       if (response.ok) {
         const data = await response.json()
         if (data.access) {
-          // NÃO armazenar em localStorage, apenas cookie
-          document.cookie = `access=${data.access}; path=/; max-age=${15 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
+          // NÃO armazenar em localStorage, apenas cookie (8 horas)
+          document.cookie = `access=${data.access}; path=/; max-age=${8 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
         }
       } else {
         handleLogout("Falha ao renovar token")
@@ -136,8 +136,8 @@ export async function authFetch(
       if (response.ok) {
         const data = await response.json()
         if (data.access) {
-          // NÃO armazenar em localStorage, apenas cookie
-          document.cookie = `access=${data.access}; path=/; max-age=${15 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
+          // NÃO armazenar em localStorage, apenas cookie (8 horas)
+          document.cookie = `access=${data.access}; path=/; max-age=${8 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
         }
       }
     } catch {

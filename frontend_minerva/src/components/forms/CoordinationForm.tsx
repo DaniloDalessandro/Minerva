@@ -69,10 +69,13 @@ export default function CoordinationForm({
   useEffect(() => {
     async function loadManagements() {
       try {
-        const data = await fetchManagements(1, 1000);
-        setManagements(data.results);
+        console.log("🏢 Carregando gerências...");
+        const data = await fetchManagements(1, 1000, "", "name");
+        console.log("📊 Dados recebidos:", data);
+        console.log("📋 Gerências encontradas:", data.results?.length || 0);
+        setManagements(data.results || []);
       } catch (error) {
-        console.error("Erro ao carregar gerências:", error);
+        console.error("❌ Erro ao carregar gerências:", error);
       }
     }
     loadManagements();
@@ -117,14 +120,9 @@ export default function CoordinationForm({
       }
 
       // Se não encontrou localmente, verifica na API
-      const response = await fetch(
-        `http://localhost:8000/api/v1/sector/coordinations/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const { authFetch } = await import("@/lib/api/authFetch");
+      const response = await authFetch(
+        `http://localhost:8000/api/v1/sector/coordinations/?search=${encodeURIComponent(name.trim())}&page_size=1000`
       );
 
       if (response.ok) {

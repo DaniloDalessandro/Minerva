@@ -5,15 +5,17 @@ from .models import Employee
 from .utils.access_control import get_employee_queryset
 from .serializers import EmployeeSerializer
 from .utils.messages import EMPLOYEE_MESSAGES
+from accounts.mixins import HierarchicalFilterMixin
 
 # Listar funcionários
-class EmployeeListView(generics.ListAPIView):
+class EmployeeListView(generics.ListAPIView, HierarchicalFilterMixin):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def get_queryset(self):
-        return get_employee_queryset(self.request.user, super().get_queryset())
+        # Usar novo sistema hierárquico em vez do antigo
+        return self.get_hierarchical_employees_queryset(self.request.user)
 
 # Criar funcionário
 class EmployeeCreateView(generics.CreateAPIView):

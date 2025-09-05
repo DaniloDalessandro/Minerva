@@ -4,25 +4,86 @@ from django.contrib.auth.admin import GroupAdmin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django import forms
 from .models import User, BlacklistedToken
 
 
+class UserAdminForm(forms.ModelForm):
+    """Formulário customizado para criação de usuários"""
+    
+    class Meta:
+        model = User
+        fields = '__all__'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Melhorar a exibição do campo employee
+        if 'employee' in self.fields:
+            self.fields['employee'].empty_label = "Selecione um funcionário..."
+            self.fields['employee'].help_text = (
+                "Escolha o funcionário que terá acesso ao sistema. "
+                "O formato é: Nome Completo - CPF. "
+                "O email será automaticamente sincronizado."
+            )
+        
+        # Melhorar a exibição do campo groups
+        if 'groups' in self.fields:
+            self.fields['groups'].help_text = (
+                "🔴 OBRIGATÓRIO: Selecione pelo menos um grupo hierárquico. "
+                "Presidente (acesso total), Diretor (direção), Gerente (gerência), Coordenador (coordenação)."
+            )
+            # Filtrar apenas grupos hierárquicos relevantes
+            hierarchical_groups = Group.objects.filter(
+                name__in=['Presidente', 'Diretor', 'Gerente', 'Coordenador']
+            )
+            self.fields['groups'].queryset = hierarchical_groups
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        employee = cleaned_data.get('employee')
+        groups = cleaned_data.get('groups')
+        
+        # Validar se employee foi selecionado
+        if not employee:
+            raise forms.ValidationError({
+                'employee': 'É obrigatório selecionar um funcionário.'
+            })
+        
+        # Validar se pelo menos um grupo foi selecionado
+        if not groups or not groups.exists():
+            raise forms.ValidationError({
+                'groups': 'É obrigatório selecionar pelo menos um grupo hierárquico.'
+            })
+        
+        # Validar se o funcionário já possui usuário
+        if employee and hasattr(employee, 'user') and employee.user and employee.user != self.instance:
+            raise forms.ValidationError({
+                'employee': f'O funcionário {employee.full_name} já possui um usuário associado.'
+            })
+        
+        return cleaned_data
+
+
 class CustomUserAdmin(admin.ModelAdmin):
+    form = UserAdminForm
     list_display = ['get_employee_name_cpf', 'get_coordination', 'get_groups', 'get_hierarchy_level', 'is_active', 'last_login']
     search_fields = ['employee__full_name', 'employee__cpf', 'email']
     list_filter = ['is_active', 'groups', 'employee__coordination', 'employee__management', 'employee__direction']
     
     # Campos exibidos no formulário
     fieldsets = (
-        ('Seleção do Funcionário', {
+        ('✅ OBRIGATÓRIO - Seleção do Funcionário', {
             'fields': ('employee', 'is_active'),
-            'description': 'Selecione o funcionário pelo nome e CPF. O email será definido automaticamente.'
+            'description': '🔴 OBRIGATÓRIO: Selecione o funcionário pelo nome e CPF. O email será definido automaticamente.',
+            'classes': ('wide',)
         }),
-        ('Permissões e Grupos', {
+        ('✅ OBRIGATÓRIO - Grupo Hierárquico', {
             'fields': ('groups',),
-            'description': 'Selecione os grupos de acesso. Funcionários só podem acessar dados de sua coordenação.'
+            'description': '🔴 OBRIGATÓRIO: Selecione pelo menos um grupo hierárquico (Presidente, Diretor, Gerente ou Coordenador). Define o nível de acesso no sistema.',
+            'classes': ('wide',)
         }),
-        ('Informações do Sistema', {
+        ('📋 Informações do Sistema', {
             'fields': ('email', 'last_login', 'date_joined'),
             'classes': ('collapse',)
         }),
@@ -101,6 +162,24 @@ class CustomUserAdmin(admin.ModelAdmin):
             return '#fd7e14'  # Orange
         else:
             return '#6c757d'  # Gray
+    
+    def save_model(self, request, obj, form, change):
+        """Validação customizada antes de salvar"""
+        # Validar se pelo menos um grupo foi selecionado
+        if 'groups' in form.cleaned_data and not form.cleaned_data['groups']:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('É obrigatório selecionar pelo menos um grupo hierárquico.')
+        
+        super().save_model(request, obj, form, change)
+    
+    def save_related(self, request, form, formsets, change):
+        """Salva relações e valida grupos"""
+        super().save_related(request, form, formsets, change)
+        
+        # Verificar se grupos foram atribuídos após salvar
+        if not form.instance.groups.exists():
+            from django.contrib import messages
+            messages.error(request, '⚠️ ATENÇÃO: Usuário criado sem grupos! É obrigatório atribuir pelo menos um grupo hierárquico.')
     
     def has_change_permission(self, request, obj=None):
         # Superusuários podem editar qualquer usuário

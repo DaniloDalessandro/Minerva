@@ -71,8 +71,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'core.middleware.APIAuthenticationMiddleware',  # Middleware de autenticação da API
+    'core.middleware.HierarchicalPermissionMiddleware',  # Middleware de permissões hierárquicas  
     'core.middleware.AdminAuthRedirectMiddleware',  # Middleware de redirecionamento do admin
-    'accounts.middleware.HierarchicalPermissionMiddleware',  # Middleware de permissões hierárquicas
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -229,10 +229,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),     
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),  # Aumentado para 8 horas     
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Aumentado para 7 dias
+    "ROTATE_REFRESH_TOKENS": False,  # Desabilitado para evitar erros
+    'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': True,
     
 }

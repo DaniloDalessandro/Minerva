@@ -54,8 +54,8 @@ export function useAuth(): UseAuthReturn {
     localStorage.setItem("user_email", userData.email);
     localStorage.setItem("user_name", userData.name);
     
-    // Definir APENAS cookie seguro (15 minutos)
-    document.cookie = `access=${token}; path=/; max-age=${15 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
+    // Definir APENAS cookie seguro (8 horas)
+    document.cookie = `access=${token}; path=/; max-age=${8 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`;
     
     setAccessToken(token);
     setUser(userData);
