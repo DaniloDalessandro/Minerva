@@ -43,7 +43,6 @@ export default function RequestingCenterForm({
 }: RequestingCenterFormProps) {
   const [managementCenters, setManagementCenters] = useState<ManagementCenter[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isValidatingName, setIsValidatingName] = useState(false);
 
   const {
     register,
@@ -96,75 +95,32 @@ export default function RequestingCenterForm({
     }
   }, [initialData, open, reset]);
 
-  const checkDuplicateName = useCallback(async (name: string, managementCenterId: number) => {
+  const checkDuplicateName = useCallback((name: string, managementCenterId: number) => {
     if (!name.trim() || name.trim().length < 2 || managementCenterId <= 0) {
+      clearErrors("name");
       return;
     }
 
-    setIsValidatingName(true);
-    
-    try {
-      // Primeiro verifica na lista local (mais rápido)
-      const localDuplicate = existingNames.some(
-        existingName => existingName.toLowerCase() === name.trim().toLowerCase()
-      );
+    // Verifica na lista local (instantâneo)
+    const localDuplicate = existingNames.some(
+      existingName => existingName.toLowerCase() === name.trim().toLowerCase()
+    );
 
-      if (localDuplicate) {
-        setError("name", {
-          type: "manual", 
-          message: "Este nome já está sendo usado por outro centro solicitante neste centro gestor",
-        });
-        setIsValidatingName(false);
-        return;
-      }
-
-      // Se não encontrou localmente, verifica na API
-      const response = await fetch(
-        `http://localhost:8000/api/v1/center/requesting-centers/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const centers = data.results || [];
-        
-        // Verifica se existe algum centro com o mesmo nome no mesmo centro gestor
-        const duplicateExists = centers.some((center: any) => 
-          center.name.toLowerCase() === name.toLowerCase() && 
-          center.management_center.id === managementCenterId &&
-          center.id !== initialData?.id
-        );
-
-        if (duplicateExists) {
-          setError("name", {
-            type: "manual",
-            message: "Este nome já está sendo usado por outro centro solicitante neste centro gestor",
-          });
-        } else {
-          clearErrors("name");
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao verificar duplicata:", error);
-    } finally {
-      setIsValidatingName(false);
+    if (localDuplicate) {
+      setError("name", {
+        type: "manual", 
+        message: "Este nome já está sendo usado por outro centro solicitante neste centro gestor",
+      });
+    } else {
+      clearErrors("name");
     }
-  }, [existingNames, initialData, setError, clearErrors]);
+  }, [existingNames, setError, clearErrors]);
 
-  // Debounce da validação de nome
+  // Validação instantânea de nome
   useEffect(() => {
     if (!watchedName || watchedManagementCenterId <= 0) return;
 
-    const timeoutId = setTimeout(() => {
-      checkDuplicateName(watchedName, watchedManagementCenterId);
-    }, 800); // 800ms de debounce
-
-    return () => clearTimeout(timeoutId);
+    checkDuplicateName(watchedName, watchedManagementCenterId);
   }, [watchedName, watchedManagementCenterId, checkDuplicateName]);
 
   const onFormSubmit = async (data: RequestingCenterFormData) => {
@@ -173,7 +129,7 @@ export default function RequestingCenterForm({
 
     try {
       // Revalidar duplicatas antes de enviar
-      await checkDuplicateName(data.name, data.management_center_id);
+      checkDuplicateName(data.name, data.management_center_id);
       
       // Se ainda há erros após a validação, não enviar
       if (Object.keys(errors).length > 0) {
@@ -214,18 +170,13 @@ export default function RequestingCenterForm({
                   id="name"
                   {...register("name")}
                   placeholder="Nome do Centro Solicitante"
-                  className={`${errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""} ${isValidatingName ? "pr-8" : ""}`}
+                  className={errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
                   style={{ textTransform: 'uppercase' }}
                   onChange={(e) => {
                     e.target.value = e.target.value.toUpperCase();
                     register("name").onChange(e);
                   }}
                 />
-                {isValidatingName && (
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                  </div>
-                )}
               </div>
               {errors.name && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-2 mt-1">
@@ -234,11 +185,6 @@ export default function RequestingCenterForm({
                     {errors.name.message}
                   </p>
                 </div>
-              )}
-              {isValidatingName && (
-                <p className="text-sm text-blue-600 mt-1">
-                  🔍 Verificando disponibilidade do nome...
-                </p>
               )}
             </div>
 

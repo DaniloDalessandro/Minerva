@@ -44,7 +44,6 @@ export default function CoordinationForm({
 }: CoordinationFormProps) {
   const [managements, setManagements] = useState<Management[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isValidatingName, setIsValidatingName] = useState(false);
 
   const {
     register,
@@ -97,70 +96,32 @@ export default function CoordinationForm({
     }
   }, [initialData, open, reset]);
 
-  const checkDuplicateName = useCallback(async (name: string, managementId: number) => {
+  const checkDuplicateName = useCallback((name: string, managementId: number) => {
     if (!name.trim() || name.trim().length < 2 || managementId <= 0) {
+      clearErrors("name");
       return;
     }
 
-    setIsValidatingName(true);
-    
-    try {
-      // Primeiro verifica na lista local (mais rápido)
-      const localDuplicate = existingNames.some(
-        existingName => existingName.toLowerCase() === name.trim().toLowerCase()
-      );
+    // Verifica na lista local (instantâneo)
+    const localDuplicate = existingNames.some(
+      existingName => existingName.toLowerCase() === name.trim().toLowerCase()
+    );
 
-      if (localDuplicate) {
-        setError("name", {
-          type: "manual", 
-          message: "Este nome já está sendo usado por outra coordenação nesta gerência",
-        });
-        setIsValidatingName(false);
-        return;
-      }
-
-      // Se não encontrou localmente, verifica na API
-      const { authFetch } = await import("@/lib/api/authFetch");
-      const response = await authFetch(
-        `http://localhost:8000/api/v1/sector/coordinations/?search=${encodeURIComponent(name.trim())}&page_size=1000`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const coordinations = data.results || [];
-        
-        // Verifica se existe alguma coordenação com o mesmo nome na mesma gerência
-        const duplicateExists = coordinations.some((coordination: any) => 
-          coordination.name.toLowerCase() === name.toLowerCase() && 
-          coordination.management === managementId &&
-          coordination.id !== initialData?.id
-        );
-
-        if (duplicateExists) {
-          setError("name", {
-            type: "manual",
-            message: "Este nome já está sendo usado por outra coordenação nesta gerência",
-          });
-        } else {
-          clearErrors("name");
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao verificar duplicata:", error);
-    } finally {
-      setIsValidatingName(false);
+    if (localDuplicate) {
+      setError("name", {
+        type: "manual", 
+        message: "Este nome já está sendo usado por outra coordenação nesta gerência",
+      });
+    } else {
+      clearErrors("name");
     }
-  }, [existingNames, initialData, setError, clearErrors]);
+  }, [existingNames, setError, clearErrors]);
 
-  // Debounce da validação de nome
+  // Validação instantânea de nome
   useEffect(() => {
     if (!watchedName || watchedManagementId <= 0) return;
 
-    const timeoutId = setTimeout(() => {
-      checkDuplicateName(watchedName, watchedManagementId);
-    }, 800); // 800ms de debounce
-
-    return () => clearTimeout(timeoutId);
+    checkDuplicateName(watchedName, watchedManagementId);
   }, [watchedName, watchedManagementId, checkDuplicateName]);
 
   const onFormSubmit = async (data: CoordinationFormData) => {
@@ -169,7 +130,7 @@ export default function CoordinationForm({
 
     try {
       // Revalidar duplicatas antes de enviar
-      await checkDuplicateName(data.name, data.management_id);
+      checkDuplicateName(data.name, data.management_id);
       
       // Se ainda há erros após a validação, não enviar
       if (Object.keys(errors).length > 0) {
@@ -210,18 +171,13 @@ export default function CoordinationForm({
                   id="name"
                   {...register("name")}
                   placeholder="Nome da Coordenação"
-                  className={`${errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""} ${isValidatingName ? "pr-8" : ""}`}
+                  className={errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
                   style={{ textTransform: 'uppercase' }}
                   onChange={(e) => {
                     e.target.value = e.target.value.toUpperCase();
                     register("name").onChange(e);
                   }}
                 />
-                {isValidatingName && (
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                  </div>
-                )}
               </div>
               {errors.name && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-2 mt-1">
@@ -230,11 +186,6 @@ export default function CoordinationForm({
                     {errors.name.message}
                   </p>
                 </div>
-              )}
-              {isValidatingName && (
-                <p className="text-sm text-blue-600 mt-1">
-                  🔍 Verificando disponibilidade do nome...
-                </p>
               )}
             </div>
 
