@@ -71,7 +71,12 @@
       "Bash(sqlite3:*)",
       "Bash(del:*)",
       "Bash(del 0005_employee_admission_date_employee_bank_account_and_more.py)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(\"venv\\Scripts\\python.exe\" debug_budget_403.py)",
+      "Bash(\"venv\\Scripts\\python.exe\" fix_budget_403.py)",
+      "Bash(\"venv\\Scripts\\python.exe\" test_budget_creation.py)",
+      "Bash(\"venv\\Scripts\\python.exe\" check_group_permissions.py)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "additionalDirectories": [
