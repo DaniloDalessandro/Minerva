@@ -40,15 +40,66 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def perform_create(self, serializer):
+        logger = logging.getLogger(__name__)
+        
         # Verificar se o usuário pode criar budget para o centro especificado
         management_center = serializer.validated_data.get('management_center')
-        accessible_centers = self.get_accessible_management_centers(self.request.user)
+        management_center_id = serializer.validated_data.get('management_center_id')
         
-        if management_center not in accessible_centers:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Você não tem permissão para criar budgets para este centro gestor.")
+        logger.info(f"Budget creation by user {self.request.user.email}")
+        logger.info(f"Management center from serializer: {management_center}")
+        logger.info(f"Management center ID from serializer: {management_center_id}")
+        
+        # Se management_center não foi processado, buscar pelo ID
+        if not management_center and management_center_id:
+            from center.models import Management_Center
+            try:
+                management_center = Management_Center.objects.get(id=management_center_id)
+                logger.info(f"Found management center by ID: {management_center}")
+                # Atualizar o validated_data para incluir o objeto management_center
+                serializer.validated_data['management_center'] = management_center
+            except Management_Center.DoesNotExist:
+                logger.error(f"Management center with ID {management_center_id} not found")
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError("Centro gestor não encontrado.")
+        
+        # Se ainda não tem management_center, tentar obter do validated_data diretamente
+        if not management_center and 'management_center_id' in serializer.validated_data:
+            from center.models import Management_Center
+            try:
+                management_center = Management_Center.objects.get(id=serializer.validated_data['management_center_id'])
+                logger.info(f"Found management center by validated_data ID: {management_center}")
+                serializer.validated_data['management_center'] = management_center
+            except Management_Center.DoesNotExist:
+                logger.error(f"Management center with ID {serializer.validated_data['management_center_id']} not found")
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError("Centro gestor não encontrado.")
+        
+        # Verificar hierarquia apenas se management_center foi especificado
+        if management_center:
+            accessible_centers = self.get_accessible_management_centers(self.request.user)
+            logger.info(f"User {self.request.user.email} has access to {accessible_centers.count()} centers")
+            
+            if accessible_centers.count() == 0:
+                logger.warning(f"User {self.request.user.email} has no accessible centers - checking if is superuser")
+                
+                # Se é superuser mas não tem centros acessíveis, verificar se tem employee e grupos
+                if self.request.user.is_superuser:
+                    if not hasattr(self.request.user, 'employee') or not self.request.user.employee:
+                        logger.error(f"Superuser {self.request.user.email} has no employee associated")
+                    
+                    if not self.request.user.groups.filter(name='Presidente').exists():
+                        logger.error(f"Superuser {self.request.user.email} is not in 'Presidente' group")
+            
+            if management_center not in accessible_centers:
+                logger.error(f"User {self.request.user.email} cannot access center {management_center.name}")
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Você não tem permissão para criar budgets para este centro gestor.")
+        else:
+            logger.warning("No management center specified for budget creation")
             
         serializer.save(created_by=self.request.user, updated_by=self.request.user)
+        logger.info(f"Budget created successfully by user {self.request.user.email}")
 
     def create(self, request, *args, **kwargs):
         logger = logging.getLogger(__name__)
@@ -58,6 +109,16 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
             serializer = self.get_serializer(data=request.data)
             if not serializer.is_valid():
                 logger.error(f"Budget creation validation errors: {serializer.errors}")
+                
+                # Verificar se há erro de duplicata
+                non_field_errors = serializer.errors.get('non_field_errors', [])
+                if non_field_errors and any('Já existe um orçamento' in str(error) for error in non_field_errors):
+                    return Response({
+                        'error': 'Orçamento duplicado',
+                        'message': str(non_field_errors[0]),
+                        'validation_errors': serializer.errors
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
                 return Response({
                     'error': 'Dados inválidos fornecidos',
                     'validation_errors': serializer.errors,
@@ -82,6 +143,22 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
             
         except Exception as e:
             logger.error(f"Unexpected error during budget creation: {str(e)}")
+            from rest_framework.exceptions import PermissionDenied, ValidationError
+            
+            # Se for erro de permissão, retornar 403
+            if isinstance(e, PermissionDenied):
+                return Response({
+                    'error': 'Permissão negada',
+                    'message': str(e),
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Se for erro de validação, retornar 400
+            if isinstance(e, ValidationError):
+                return Response({
+                    'error': 'Erro de validação',
+                    'message': str(e),
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
             return Response({
                 'error': 'Erro interno do servidor',
                 'message': 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
@@ -151,6 +228,16 @@ class BudgetUpdateView(generics.UpdateAPIView):
             
             if not serializer.is_valid():
                 logger.error(f"Budget update validation errors: {serializer.errors}")
+                
+                # Verificar se há erro de duplicata
+                non_field_errors = serializer.errors.get('non_field_errors', [])
+                if non_field_errors and any('Já existe um orçamento' in str(error) for error in non_field_errors):
+                    return Response({
+                        'error': 'Orçamento duplicado',
+                        'message': str(non_field_errors[0]),
+                        'validation_errors': serializer.errors
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
                 return Response({
                     'error': 'Dados inválidos fornecidos',
                     'validation_errors': serializer.errors,

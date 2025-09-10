@@ -43,32 +43,51 @@ class HierarchicalFilterMixin:
     def get_accessible_management_centers(self, user):
         """Retorna queryset dos centros gestores acessíveis ao usuário"""
         from center.models import Management_Center, CenterHierarchy
+        import logging
+        
+        logger = logging.getLogger(__name__)
         
         hierarchy_level, hierarchy_object = self.get_user_hierarchy_level(user)
+        logger.info(f"User {user.email}: hierarchy_level={hierarchy_level}, hierarchy_object={hierarchy_object}")
         
         if hierarchy_level == 'president':
             # Presidente vê tudo
-            return Management_Center.objects.all()
+            centers = Management_Center.objects.all()
+            logger.info(f"User {user.email} is president - access to all {centers.count()} centers")
+            return centers
             
         elif hierarchy_level == 'direction':
             # Diretor vê centros de sua direção
-            return Management_Center.objects.filter(
+            centers = Management_Center.objects.filter(
                 hierarchy_associations__direction=hierarchy_object
             ).distinct()
+            logger.info(f"User {user.email} is director - access to {centers.count()} centers")
+            return centers
             
         elif hierarchy_level == 'management':
             # Gerente vê centros de sua gerência
-            return Management_Center.objects.filter(
+            centers = Management_Center.objects.filter(
                 hierarchy_associations__management=hierarchy_object
             ).distinct()
+            logger.info(f"User {user.email} is manager - access to {centers.count()} centers")
+            return centers
             
         elif hierarchy_level == 'coordination':
             # Coordenador vê centros de sua coordenação
-            return Management_Center.objects.filter(
+            centers = Management_Center.objects.filter(
                 hierarchy_associations__coordination=hierarchy_object
             ).distinct()
+            logger.info(f"User {user.email} is coordinator - access to {centers.count()} centers")
+            return centers
             
         # Se não tem hierarquia definida, não vê nada
+        logger.warning(f"User {user.email} has no defined hierarchy - no access to centers")
+        
+        # Verificar se é superuser sem hierarquia definida
+        if user.is_superuser:
+            logger.warning(f"Superuser {user.email} without hierarchy - granting access to all centers")
+            return Management_Center.objects.all()
+            
         return Management_Center.objects.none()
     
     def get_accessible_requesting_centers(self, user):

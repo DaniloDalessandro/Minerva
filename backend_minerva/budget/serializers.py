@@ -243,7 +243,7 @@ class BudgetDetailSerializer(BudgetSerializer):
             if budget_exists.exists():
                 error_msg = f"Já existe um orçamento para o ano de {year}, categoria {category} e centro gestor {management_center.name}."
                 logger.error(error_msg)
-                raise serializers.ValidationError(error_msg)
+                raise serializers.ValidationError({'non_field_errors': [error_msg]})
         
         logger.info("Budget validation completed successfully")
         return data
