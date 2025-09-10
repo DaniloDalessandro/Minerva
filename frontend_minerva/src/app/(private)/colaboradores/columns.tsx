@@ -27,6 +27,18 @@ export const columns: ColumnDef<Colaborador>[] = [
     },
   },
   {
+    accessorKey: "phone",
+    header: "Telefone",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const phone = row.original.phone;
+      return <span>{phone || "-"}</span>;
+    },
+    meta: {
+      showFilterIcon: true,
+    },
+  },
+  {
     accessorKey: "direction",
     header: "Direção",
     enableSorting: false,
@@ -88,6 +100,52 @@ export const columns: ColumnDef<Colaborador>[] = [
     },
     meta: {
       showFilterIcon: true,
+      filterType: 'status',
+      filterOptions: [
+        { value: 'ATIVO', label: 'Ativo' },
+        { value: 'INATIVO', label: 'Inativo' },
+        { value: 'ALL', label: 'Todos' }
+      ]
+    },
+  },
+  {
+    accessorKey: "created_by",
+    header: "Criado por",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const createdBy = row.original.created_by;
+      if (!createdBy) return <span>-</span>;
+      return <span>{createdBy.first_name || createdBy.email}</span>;
+    },
+  },
+  {
+    accessorKey: "created_at",
+    header: "Data de Criação",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const date = row.original.created_at;
+      if (!date) return <span>-</span>;
+      return <span>{new Date(date).toLocaleDateString('pt-BR')}</span>;
+    },
+  },
+  {
+    accessorKey: "updated_by",
+    header: "Atualizado por",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const updatedBy = row.original.updated_by;
+      if (!updatedBy) return <span>-</span>;
+      return <span>{updatedBy.first_name || updatedBy.email}</span>;
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Data de Atualização",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const date = row.original.updated_at;
+      if (!date) return <span>-</span>;
+      return <span>{new Date(date).toLocaleDateString('pt-BR')}</span>;
     },
   },
 ];

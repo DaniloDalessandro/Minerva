@@ -67,12 +67,16 @@
       "Bash(venv\\Scripts\\activate.bat:*)",
       "Bash(powershell:*)",
       "Bash(find:*)",
-      "Bash(timeout 30s npm run dev)"
+      "Bash(timeout 30s npm run dev)",
+      "Bash(sqlite3:*)",
+      "Bash(del:*)",
+      "Bash(del 0005_employee_admission_date_employee_bank_account_and_more.py)",
+      "Bash(rm:*)"
     ],
     "deny": [],
-    "ask": [],
     "additionalDirectories": [
       "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
-    ]
+    ],
+    "ask": []
   }
 }

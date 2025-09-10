@@ -16,6 +16,11 @@ class EmployeeListView(generics.ListAPIView):
         print(f"Usuario fazendo requisicao: {self.request.user.email}")
         queryset = Employee.objects.select_related('direction', 'management', 'coordination').all()
         
+        # Apply status filter - show only ATIVO by default unless specified
+        status_filter = self.request.query_params.get('status', 'ATIVO')
+        if status_filter and status_filter != 'ALL':
+            queryset = queryset.filter(status=status_filter)
+        
         # Apply search filter if provided
         search = self.request.query_params.get('search', None)
         if search:
@@ -78,6 +83,28 @@ class EmployeeUpdateView(generics.UpdateAPIView):
         read_serializer = EmployeeSerializer(updated_instance)
         return Response({
             'message': EMPLOYEE_MESSAGES['updated'],
+            **read_serializer.data
+        })
+
+# Inativar/Ativar funcionario
+class EmployeeToggleStatusView(generics.UpdateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_status = 'INATIVO' if instance.status == 'ATIVO' else 'ATIVO'
+        
+        instance.status = new_status
+        instance.updated_by = request.user
+        instance.save()
+        
+        read_serializer = EmployeeSerializer(instance)
+        action = 'ativado' if new_status == 'ATIVO' else 'inativado'
+        
+        return Response({
+            'message': f'Colaborador {action} com sucesso.',
             **read_serializer.data
         })
 

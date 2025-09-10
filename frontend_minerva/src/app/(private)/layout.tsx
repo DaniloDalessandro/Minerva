@@ -56,7 +56,7 @@ export default function Layout({
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                    <BreadcrumbLink href="/dashboard">Home</BreadcrumbLink>
                   </BreadcrumbItem>
                   {pathSegments.map((segment, index) => {
                     const href = `/${pathSegments.slice(0, index + 1).join("/")}`

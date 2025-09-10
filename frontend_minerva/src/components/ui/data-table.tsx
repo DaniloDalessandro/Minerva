@@ -64,11 +64,14 @@ export function DataTable({
 }) {
   // Initialize column visibility with audit fields hidden by default
   const getInitialColumnVisibility = React.useCallback(() => {
-    const auditFields = [
+    const hiddenByDefaultFields = [
+      // Audit fields
       'created_at', 'criado_em', 'createdAt',
       'created_by', 'criado_por', 'createdBy', 
       'updated_at', 'atualizado_em', 'updatedAt',
-      'updated_by', 'atualizado_por', 'updatedBy'
+      'updated_by', 'atualizado_por', 'updatedBy',
+      // Optional fields that should be hidden by default
+      'phone', 'telefone'
     ];
     
     const initialVisibility = {};
@@ -76,16 +79,17 @@ export function DataTable({
       const columnId = column.accessorKey || column.id;
       const headerText = (column.header || '').toString().toLowerCase();
       
-      // Check if this is an audit field by ID or header text
-      const isAuditField = auditFields.some(field => 
+      // Check if this field should be hidden by default
+      const shouldHide = hiddenByDefaultFields.some(field => 
         columnId === field || 
         headerText.includes('criado') || 
         headerText.includes('atualizado') ||
         headerText.includes('created') ||
-        headerText.includes('updated')
+        headerText.includes('updated') ||
+        headerText.includes('telefone')
       );
       
-      if (isAuditField) {
+      if (shouldHide) {
         initialVisibility[columnId] = false;
       }
     });

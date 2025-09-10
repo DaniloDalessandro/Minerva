@@ -292,9 +292,6 @@ export default function ColaboradorForm({
       newErrors.cpf = "CPF deve ter um formato válido";
     }
 
-    if (!formData.status) {
-      newErrors.status = "Status é obrigatório";
-    }
 
     // Phone validation removed per user request
 
@@ -408,24 +405,6 @@ export default function ColaboradorForm({
                   />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="status">Status *</Label>
-                  <Select
-                    onValueChange={(value) => handleSelectChange("status", value)}
-                    value={formData.status}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione um status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ATIVO">Ativo</SelectItem>
-                      <SelectItem value="INATIVO">Inativo</SelectItem>
-                      <SelectItem value="FERIAS">Férias</SelectItem>
-                      <SelectItem value="AFASTADO">Afastado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.status && <span className="text-sm text-red-500">{errors.status}</span>}
-                </div>
               </div>
             </div>
 

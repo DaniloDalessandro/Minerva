@@ -93,6 +93,7 @@ export default function ColaboradorDetailsPage() {
     window.sessionStorage.setItem('editColaboradorId', colaboradorId.toString())
   }
 
+
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'ATIVO':
@@ -273,7 +274,7 @@ export default function ColaboradorDetailsPage() {
                   <User className="h-4 w-4" />
                   Nome Completo
                 </div>
-                <p className="text-lg font-semibold">{colaborador.full_name}</p>
+                <p className="text-base">{colaborador.full_name}</p>
               </div>
               
               <div className="space-y-2">
@@ -281,7 +282,7 @@ export default function ColaboradorDetailsPage() {
                   <Info className="h-4 w-4" />
                   CPF
                 </div>
-                <p className="text-base font-mono">{colaborador.cpf}</p>
+                <p className="text-base">{colaborador.cpf}</p>
               </div>
               
               <div className="space-y-2">
@@ -289,7 +290,7 @@ export default function ColaboradorDetailsPage() {
                   <Mail className="h-4 w-4" />
                   Email
                 </div>
-                <p className="text-base font-mono">{colaborador.email}</p>
+                <p className="text-base">{colaborador.email}</p>
               </div>
 
               {colaborador.phone && (
@@ -298,7 +299,7 @@ export default function ColaboradorDetailsPage() {
                     <Phone className="h-4 w-4" />
                     Telefone
                   </div>
-                  <p className="text-base font-mono">{colaborador.phone}</p>
+                  <p className="text-base">{colaborador.phone}</p>
                 </div>
               )}
 
@@ -307,65 +308,114 @@ export default function ColaboradorDetailsPage() {
                   <Info className="h-4 w-4" />
                   Status
                 </div>
-                <Badge variant={getStatusVariant(colaborador.status)} className="text-sm">
-                  {getStatusLabel(colaborador.status)}
-                </Badge>
+                <p className="text-base">{getStatusLabel(colaborador.status)}</p>
               </div>
             </div>
             
-            <Separator className="my-4" />
+            {/* Dados funcionais - só mostra se tem pelo menos um campo */}
+            {(colaborador.employee_id || colaborador.position || colaborador.department || colaborador.admission_date || colaborador.birth_date) && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-800">Dados Funcionais</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {colaborador.employee_id && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Info className="h-4 w-4" />
+                          Matrícula
+                        </div>
+                        <p className="text-base">{colaborador.employee_id}</p>
+                      </div>
+                    )}
 
-            {/* Dados funcionais */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800">Dados Funcionais</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {colaborador.position && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      Cargo
-                    </div>
-                    <p className="text-base">{colaborador.position}</p>
+                    {colaborador.position && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <User className="h-4 w-4" />
+                          Cargo
+                        </div>
+                        <p className="text-base">{colaborador.position}</p>
+                      </div>
+                    )}
+
+                    {colaborador.department && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Building className="h-4 w-4" />
+                          Departamento
+                        </div>
+                        <p className="text-base">{colaborador.department}</p>
+                      </div>
+                    )}
+
+                    {colaborador.admission_date && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          Data de Admissão
+                        </div>
+                        <p className="text-base">{formatDate(colaborador.admission_date)}</p>
+                      </div>
+                    )}
+
+                    {colaborador.birth_date && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          Data de Nascimento
+                        </div>
+                        <p className="text-base">{formatDate(colaborador.birth_date)}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-
-              </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            {/* Hierarquia organizacional */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800">Hierarquia Organizacional</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Building className="h-4 w-4" />
-                    Direção
-                  </div>
-                  <p className="text-base">{colaborador.direction?.name || "N/A"}</p>
                 </div>
+              </>
+            )}
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Building className="h-4 w-4" />
-                    Gerência
+            {/* Hierarquia organizacional - só mostra se tem pelo menos um campo */}
+            {(colaborador.direction?.name || colaborador.management?.name || colaborador.coordination?.name) && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-800">Hierarquia Organizacional</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {colaborador.direction?.name && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Building className="h-4 w-4" />
+                          Direção
+                        </div>
+                        <p className="text-base">{colaborador.direction.name}</p>
+                      </div>
+                    )}
+
+                    {colaborador.management?.name && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Building className="h-4 w-4" />
+                          Gerência
+                        </div>
+                        <p className="text-base">{colaborador.management.name}</p>
+                      </div>
+                    )}
+
+                    {colaborador.coordination?.name && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Building className="h-4 w-4" />
+                          Coordenação
+                        </div>
+                        <p className="text-base">{colaborador.coordination.name}</p>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-base">{colaborador.management?.name || "N/A"}</p>
                 </div>
+              </>
+            )}
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Building className="h-4 w-4" />
-                    Coordenação
-                  </div>
-                  <p className="text-base">{colaborador.coordination?.name || "N/A"}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Endereço */}
-            {(colaborador.street || colaborador.city || colaborador.state) && (
+            {/* Endereço - só mostra se tem pelo menos um campo */}
+            {(colaborador.street || colaborador.city || colaborador.state || colaborador.postal_code) && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-3">
@@ -381,13 +431,17 @@ export default function ColaboradorDetailsPage() {
                       </div>
                     )}
 
-                    {colaborador.city && (
+                    {(colaborador.city || colaborador.state) && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           Cidade
                         </div>
-                        <p className="text-base">{colaborador.city} - {colaborador.state}</p>
+                        <p className="text-base">
+                          {colaborador.city}
+                          {colaborador.city && colaborador.state && " - "}
+                          {colaborador.state}
+                        </p>
                       </div>
                     )}
 
@@ -405,7 +459,7 @@ export default function ColaboradorDetailsPage() {
               </>
             )}
 
-            {/* Dados bancários */}
+            {/* Dados bancários - só mostra se tem pelo menos um campo */}
             {(colaborador.bank_name || colaborador.bank_agency || colaborador.bank_account) && (
               <>
                 <Separator className="my-4" />
@@ -446,6 +500,7 @@ export default function ColaboradorDetailsPage() {
               </>
             )}
 
+            {/* Sempre mostra o separador antes da auditoria se houver pelo menos uma seção anterior */}
             <Separator className="my-4" />
             
             {/* Informações de auditoria */}

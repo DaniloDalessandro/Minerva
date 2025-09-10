@@ -7,7 +7,15 @@ export interface Colaborador {
   email: string
   cpf: string
   phone?: string
+  birth_date?: string
+  employee_id?: string
   position?: string
+  department?: string
+  admission_date?: string
+  street?: string
+  city?: string
+  state?: string
+  postal_code?: string
   direction?: {
     id: number
     name: string
@@ -22,6 +30,9 @@ export interface Colaborador {
     name: string
     management: number
   }
+  bank_name?: string
+  bank_agency?: string
+  bank_account?: string
   status: 'ATIVO' | 'INATIVO' | 'FERIAS' | 'AFASTADO'
   created_at: string
   updated_at: string
@@ -112,7 +123,8 @@ export async function fetchColaboradores(
   page: number = 1,
   pageSize: number = 10,
   search: string = "",
-  ordering: string = ""
+  ordering: string = "",
+  status: string = "ATIVO"
 ): Promise<ColaboradoresResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -125,6 +137,10 @@ export async function fetchColaboradores(
   
   if (ordering) {
     params.append('ordering', ordering)
+  }
+
+  if (status) {
+    params.append('status', status)
   }
 
   const url = `http://localhost:8000/api/v1/employee/?${params}`;
@@ -180,6 +196,17 @@ export async function updateColaborador(data: CreateColaboradorData) {
   if (!response.ok) {
     const errorData = await response.json()
     throw new Error(errorData.message || 'Failed to update colaborador')
+  }
+  return response.json()
+}
+
+export async function toggleColaboradorStatus(id: number) {
+  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/toggle-status/`, {
+    method: 'PATCH'
+  })
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.message || 'Failed to toggle colaborador status')
   }
   return response.json()
 }

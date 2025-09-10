@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
-import { fetchColaboradores, Colaborador, createColaborador, updateColaborador, deleteColaborador } from "@/lib/api/colaboradores";
+import { fetchColaboradores, Colaborador, createColaborador, updateColaborador, toggleColaboradorStatus } from "@/lib/api/colaboradores";
 import { fetchDirections, fetchManagements, fetchCoordinations } from "@/lib/api/colaboradores";
 import ColaboradorForm from "@/components/forms/ColaboradorForm";
 import { useOptimisticColaboradores } from "@/hooks/useOptimisticColaboradores";
@@ -41,6 +41,7 @@ export default function ColaboradoresPage() {
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [statusFilter, setStatusFilter] = useState("ATIVO");
 
   // Form states
   const [colaboradorFormOpen, setColaboradorFormOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function ColaboradoresPage() {
       const filterValues = Object.values(filters).filter(Boolean);
       const searchParam = filterValues.length > 0 ? filterValues[filterValues.length - 1] : search;
       
-      const data = await fetchColaboradores(page, pageSize, searchParam, ordering);
+      const data = await fetchColaboradores(page, pageSize, searchParam, ordering, statusFilter);
       setColaboradores(data.results);
       setTotalCount(data.count);
       console.log("✅ Colaboradores loaded successfully:", data.results.length, "items");
@@ -82,7 +83,7 @@ export default function ColaboradoresPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, sorting, filters, setColaboradores, setTotalCount, setLoading]);
+  }, [page, pageSize, search, sorting, filters, statusFilter, setColaboradores, setTotalCount, setLoading]);
 
   useEffect(() => {
     loadColaboradores();
@@ -120,21 +121,21 @@ export default function ColaboradoresPage() {
     setColaboradorFormOpen(true);
   };
 
-  const handleDeleteColaborador = (colaborador: Colaborador) => {
+  const handleToggleColaboradorStatus = (colaborador: Colaborador) => {
     setColaboradorToDelete(colaborador);
     setDeleteColaboradorDialogOpen(true);
   };
 
-  const confirmDeleteColaborador = async () => {
+  const confirmToggleColaboradorStatus = async () => {
     if (colaboradorToDelete?.id) {
       try {
-        await deleteColaborador(colaboradorToDelete.id);
+        await toggleColaboradorStatus(colaboradorToDelete.id);
         await loadColaboradores(); // Reload the list
         if (colaboradores.length === 1 && page > 1) {
           setPage(page - 1);
         }
       } catch (error) {
-        console.error("Erro ao excluir colaborador:", error);
+        console.error("Erro ao inativar colaborador:", error);
       } finally {
         setDeleteColaboradorDialogOpen(false);
         setColaboradorToDelete(null);
@@ -256,17 +257,22 @@ export default function ColaboradoresPage() {
           }}
           onAdd={handleAddColaborador}
           onEdit={handleEditColaborador}
-          onDelete={handleDeleteColaborador}
+          onDelete={handleToggleColaboradorStatus}
           onViewDetails={handleViewDetails}
           onFilterChange={(columnId, value) => {
-            const newFilters = { ...filters };
-            if (value) {
-              newFilters[columnId] = value;
+            if (columnId === 'status') {
+              setStatusFilter(value || 'ATIVO');
+              setPage(1);
             } else {
-              delete newFilters[columnId];
+              const newFilters = { ...filters };
+              if (value) {
+                newFilters[columnId] = value;
+              } else {
+                delete newFilters[columnId];
+              }
+              setFilters(newFilters);
+              setPage(1);
             }
-            setFilters(newFilters);
-            setPage(1);
           }}
           onSortingChange={(newSorting) => {
             setSorting(newSorting);
@@ -291,22 +297,27 @@ export default function ColaboradoresPage() {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogTitle>
+                {colaboradorToDelete?.status === 'ATIVO' ? 'Inativar colaborador' : 'Ativar colaborador'}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir o colaborador{" "}
+                Tem certeza que deseja {colaboradorToDelete?.status === 'ATIVO' ? 'inativar' : 'ativar'} o colaborador{" "}
                 <strong>{colaboradorToDelete?.full_name}</strong>?
                 {colaboradorToDelete?.cpf && (
                   <> (CPF: {colaboradorToDelete.cpf})</>
                 )}
                 <br />
                 <br />
-                Esta ação não pode ser desfeita.
+                {colaboradorToDelete?.status === 'ATIVO' 
+                  ? 'O colaborador será marcado como inativo e não aparecerá na listagem padrão.' 
+                  : 'O colaborador será reativado e voltará a aparecer na listagem padrão.'
+                }
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDeleteColaborador}>
-                Confirmar
+              <AlertDialogAction onClick={confirmToggleColaboradorStatus}>
+                {colaboradorToDelete?.status === 'ATIVO' ? 'Inativar' : 'Ativar'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

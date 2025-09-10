@@ -6,10 +6,29 @@ from accounts.models import User
 class Employee(models.Model):
     full_name = models.CharField("Nome completo", max_length=255)
     email = models.EmailField("Email", unique=True)
-    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, null=True,verbose_name="Direção")
+    phone = models.CharField("Telefone", max_length=20, null=True, blank=True)
+    cpf = models.CharField("CPF", max_length=15)
+    birth_date = models.DateField("Data de Nascimento", null=True, blank=True)
+    employee_id = models.CharField("Matrícula", max_length=50, null=True, blank=True)
+    position = models.CharField("Cargo", max_length=200, null=True, blank=True)
+    department = models.CharField("Departamento", max_length=200, null=True, blank=True)
+    admission_date = models.DateField("Data de Admissão", null=True, blank=True)
+    
+    # Endereço
+    street = models.CharField("Logradouro", max_length=255, null=True, blank=True)
+    city = models.CharField("Cidade", max_length=100, null=True, blank=True)
+    state = models.CharField("Estado", max_length=2, null=True, blank=True)
+    postal_code = models.CharField("CEP", max_length=10, null=True, blank=True)
+    
+    # Estrutura organizacional
+    direction = models.ForeignKey(Direction, on_delete=models.CASCADE, null=True, verbose_name="Direção")
     management = models.ForeignKey(Management, on_delete=models.SET_NULL, null=True, verbose_name="Gerência")
     coordination = models.ForeignKey(Coordination, on_delete=models.SET_NULL, null=True, verbose_name="Coordenação")
-    cpf = models.CharField(max_length=15)
+    
+    # Dados bancários
+    bank_name = models.CharField("Nome do Banco", max_length=100, null=True, blank=True)
+    bank_agency = models.CharField("Agência", max_length=20, null=True, blank=True)
+    bank_account = models.CharField("Conta", max_length=30, null=True, blank=True)
     STATUS = [
         ('ATIVO', 'Ativo'),
         ('INATIVO', 'Inativo'),
