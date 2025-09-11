@@ -76,12 +76,13 @@
       "Bash(\"venv\\Scripts\\python.exe\" fix_budget_403.py)",
       "Bash(\"venv\\Scripts\\python.exe\" test_budget_creation.py)",
       "Bash(\"venv\\Scripts\\python.exe\" check_group_permissions.py)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(\"venv\\Scripts\\python.exe\":*)"
     ],
     "deny": [],
+    "ask": [],
     "additionalDirectories": [
       "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
-    ],
-    "ask": []
+    ]
   }
 }

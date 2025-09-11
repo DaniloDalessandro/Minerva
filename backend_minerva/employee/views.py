@@ -16,6 +16,12 @@ class EmployeeListView(generics.ListAPIView):
         print(f"Usuario fazendo requisicao: {self.request.user.email}")
         queryset = Employee.objects.select_related('direction', 'management', 'coordination').all()
         
+        # Exclude employees that correspond to superusers (admin accounts)
+        from accounts.models import User
+        superuser_emails = list(User.objects.filter(is_superuser=True).values_list('email', flat=True))
+        queryset = queryset.exclude(email__in=superuser_emails)
+        print(f"Excluindo emails de superusers: {superuser_emails}")
+        
         # Apply status filter - show only ATIVO by default unless specified
         status_filter = self.request.query_params.get('status', 'ATIVO')
         if status_filter and status_filter != 'ALL':
