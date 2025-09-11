@@ -70,6 +70,15 @@ export function DataTable({
       'created_by', 'criado_por', 'createdBy', 
       'updated_at', 'atualizado_em', 'updatedAt',
       'updated_by', 'atualizado_por', 'updatedBy',
+      // Budget Lines secondary fields
+      'management_center.name',
+      'requesting_center.name',
+      'expense_type',
+      'contract_type',
+      'probable_procurement_type',
+      'main_fiscal.full_name',
+      'secondary_fiscal.full_name',
+      'process_status',
       // Optional fields that should be hidden by default
       'phone', 'telefone'
     ];
