@@ -425,7 +425,7 @@ export default function ColaboradorForm({
             <div className="space-y-4">
               <h3 className="text-md font-semibold text-gray-700 border-b pb-2">Hierarquia Organizacional</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="direction">Direção</Label>
                   <Select
