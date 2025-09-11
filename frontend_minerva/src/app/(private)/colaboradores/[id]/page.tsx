@@ -293,15 +293,13 @@ export default function ColaboradorDetailsPage() {
                 <p className="text-base">{colaborador.email}</p>
               </div>
 
-              {colaborador.phone && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    Telefone
-                  </div>
-                  <p className="text-base">{colaborador.phone}</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Phone className="h-4 w-4" />
+                  Telefone
                 </div>
-              )}
+                <p className="text-base">{colaborador.phone || "Não informado"}</p>
+              </div>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -312,32 +310,27 @@ export default function ColaboradorDetailsPage() {
               </div>
             </div>
             
-            {/* Dados funcionais - só mostra se tem pelo menos um campo */}
-            {(colaborador.employee_id || colaborador.position || colaborador.department || colaborador.admission_date || colaborador.birth_date) && (
-              <>
-                <Separator className="my-4" />
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-800">Dados Funcionais</h4>
+            {/* Dados funcionais */}
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800">Dados Funcionais</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {colaborador.employee_id && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <Info className="h-4 w-4" />
-                          Matrícula
-                        </div>
-                        <p className="text-base">{colaborador.employee_id}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Info className="h-4 w-4" />
+                        Matrícula
                       </div>
-                    )}
+                      <p className="text-base">{colaborador.employee_id || "Não informado"}</p>
+                    </div>
 
-                    {colaborador.position && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                          <User className="h-4 w-4" />
-                          Cargo
-                        </div>
-                        <p className="text-base">{colaborador.position}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <User className="h-4 w-4" />
+                        Cargo
                       </div>
-                    )}
+                      <p className="text-base">{colaborador.position || "Não informado"}</p>
+                    </div>
 
                     {colaborador.department && (
                       <div className="space-y-2">
@@ -371,7 +364,6 @@ export default function ColaboradorDetailsPage() {
                   </div>
                 </div>
               </>
-            )}
 
             {/* Hierarquia organizacional - só mostra se tem pelo menos um campo */}
             {(colaborador.direction?.name || colaborador.management?.name || colaborador.coordination?.name) && (

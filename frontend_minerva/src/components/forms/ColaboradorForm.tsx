@@ -59,6 +59,7 @@ export default function ColaboradorForm({
     email: "",
     cpf: "",
     phone: "",
+    employee_id: "",
     position: "",
     direction: 0,
     management: 0,
@@ -186,6 +187,7 @@ export default function ColaboradorForm({
           email: initialData.email || "",
           cpf: initialData.cpf || "",
           phone: initialData.phone || "",
+          employee_id: initialData.employee_id || "",
           position: initialData.position || "",
           direction: initialData.direction?.id || 0,
           management: initialData.management?.id || 0,
@@ -200,6 +202,7 @@ export default function ColaboradorForm({
           email: "",
           cpf: "",
           phone: "",
+          employee_id: "",
           position: "",
           direction: 0,
           management: 0,
@@ -396,6 +399,16 @@ export default function ColaboradorForm({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
+                  <Label htmlFor="employee_id">Matrícula</Label>
+                  <Input
+                    id="employee_id"
+                    value={formData.employee_id}
+                    onChange={handleChange}
+                    placeholder="Matrícula do colaborador"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
                   <Label htmlFor="position">Cargo</Label>
                   <Input
                     id="position"
@@ -412,7 +425,7 @@ export default function ColaboradorForm({
             <div className="space-y-4">
               <h3 className="text-md font-semibold text-gray-700 border-b pb-2">Hierarquia Organizacional</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-2">
                 <div className="grid gap-2">
                   <Label htmlFor="direction">Direção</Label>
                   <Select
