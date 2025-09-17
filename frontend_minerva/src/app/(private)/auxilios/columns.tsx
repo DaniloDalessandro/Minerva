@@ -3,23 +3,7 @@ import { Auxilio } from "@/lib/api/auxilios";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Calendar, User } from "lucide-react";
 
-export const columns: ColumnDef<Auxilio>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const id = row.original.id;
-      return (
-        <span className="font-mono text-sm">
-          #{id}
-        </span>
-      );
-    },
-    meta: {
-      showFilterIcon: true,
-    },
-  },
+export const defaultColumns: ColumnDef<Auxilio>[] = [
   {
     accessorKey: "employee.full_name",
     header: "Colaborador",
@@ -109,88 +93,6 @@ export const columns: ColumnDef<Auxilio>[] = [
     },
   },
   {
-    accessorKey: "installment_count",
-    header: "Parcelas",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const installmentCount = row.original.installment_count;
-      return (
-        <span className="font-mono">
-          {installmentCount}x
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "amount_per_installment",
-    header: "Valor por Parcela",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const amountPerInstallment = row.original.amount_per_installment;
-      return (
-        <span className="font-mono text-blue-600">
-          R$ {parseFloat(amountPerInstallment).toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "start_date",
-    header: "Data Início",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const startDate = row.original.start_date;
-      if (!startDate) return "-";
-      
-      return (
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className="text-sm">
-            {new Date(startDate).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "end_date",
-    header: "Data Fim",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const endDate = row.original.end_date;
-      if (!endDate) return "-";
-      
-      const endDateObj = new Date(endDate);
-      const today = new Date();
-      const daysDiff = Math.ceil((endDateObj.getTime() - today.getTime()) / (1000 * 3600 * 24));
-      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
-      const isExpired = daysDiff < 0;
-      
-      return (
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
-            {endDateObj.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-          {(isExpiringSoon || isExpired) && (
-            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
-          )}
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -244,10 +146,117 @@ export const columns: ColumnDef<Auxilio>[] = [
       showFilterIcon: true,
     },
   },
+];
+
+export const optionalColumns: ColumnDef<Auxilio>[] = [
+  {
+    accessorKey: "id",
+    header: "ID",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const id = row.original.id;
+      return (
+        <span className="font-mono text-sm">
+          #{id}
+        </span>
+      );
+    },
+    meta: {
+      showFilterIcon: true,
+    },
+  },
+  {
+    accessorKey: "installment_count",
+    header: "Parcelas",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const installmentCount = row.original.installment_count;
+      return (
+        <span className="font-mono">
+          {installmentCount}x
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "amount_per_installment",
+    header: "Valor por Parcela",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const amountPerInstallment = row.original.amount_per_installment;
+      return (
+        <span className="font-mono text-blue-600">
+          R$ {parseFloat(amountPerInstallment).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "start_date",
+    header: "Data Início",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const startDate = row.original.start_date;
+      if (!startDate) return "-";
+      
+      return (
+        <div className="flex items-center gap-1">
+          <Calendar className="w-3 h-3 text-gray-400" />
+          <span className="text-sm">
+            {new Date(startDate).toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "end_date",
+    header: "Data Fim",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const endDate = row.original.end_date;
+      if (!endDate) return "-";
+      
+      const endDateObj = new Date(endDate);
+      const today = new Date();
+      const daysDiff = Math.ceil((endDateObj.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
+      const isExpired = daysDiff < 0;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="w-3 h-3 text-gray-400" />
+          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
+            {endDateObj.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
+          {(isExpiringSoon || isExpired) && (
+            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
+          )}
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "budget_line.name",
     header: "Linha Orçamentária",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const isOptimistic = row.original.isOptimistic;
       const budgetLineName = row.original.budget_line?.name;
@@ -267,6 +276,7 @@ export const columns: ColumnDef<Auxilio>[] = [
     accessorKey: "notes",
     header: "Observações",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const notes = row.original.notes;
       if (!notes) return "-";
@@ -282,6 +292,7 @@ export const columns: ColumnDef<Auxilio>[] = [
     accessorKey: "created_at",
     header: "Criado em",
     enableSorting: true,
+    enableHiding: true,
     cell: ({ row }) =>
       new Date(row.original.created_at).toLocaleString("pt-BR", {
         day: "2-digit",
@@ -295,6 +306,7 @@ export const columns: ColumnDef<Auxilio>[] = [
     accessorKey: "created_by",
     header: "Criado por",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const createdBy = row.original.created_by;
       if (createdBy) {
@@ -306,3 +318,5 @@ export const columns: ColumnDef<Auxilio>[] = [
     },
   },
 ];
+
+export const columns = defaultColumns;

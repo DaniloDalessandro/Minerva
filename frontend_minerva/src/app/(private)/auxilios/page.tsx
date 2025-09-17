@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
+import { defaultColumns, optionalColumns } from "./columns";
 import { fetchAuxilios, Auxilio, createAuxilio, updateAuxilio, deleteAuxilio } from "@/lib/api/auxilios";
 import { fetchColaboradores, fetchBudgetLines } from "@/lib/api/auxilios";
 import AuxilioForm from "@/components/forms/AuxilioForm";
@@ -51,6 +51,11 @@ export default function AuxiliosPage() {
   
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Combine default and optional columns - DataTable will handle visibility
+  const allColumns = useMemo(() => {
+    return [...defaultColumns, ...optionalColumns];
+  }, []);
 
   const convertSortingToOrdering = (sorting: { id: string; desc: boolean }[]) => {
     if (!sorting || sorting.length === 0) return "";
@@ -229,7 +234,7 @@ export default function AuxiliosPage() {
     <div className="container mx-auto py-1 px-2">
       <div className="space-y-2">
         <DataTable
-          columns={columns}
+          columns={allColumns}
           data={auxilios}
           title="Auxílios"
           pageSize={pageSize}

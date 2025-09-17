@@ -80,7 +80,15 @@ export function DataTable({
       'secondary_fiscal.full_name',
       'process_status',
       // Optional fields that should be hidden by default
-      'phone', 'telefone'
+      'phone', 'telefone',
+      // Auxílios optional fields
+      'id',
+      'installment_count',
+      'amount_per_installment', 
+      'start_date',
+      'end_date',
+      'budget_line.name',
+      'notes'
     ];
     
     const initialVisibility = {};
