@@ -88,7 +88,14 @@ export function DataTable({
       'start_date',
       'end_date',
       'budget_line.name',
-      'notes'
+      'notes',
+      // Contratos optional fields
+      'substitute_inspector.full_name',
+      'original_value',
+      'current_value',
+      'expiration_date',
+      'signing_date',
+      'description'
     ];
     
     const initialVisibility = {};

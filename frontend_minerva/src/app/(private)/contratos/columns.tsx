@@ -3,23 +3,7 @@ import { Contract } from "@/lib/api/contratos";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Calendar } from "lucide-react";
 
-export const columns: ColumnDef<Contract>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const id = row.original.id;
-      return (
-        <span className="font-mono text-sm">
-          #{id}
-        </span>
-      );
-    },
-    meta: {
-      showFilterIcon: true,
-    },
-  },
+export const defaultColumns: ColumnDef<Contract>[] = [
   {
     accessorKey: "protocol_number",
     header: "Protocolo",
@@ -55,28 +39,6 @@ export const columns: ColumnDef<Contract>[] = [
       }
       
       return inspectorName || "-";
-    },
-    meta: {
-      showFilterIcon: true,
-    },
-  },
-  {
-    accessorKey: "substitute_inspector.full_name",
-    header: "Fiscal Substituto",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const isOptimistic = row.original.isOptimistic;
-      const inspectorName = row.original.substitute_inspector?.full_name;
-      
-      if (isOptimistic && !inspectorName) {
-        return <span className="text-gray-400 italic">Carregando...</span>;
-      }
-      
-      return (
-        <span className="text-sm text-gray-600">
-          {inspectorName || "-"}
-        </span>
-      );
     },
     meta: {
       showFilterIcon: true,
@@ -139,108 +101,6 @@ export const columns: ColumnDef<Contract>[] = [
     },
   },
   {
-    accessorKey: "original_value",
-    header: "Valor Original",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const originalValue = row.original.original_value;
-      return (
-        <span className="font-mono text-green-600 font-semibold">
-          R$ {parseFloat(originalValue).toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "current_value",
-    header: "Valor Atual",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const originalValue = parseFloat(row.original.original_value);
-      const currentValue = parseFloat(row.original.current_value);
-      const hasChanged = originalValue !== currentValue;
-      
-      return (
-        <div className="flex flex-col">
-          <span className={`font-mono font-semibold ${hasChanged ? 'text-blue-600' : 'text-green-600'}`}>
-            R$ {currentValue.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
-          {hasChanged && (
-            <span className="text-xs text-gray-500">
-              {currentValue > originalValue ? '↗️ Acréscimo' : '↘️ Redução'}
-            </span>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "start_date",
-    header: "Data Início",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const startDate = row.original.start_date;
-      if (!startDate) return "-";
-      
-      return new Date(startDate).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    },
-  },
-  {
-    accessorKey: "end_date",
-    header: "Data Fim",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const endDate = row.original.end_date;
-      if (!endDate) return "-";
-      
-      return new Date(endDate).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    },
-  },
-  {
-    accessorKey: "expiration_date",
-    header: "Vencimento",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const expirationDate = row.original.expiration_date;
-      if (!expirationDate) return "-";
-      
-      const expDate = new Date(expirationDate);
-      const today = new Date();
-      const daysDiff = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
-      const isExpired = daysDiff < 0;
-      
-      return (
-        <div className="flex items-center gap-2">
-          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
-            {expDate.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-          {(isExpiringSoon || isExpired) && (
-            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
-          )}
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -286,10 +146,161 @@ export const columns: ColumnDef<Contract>[] = [
       showFilterIcon: true,
     },
   },
+];
+
+export const optionalColumns: ColumnDef<Contract>[] = [
+  {
+    accessorKey: "id",
+    header: "ID",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const id = row.original.id;
+      return (
+        <span className="font-mono text-sm">
+          #{id}
+        </span>
+      );
+    },
+    meta: {
+      showFilterIcon: true,
+    },
+  },
+  {
+    accessorKey: "substitute_inspector.full_name",
+    header: "Fiscal Substituto",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const isOptimistic = row.original.isOptimistic;
+      const inspectorName = row.original.substitute_inspector?.full_name;
+      
+      if (isOptimistic && !inspectorName) {
+        return <span className="text-gray-400 italic">Carregando...</span>;
+      }
+      
+      return (
+        <span className="text-sm text-gray-600">
+          {inspectorName || "-"}
+        </span>
+      );
+    },
+    meta: {
+      showFilterIcon: true,
+    },
+  },
+  {
+    accessorKey: "original_value",
+    header: "Valor Original",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const originalValue = row.original.original_value;
+      return (
+        <span className="font-mono text-green-600 font-semibold">
+          R$ {parseFloat(originalValue).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "current_value",
+    header: "Valor Atual",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const originalValue = parseFloat(row.original.original_value);
+      const currentValue = parseFloat(row.original.current_value);
+      const hasChanged = originalValue !== currentValue;
+      
+      return (
+        <div className="flex flex-col">
+          <span className={`font-mono font-semibold ${hasChanged ? 'text-blue-600' : 'text-green-600'}`}>
+            R$ {currentValue.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+          {hasChanged && (
+            <span className="text-xs text-gray-500">
+              {currentValue > originalValue ? '↗️ Acréscimo' : '↘️ Redução'}
+            </span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "start_date",
+    header: "Data Início",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const startDate = row.original.start_date;
+      if (!startDate) return "-";
+      
+      return new Date(startDate).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    },
+  },
+  {
+    accessorKey: "end_date",
+    header: "Data Fim",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const endDate = row.original.end_date;
+      if (!endDate) return "-";
+      
+      return new Date(endDate).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    },
+  },
+  {
+    accessorKey: "expiration_date",
+    header: "Vencimento",
+    enableSorting: true,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const expirationDate = row.original.expiration_date;
+      if (!expirationDate) return "-";
+      
+      const expDate = new Date(expirationDate);
+      const today = new Date();
+      const daysDiff = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
+      const isExpired = daysDiff < 0;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
+            {expDate.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
+          {(isExpiringSoon || isExpired) && (
+            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
+          )}
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "budget_line.name",
     header: "Linha Orçamentária",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const isOptimistic = row.original.isOptimistic;
       const budgetLineName = row.original.budget_line?.name;
@@ -309,6 +320,7 @@ export const columns: ColumnDef<Contract>[] = [
     accessorKey: "description",
     header: "Descrição",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const description = row.original.description;
       if (!description) return "-";
@@ -324,6 +336,7 @@ export const columns: ColumnDef<Contract>[] = [
     accessorKey: "signing_date",
     header: "Data Assinatura",
     enableSorting: true,
+    enableHiding: true,
     cell: ({ row }) => {
       const signingDate = row.original.signing_date;
       if (!signingDate) return "-";
@@ -346,6 +359,7 @@ export const columns: ColumnDef<Contract>[] = [
     accessorKey: "created_at",
     header: "Criado em",
     enableSorting: true,
+    enableHiding: true,
     cell: ({ row }) =>
       new Date(row.original.created_at).toLocaleString("pt-BR", {
         day: "2-digit",
@@ -359,6 +373,7 @@ export const columns: ColumnDef<Contract>[] = [
     accessorKey: "created_by",
     header: "Criado por",
     enableSorting: false,
+    enableHiding: true,
     cell: ({ row }) => {
       const createdBy = row.original.created_by;
       if (createdBy) {
@@ -370,3 +385,5 @@ export const columns: ColumnDef<Contract>[] = [
     },
   },
 ];
+
+export const columns = [...defaultColumns, ...optionalColumns];
