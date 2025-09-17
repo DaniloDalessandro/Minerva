@@ -80,7 +80,7 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Requesting_Center
-        fields = ['id', 'name', 'description', 'management_center', 'management_center_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'management_center', 'management_center_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
     def validate_name(self, value):

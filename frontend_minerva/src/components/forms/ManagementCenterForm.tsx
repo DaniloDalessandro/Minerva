@@ -49,7 +49,6 @@ export default function ManagementCenterForm({
     resolver: zodResolver(managementCenterSchema),
     defaultValues: {
       name: "",
-      description: "",
     },
   });
 
@@ -60,12 +59,10 @@ export default function ManagementCenterForm({
       if (initialData) {
         reset({
           name: initialData.name,
-          description: initialData.description || "",
         });
       } else {
         reset({
           name: "",
-          description: "",
         });
       }
     }
@@ -161,21 +158,6 @@ export default function ManagementCenterForm({
                     {errors.name.message}
                   </p>
                 </div>
-              )}
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                {...register("description")}
-                placeholder="Descrição do Centro Gestor (opcional)"
-                className={errors.description ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
-              />
-              {errors.description && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.description.message}
-                </p>
               )}
             </div>
           </div>

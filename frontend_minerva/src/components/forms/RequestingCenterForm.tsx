@@ -57,7 +57,6 @@ export default function RequestingCenterForm({
     resolver: zodResolver(requestingCenterSchema),
     defaultValues: {
       name: "",
-      description: "",
       management_center_id: 0,
     },
   });
@@ -82,13 +81,11 @@ export default function RequestingCenterForm({
       if (initialData) {
         reset({
           name: initialData.name,
-          description: initialData.description || "",
           management_center_id: initialData.management_center?.id || 0,
         });
       } else {
         reset({
           name: "",
-          description: "",
           management_center_id: 0,
         });
       }
@@ -185,21 +182,6 @@ export default function RequestingCenterForm({
                     {errors.name.message}
                   </p>
                 </div>
-              )}
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                id="description"
-                {...register("description")}
-                placeholder="Descrição do Centro Solicitante (opcional)"
-                className={errors.description ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
-              />
-              {errors.description && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.description.message}
-                </p>
               )}
             </div>
 

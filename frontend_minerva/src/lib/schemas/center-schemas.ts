@@ -9,11 +9,6 @@ export const managementCenterSchema = z.object({
     .max(100, 'Nome deve ter no máximo 100 caracteres')
     .regex(/.*[a-zA-Z].*[a-zA-Z].*/, 'O registro deve conter pelo menos duas letras')
     .trim(),
-  description: z
-    .string()
-    .max(500, 'Descrição deve ter no máximo 500 caracteres')
-    .optional()
-    .or(z.literal(''))
 })
 
 // Schema para Requesting Center
@@ -25,11 +20,6 @@ export const requestingCenterSchema = z.object({
     .max(100, 'Nome deve ter no máximo 100 caracteres')
     .regex(/.*[a-zA-Z].*[a-zA-Z].*/, 'O registro deve conter pelo menos duas letras')
     .trim(),
-  description: z
-    .string()
-    .max(500, 'Descrição deve ter no máximo 500 caracteres')
-    .optional()
-    .or(z.literal('')),
   management_center_id: z
     .number({ required_error: 'Centro gestor é obrigatório' })
     .min(1, 'Selecione um centro gestor válido')

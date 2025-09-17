@@ -79,12 +79,14 @@
       "Bash(git add:*)",
       "Bash(\"venv\\Scripts\\python.exe\":*)",
       "Bash(netstat:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(\"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\venv\\Scripts\\python.exe\" \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\manage.py\" makemigrations center --name remove_description_fields)",
+      "Bash(\"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\venv\\Scripts\\python.exe\" \"C:\\Users\\Kyra\\Documents\\Projetos\\Minerva\\backend_minerva\\manage.py\" migrate center)"
     ],
     "deny": [],
-    "ask": [],
     "additionalDirectories": [
       "C:\\c\\Users\\danilo.ecopel\\Documents\\PROJETOS\\PYTHON\\Sys_Minerva\\Minerva"
-    ]
+    ],
+    "ask": []
   }
 }

@@ -5,7 +5,6 @@ from .models import Management_Center, Requesting_Center, CenterHierarchy
 class ManagementCenterAdmin(admin.ModelAdmin):
     list_display = (
         'name',
-        'description',
         'created_by',
         'updated_by',
         'created_at',
@@ -20,7 +19,7 @@ class ManagementCenterAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('name', 'description')
+            'fields': ('name',)
         }),
         ('Auditoria', {
             'classes': ('collapse',),
@@ -45,7 +44,6 @@ class RequestingCenterAdmin(admin.ModelAdmin):
     list_display = (
         'management_center',
         'name',
-        'description',
         'created_by',
         'updated_by',
         'created_at',
@@ -61,7 +59,7 @@ class RequestingCenterAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         (None, {
-            'fields': ('management_center', 'name', 'description')
+            'fields': ('management_center', 'name')
         }),
         ('Auditoria', {
             'classes': ('collapse',),
