@@ -43,6 +43,13 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DataTable({
   columns,
@@ -52,6 +59,7 @@ export function DataTable({
   pageSize = 10,
   pageIndex = 0,
   totalCount = 0,
+  initialFilters = [],
   onPageChange,
   onPageSizeChange,
   onAdd,
@@ -124,7 +132,7 @@ export function DataTable({
   const [columnVisibility, setColumnVisibility] = React.useState(() => getInitialColumnVisibility());
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [sorting, setSorting] = React.useState([]);
-  const [columnFilters, setColumnFilters] = React.useState([]);
+  const [columnFilters, setColumnFilters] = React.useState(initialFilters);
   const [openFilterId, setOpenFilterId] = React.useState(null);
 
   // Update column visibility when columns change
@@ -166,11 +174,35 @@ export function DataTable({
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  // Sincronizar filtros externos com estado interno da tabela
+  // Usa JSON.stringify para comparar os valores reais, não a referência do array
+  const initialFiltersStr = JSON.stringify(initialFilters);
+  React.useEffect(() => {
+    console.log('🔍 DataTable initialFilters:', initialFilters);
+    if (initialFilters && initialFilters.length > 0) {
+      const processedFilters = initialFilters.map(filter => ({
+        id: filter.id,
+        value: filter.value === "all" ? undefined : filter.value
+      }));
+      console.log('📝 Setting column filters:', processedFilters);
+      setColumnFilters(processedFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFiltersStr]); // Depende da string serializada para evitar loops infinitos
+
+  // Debug: log data changes
+  React.useEffect(() => {
+    console.log('📊 DataTable data changed:', data?.length, 'items');
+  }, [data]);
+
   // Filtragem, ordenação etc precisam ser refletidos na query backend
   // Para simplificação, agora a paginação já é controlada externamente
 
   const handleFilterChange = (columnId, value) => {
-    table.getColumn(columnId)?.setFilterValue(value);
+    console.log('🔄 Filter change:', columnId, '=', value);
+    // Para filtros do tipo select com valor "all", usar undefined para indicar "sem filtro"
+    const filterValue = value === "all" ? undefined : value;
+    table.getColumn(columnId)?.setFilterValue(filterValue);
     // Call parent callback to trigger API call with filter
     if (onFilterChange) {
       onFilterChange(columnId, value);
@@ -178,23 +210,52 @@ export function DataTable({
   };
 
   const clearFilter = (columnId) => {
-    table.getColumn(columnId)?.setFilterValue("");
-    setOpenFilterId(null);
-    // Call parent callback to clear filter
-    if (onFilterChange) {
-      onFilterChange(columnId, "");
+    const column = table.getColumn(columnId);
+    const filterMeta = column?.columnDef.meta;
+
+    // Se for um filtro do tipo select, resetar para "all"
+    if (filterMeta?.filterType === "select") {
+      table.getColumn(columnId)?.setFilterValue(undefined);
+      setOpenFilterId(null);
+      if (onFilterChange) {
+        onFilterChange(columnId, "all");
+      }
+    } else {
+      table.getColumn(columnId)?.setFilterValue("");
+      setOpenFilterId(null);
+      if (onFilterChange) {
+        onFilterChange(columnId, "");
+      }
     }
   };
 
   const clearAllFilters = () => {
-    table.getAllColumns().forEach((col) => col.setFilterValue(""));
+    // Primeiro, obter os valores atuais e preparar as chamadas de callback
+    const filtersToReset = [];
+    table.getAllColumns().forEach((col) => {
+      const currentValue = col.getFilterValue();
+      if (currentValue !== undefined && currentValue !== "") {
+        const filterMeta = col.columnDef.meta;
+        const resetValue = filterMeta?.filterType === "select" ? "all" : "";
+        filtersToReset.push({ columnId: col.id, resetValue });
+      }
+    });
+
+    // Agora limpar os filtros localmente
+    table.getAllColumns().forEach((col) => {
+      const filterMeta = col.columnDef.meta;
+      if (filterMeta?.filterType === "select") {
+        col.setFilterValue(undefined);
+      } else {
+        col.setFilterValue("");
+      }
+    });
     setOpenFilterId(null);
-    // Call parent callback to clear all filters
-    if (onFilterChange) {
-      table.getAllColumns().forEach((col) => {
-        if (col.getFilterValue()) {
-          onFilterChange(col.id, "");
-        }
+
+    // Chamar os callbacks para resetar no backend
+    if (onFilterChange && filtersToReset.length > 0) {
+      filtersToReset.forEach(({ columnId, resetValue }) => {
+        onFilterChange(columnId, resetValue);
       });
     }
   };
@@ -279,6 +340,24 @@ export function DataTable({
           <div className="flex flex-wrap gap-2 mb-3">
             {activeFilters.map((filter) => {
               const column = table.getColumn(filter.id);
+              const filterMeta = column?.columnDef.meta;
+              let displayValue = filter.value;
+
+              // Se for um filtro do tipo select, buscar o label correspondente
+              if (filterMeta?.filterType === "select" && filterMeta?.filterOptions) {
+                const option = filterMeta.filterOptions.find(opt => opt.value === filter.value);
+                if (option && option.value !== "all") {
+                  displayValue = option.label;
+                } else {
+                  return null; // Não mostrar badge quando "Todos" está selecionado ou valor inválido
+                }
+              }
+
+              // Não mostrar badge se o valor do filtro for vazio ou "all"
+              if (!filter.value || filter.value === "all") {
+                return null;
+              }
+
               return (
                 <Badge
                   key={filter.id}
@@ -286,7 +365,7 @@ export function DataTable({
                   className="flex items-center gap-1"
                 >
                   <span className="font-medium">{column?.columnDef.header}:</span>{" "}
-                  <span>{filter.value}</span>
+                  <span>{displayValue}</span>
                   <X
                     className="h-3 w-3 cursor-pointer ml-1"
                     onClick={() => clearFilter(filter.id)}
@@ -373,17 +452,37 @@ export function DataTable({
                                           </Button>
                                         )}
                                       </div>
-                                      <Input
-                                        placeholder={`Filtrar...`}
-                                        value={filterValue ?? ""}
-                                        onChange={(e) =>
-                                          handleFilterChange(
-                                            columnId,
-                                            e.target.value
-                                          )
-                                        }
-                                        autoFocus
-                                      />
+                                      {header.column.columnDef.meta?.filterType === "select" ? (
+                                        <Select
+                                          value={filterValue ?? "all"}
+                                          onValueChange={(value) =>
+                                            handleFilterChange(columnId, value)
+                                          }
+                                        >
+                                          <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Selecione..." />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {header.column.columnDef.meta?.filterOptions?.map((option) => (
+                                              <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      ) : (
+                                        <Input
+                                          placeholder={`Filtrar...`}
+                                          value={filterValue ?? ""}
+                                          onChange={(e) =>
+                                            handleFilterChange(
+                                              columnId,
+                                              e.target.value
+                                            )
+                                          }
+                                          autoFocus
+                                        />
+                                      )}
                                     </div>
                                   </PopoverContent>
                                 </Popover>

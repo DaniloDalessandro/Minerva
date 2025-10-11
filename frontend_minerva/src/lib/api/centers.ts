@@ -6,6 +6,7 @@ export interface ManagementCenter {
   id: number;
   name: string;
   description?: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   created_by?: {
@@ -20,6 +21,7 @@ export interface RequestingCenter {
   id: number;
   name: string;
   description?: string;
+  is_active: boolean;
   management_center: {
     id: number;
     name: string;
@@ -38,19 +40,26 @@ const MANAGEMENT_CENTERS_API_URL = "http://localhost:8000/api/v1/center/manageme
 const REQUESTING_CENTERS_API_URL = "http://localhost:8000/api/v1/center/requesting-centers/";
 
 // Management Centers API
-export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "") {
+export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
   });
-  
+
   if (search) {
     params.append("search", search);
   }
-  
+
   if (ordering) {
     params.append("ordering", ordering);
   }
+
+  if (statusFilter === "active") {
+    params.append("is_active", "true");
+  } else if (statusFilter === "inactive") {
+    params.append("is_active", "false");
+  }
+  // Se statusFilter for "all" ou vazio, não adiciona filtro
   
   const url = `${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`;
   
@@ -110,26 +119,33 @@ export async function updateManagementCenter(data: { id: number; name: string; d
 
 export async function deleteManagementCenter(id: number) {
   const res = await authFetch(`${MANAGEMENT_CENTERS_API_URL}${id}/delete/`, {
-    method: "DELETE",
+    method: "PUT",
   });
-  if (!res.ok) throw new Error("Erro ao deletar centro gestor");
-  return true;
+  if (!res.ok) throw new Error("Erro ao inativar centro gestor");
+  return res.json();
 }
 
 // Requesting Centers API
-export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "", ordering = "") {
+export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
   });
-  
+
   if (search) {
     params.append("search", search);
   }
-  
+
   if (ordering) {
     params.append("ordering", ordering);
   }
+
+  if (statusFilter === "active") {
+    params.append("is_active", "true");
+  } else if (statusFilter === "inactive") {
+    params.append("is_active", "false");
+  }
+  // Se statusFilter for "all" ou vazio, não adiciona filtro
   
   const res = await authFetch(`${REQUESTING_CENTERS_API_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar centros solicitantes");
@@ -157,8 +173,8 @@ export async function updateRequestingCenter(data: { id: number; name: string; d
 
 export async function deleteRequestingCenter(id: number) {
   const res = await authFetch(`${REQUESTING_CENTERS_API_URL}${id}/delete/`, {
-    method: "DELETE",
+    method: "PUT",
   });
-  if (!res.ok) throw new Error("Erro ao deletar centro solicitante");
-  return true;
+  if (!res.ok) throw new Error("Erro ao inativar centro solicitante");
+  return res.json();
 }

@@ -45,6 +45,7 @@ export default function CentrosPage() {
   const [managementCenterPageSize, setManagementCenterPageSize] = useState(10);
   const [managementCenterSearch, setManagementCenterSearch] = useState("");
   const [managementCenterSorting, setManagementCenterSorting] = useState([]);
+  const [managementCenterStatusFilter, setManagementCenterStatusFilter] = useState("active");
   const [openManagementCenterForm, setOpenManagementCenterForm] = useState(false);
   const [editingManagementCenter, setEditingManagementCenter] = useState<ManagementCenter | null>(
     null
@@ -62,6 +63,7 @@ export default function CentrosPage() {
   const [requestingCenterPageSize, setRequestingCenterPageSize] = useState(10);
   const [requestingCenterSearch, setRequestingCenterSearch] = useState("");
   const [requestingCenterSorting, setRequestingCenterSorting] = useState([]);
+  const [requestingCenterStatusFilter, setRequestingCenterStatusFilter] = useState("active");
   const [openRequestingCenterForm, setOpenRequestingCenterForm] = useState(false);
   const [editingRequestingCenter, setEditingRequestingCenter] =
     useState<RequestingCenter | null>(null);
@@ -80,13 +82,16 @@ export default function CentrosPage() {
   // Load functions
   async function loadManagementCenters() {
     try {
+      console.log('🔄 Loading Management Centers with filter:', managementCenterStatusFilter);
       const ordering = convertSortingToOrdering(managementCenterSorting);
       const data = await fetchManagementCenters(
         managementCenterPage,
         managementCenterPageSize,
         managementCenterSearch,
-        ordering
+        ordering,
+        managementCenterStatusFilter
       );
+      console.log('✅ Management Centers loaded:', data.count, 'results:', data.results.length);
       setManagementCenters(data.results);
       setTotalManagementCenters(data.count);
     } catch (error) {
@@ -101,7 +106,8 @@ export default function CentrosPage() {
         requestingCenterPage,
         requestingCenterPageSize,
         requestingCenterSearch,
-        ordering
+        ordering,
+        requestingCenterStatusFilter
       );
       setRequestingCenters(data.results);
       setTotalRequestingCenters(data.count);
@@ -112,7 +118,7 @@ export default function CentrosPage() {
 
   useEffect(() => {
     loadManagementCenters();
-  }, [managementCenterPage, managementCenterPageSize, managementCenterSearch, managementCenterSorting]);
+  }, [managementCenterPage, managementCenterPageSize, managementCenterSearch, managementCenterSorting, managementCenterStatusFilter]);
 
   useEffect(() => {
     loadRequestingCenters();
@@ -121,6 +127,7 @@ export default function CentrosPage() {
     requestingCenterPageSize,
     requestingCenterSearch,
     requestingCenterSorting,
+    requestingCenterStatusFilter,
   ]);
 
   // Create a combined load function for centers
@@ -210,6 +217,7 @@ export default function CentrosPage() {
             pageSize={managementCenterPageSize}
             pageIndex={managementCenterPage - 1}
             totalCount={totalManagementCenters}
+            initialFilters={[{ id: "is_active", value: managementCenterStatusFilter }]}
             onPageChange={(newPageIndex) => setManagementCenterPage(newPageIndex + 1)}
             onPageSizeChange={(newPageSize) => {
               setManagementCenterPageSize(newPageSize);
@@ -231,6 +239,9 @@ export default function CentrosPage() {
               if (columnId === "name") {
                 setManagementCenterSearch(value);
                 setManagementCenterPage(1);
+              } else if (columnId === "is_active") {
+                setManagementCenterStatusFilter(value);
+                setManagementCenterPage(1);
               }
             }}
             onSortingChange={(newSorting) => {
@@ -247,6 +258,7 @@ export default function CentrosPage() {
             pageSize={requestingCenterPageSize}
             pageIndex={requestingCenterPage - 1}
             totalCount={totalRequestingCenters}
+            initialFilters={[{ id: "is_active", value: requestingCenterStatusFilter }]}
             onPageChange={(newPageIndex) =>
               setRequestingCenterPage(newPageIndex + 1)
             }
@@ -269,6 +281,9 @@ export default function CentrosPage() {
             onFilterChange={(columnId, value) => {
               if (columnId === "name") {
                 setRequestingCenterSearch(value);
+                setRequestingCenterPage(1);
+              } else if (columnId === "is_active") {
+                setRequestingCenterStatusFilter(value);
                 setRequestingCenterPage(1);
               }
             }}
@@ -306,9 +321,9 @@ export default function CentrosPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o centro gestor "
+              Tem certeza que deseja inativar o centro gestor "
               {managementCenterToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -349,9 +364,9 @@ export default function CentrosPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o centro solicitante "
+              Tem certeza que deseja inativar o centro solicitante "
               {requestingCenterToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -77,6 +77,9 @@ class APIAuthenticationMiddleware:
                         'redirect': '/login'
                     }, status=401)
                 except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Erro no middleware de autenticação: {type(e).__name__}: {str(e)}", exc_info=True)
                     return JsonResponse({
                         'error': 'Erro de autenticação',
                         'detail': 'Erro interno no servidor',

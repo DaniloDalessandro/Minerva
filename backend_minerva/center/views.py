@@ -49,6 +49,7 @@ class ManagementCenterListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description']
+    filterset_fields = ['is_active']
     ordering_fields = ['name', 'created_at', 'updated_at']
     ordering = ['-created_at']
 
@@ -123,17 +124,22 @@ class ManagementCenterUpdateView(generics.UpdateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ManagementCenterDeleteView(generics.DestroyAPIView):
+class ManagementCenterDeleteView(generics.UpdateAPIView):
     queryset = Management_Center.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
+        instance.is_active = False
+        instance.updated_by = request.user
+        instance.save()
         return Response(
-            {'message': CENTRO_GESTOR_MSGS['success_deleted']},
-            status=status.HTTP_204_NO_CONTENT
+            {
+                'success': True,
+                'message': 'Centro gestor inativado com sucesso.'
+            },
+            status=status.HTTP_200_OK
         )
 
 
@@ -147,6 +153,7 @@ class RequestingCenterListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'management_center__name']
+    filterset_fields = ['is_active']
     ordering_fields = ['name', 'created_at', 'updated_at', 'management_center__name']
     ordering = ['-created_at']
 
@@ -221,15 +228,20 @@ class RequestingCenterUpdateView(generics.UpdateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RequestingCenterDeleteView(generics.DestroyAPIView):
+class RequestingCenterDeleteView(generics.UpdateAPIView):
     queryset = Requesting_Center.objects.all()
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
+        instance.is_active = False
+        instance.updated_by = request.user
+        instance.save()
         return Response(
-            {'message': CENTRO_SOLICITANTE_MSGS['success_deleted']},
-            status=status.HTTP_204_NO_CONTENT
+            {
+                'success': True,
+                'message': 'Centro solicitante inativado com sucesso.'
+            },
+            status=status.HTTP_200_OK
         )

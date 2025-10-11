@@ -22,7 +22,7 @@ class ManagementCenterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Management_Center
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'is_active']
 
     def validate_name(self, value):
         """Zod-like validation for name field"""
@@ -80,8 +80,8 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Requesting_Center
-        fields = ['id', 'name', 'management_center', 'management_center_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'management_center', 'management_center_id', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'is_active']
 
     def validate_name(self, value):
         """Zod-like validation for name field"""
