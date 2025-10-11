@@ -54,6 +54,7 @@ export default function SetoresPage() {
   const [directionPageSize, setDirectionPageSize] = useState(10);
   const [directionSearch, setDirectionSearch] = useState("");
   const [directionSorting, setDirectionSorting] = useState([]);
+  const [directionStatusFilter, setDirectionStatusFilter] = useState("active");
   const [openDirectionForm, setOpenDirectionForm] = useState(false);
   const [editingDirection, setEditingDirection] = useState<Direction | null>(
     null
@@ -71,6 +72,7 @@ export default function SetoresPage() {
   const [managementPageSize, setManagementPageSize] = useState(10);
   const [managementSearch, setManagementSearch] = useState("");
   const [managementSorting, setManagementSorting] = useState([]);
+  const [managementStatusFilter, setManagementStatusFilter] = useState("active");
   const [openManagementForm, setOpenManagementForm] = useState(false);
   const [editingManagement, setEditingManagement] =
     useState<Management | null>(null);
@@ -86,6 +88,7 @@ export default function SetoresPage() {
   const [coordinationPageSize, setCoordinationPageSize] = useState(10);
   const [coordinationSearch, setCoordinationSearch] = useState("");
   const [coordinationSorting, setCoordinationSorting] = useState([]);
+  const [coordinationStatusFilter, setCoordinationStatusFilter] = useState("active");
   const [openCoordinationForm, setOpenCoordinationForm] = useState(false);
   const [editingCoordination, setEditingCoordination] =
     useState<Coordination | null>(null);
@@ -109,7 +112,8 @@ export default function SetoresPage() {
         directionPage,
         directionPageSize,
         directionSearch,
-        ordering
+        ordering,
+        directionStatusFilter
       );
       setDirections(data.results);
       setTotalDirections(data.count);
@@ -125,7 +129,8 @@ export default function SetoresPage() {
         managementPage,
         managementPageSize,
         managementSearch,
-        ordering
+        ordering,
+        managementStatusFilter
       );
       setManagements(data.results);
       setTotalManagements(data.count);
@@ -141,7 +146,8 @@ export default function SetoresPage() {
         coordinationPage,
         coordinationPageSize,
         coordinationSearch,
-        ordering
+        ordering,
+        coordinationStatusFilter
       );
       setCoordinations(data.results);
       setTotalCoordinations(data.count);
@@ -152,7 +158,7 @@ export default function SetoresPage() {
 
   useEffect(() => {
     loadDirections();
-  }, [directionPage, directionPageSize, directionSearch, directionSorting]);
+  }, [directionPage, directionPageSize, directionSearch, directionSorting, directionStatusFilter]);
 
   useEffect(() => {
     loadManagements();
@@ -161,6 +167,7 @@ export default function SetoresPage() {
     managementPageSize,
     managementSearch,
     managementSorting,
+    managementStatusFilter,
   ]);
 
   useEffect(() => {
@@ -170,6 +177,7 @@ export default function SetoresPage() {
     coordinationPageSize,
     coordinationSearch,
     coordinationSorting,
+    coordinationStatusFilter,
   ]);
 
   // Create a combined load function for all sectors
@@ -179,8 +187,8 @@ export default function SetoresPage() {
 
   useRegisterRefresh('setores', loadSetores);
 
-  // Delete handlers
-  const handleDeleteDirection = async () => {
+  // Inactivate handlers
+  const handleInactivateDirection = async () => {
     if (directionToDelete?.id) {
       try {
         await deleteDirection(directionToDelete.id);
@@ -189,7 +197,7 @@ export default function SetoresPage() {
           setDirectionPage(directionPage - 1);
         }
       } catch (error) {
-        console.error("Erro ao excluir direção:", error);
+        console.error("Erro ao inativar direção:", error);
       } finally {
         setDeleteDirectionDialogOpen(false);
         setDirectionToDelete(null);
@@ -197,7 +205,7 @@ export default function SetoresPage() {
     }
   };
 
-  const handleDeleteManagement = async () => {
+  const handleInactivateManagement = async () => {
     if (managementToDelete?.id) {
       try {
         await deleteManagement(managementToDelete.id);
@@ -206,7 +214,7 @@ export default function SetoresPage() {
           setManagementPage(managementPage - 1);
         }
       } catch (error) {
-        console.error("Erro ao excluir gerência:", error);
+        console.error("Erro ao inativar gerência:", error);
       } finally {
         setDeleteManagementDialogOpen(false);
         setManagementToDelete(null);
@@ -214,7 +222,7 @@ export default function SetoresPage() {
     }
   };
 
-  const handleDeleteCoordination = async () => {
+  const handleInactivateCoordination = async () => {
     if (coordinationToDelete?.id) {
       try {
         await deleteCoordination(coordinationToDelete.id);
@@ -223,7 +231,7 @@ export default function SetoresPage() {
           setCoordinationPage(coordinationPage - 1);
         }
       } catch (error) {
-        console.error("Erro ao excluir coordenação:", error);
+        console.error("Erro ao inativar coordenação:", error);
       } finally {
         setDeleteCoordinationDialogOpen(false);
         setCoordinationToDelete(null);
@@ -288,6 +296,7 @@ export default function SetoresPage() {
             pageSize={directionPageSize}
             pageIndex={directionPage - 1}
             totalCount={totalDirections}
+            initialFilters={[{ id: "is_active", value: directionStatusFilter }]}
             onPageChange={(newPageIndex) => setDirectionPage(newPageIndex + 1)}
             onPageSizeChange={(newPageSize) => {
               setDirectionPageSize(newPageSize);
@@ -309,6 +318,9 @@ export default function SetoresPage() {
               if (columnId === "name") {
                 setDirectionSearch(value);
                 setDirectionPage(1);
+              } else if (columnId === "is_active") {
+                setDirectionStatusFilter(value);
+                setDirectionPage(1);
               }
             }}
             onSortingChange={(newSorting) => {
@@ -325,6 +337,7 @@ export default function SetoresPage() {
             pageSize={managementPageSize}
             pageIndex={managementPage - 1}
             totalCount={totalManagements}
+            initialFilters={[{ id: "is_active", value: managementStatusFilter }]}
             onPageChange={(newPageIndex) =>
               setManagementPage(newPageIndex + 1)
             }
@@ -348,6 +361,9 @@ export default function SetoresPage() {
               if (columnId === "name") {
                 setManagementSearch(value);
                 setManagementPage(1);
+              } else if (columnId === "is_active") {
+                setManagementStatusFilter(value);
+                setManagementPage(1);
               }
             }}
             onSortingChange={(newSorting) => {
@@ -364,6 +380,7 @@ export default function SetoresPage() {
             pageSize={coordinationPageSize}
             pageIndex={coordinationPage - 1}
             totalCount={totalCoordinations}
+            initialFilters={[{ id: "is_active", value: coordinationStatusFilter }]}
             onPageChange={(newPageIndex) =>
               setCoordinationPage(newPageIndex + 1)
             }
@@ -386,6 +403,9 @@ export default function SetoresPage() {
             onFilterChange={(columnId, value) => {
               if (columnId === "name") {
                 setCoordinationSearch(value);
+                setCoordinationPage(1);
+              } else if (columnId === "is_active") {
+                setCoordinationStatusFilter(value);
                 setCoordinationPage(1);
               }
             }}
@@ -422,15 +442,15 @@ export default function SetoresPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a direção "
+              Tem certeza que deseja inativar a direção "
               {directionToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteDirection}>
+            <AlertDialogAction onClick={handleInactivateDirection}>
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -464,15 +484,15 @@ export default function SetoresPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a gerência "
+              Tem certeza que deseja inativar a gerência "
               {managementToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteManagement}>
+            <AlertDialogAction onClick={handleInactivateManagement}>
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -506,15 +526,15 @@ export default function SetoresPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a coordenação "
+              Tem certeza que deseja inativar a coordenação "
               {coordinationToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCoordination}>
+            <AlertDialogAction onClick={handleInactivateCoordination}>
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>

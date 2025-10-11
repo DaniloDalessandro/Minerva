@@ -14,6 +14,7 @@ class DirectionListView(generics.ListAPIView):
     serializer_class = DirectionSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['is_active']
     search_fields = ["name"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]
@@ -55,15 +56,16 @@ class DirectionUpdateView(generics.UpdateAPIView):
         }
         return response
 
-class DirectionDeleteView(generics.DestroyAPIView):
+class DirectionDeleteView(generics.UpdateAPIView):
     queryset = Direction.objects.all()
     serializer_class = DirectionSerializer
     permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"message": DIRECTION_MSGS["success_deleted"]}, status=status.HTTP_204_NO_CONTENT)
+        instance.is_active = False
+        instance.save()
+        return Response({"message": "Direção inativada com sucesso."}, status=status.HTTP_200_OK)
 
 # ========================= GERÊNCIA =========================
 
@@ -72,6 +74,7 @@ class ManagementListView(generics.ListAPIView):
     serializer_class = ManagementSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['is_active']
     search_fields = ["name"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]
@@ -113,15 +116,16 @@ class ManagementUpdateView(generics.UpdateAPIView):
         }
         return response
 
-class ManagementDeleteView(generics.DestroyAPIView):
+class ManagementDeleteView(generics.UpdateAPIView):
     queryset = Management.objects.all()
     serializer_class = ManagementSerializer
     permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"message": MANAGEMENT_MSGS["success_deleted"]}, status=status.HTTP_204_NO_CONTENT)
+        instance.is_active = False
+        instance.save()
+        return Response({"message": "Gerência inativada com sucesso."}, status=status.HTTP_200_OK)
 
 # ========================= COORDENAÇÃO =========================
 
@@ -130,6 +134,7 @@ class CoordinationListView(generics.ListAPIView):
     serializer_class = CoordinationSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['is_active']
     search_fields = ["name"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]
@@ -171,12 +176,13 @@ class CoordinationUpdateView(generics.UpdateAPIView):
         }
         return response
 
-class CoordinationDeleteView(generics.DestroyAPIView):
+class CoordinationDeleteView(generics.UpdateAPIView):
     queryset = Coordination.objects.all()
     serializer_class = CoordinationSerializer
     permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"message": COORDINATION_MSGS["success_deleted"]}, status=status.HTTP_204_NO_CONTENT)
+        instance.is_active = False
+        instance.save()
+        return Response({"message": "Coordenação inativada com sucesso."}, status=status.HTTP_200_OK)

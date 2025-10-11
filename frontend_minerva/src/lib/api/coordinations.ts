@@ -5,6 +5,7 @@ import { authFetch } from "./authFetch";
 export interface Coordination {
   id: number;
   name: string;
+  is_active: boolean;
   management: number;
   created_at: string;
   updated_at: string;
@@ -18,7 +19,7 @@ export interface Coordination {
 
 const API_BASE_URL = "http://localhost:8000/api/v1/sector/coordinations/";
 
-export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "") {
+export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -31,8 +32,12 @@ export async function fetchCoordinations(page = 1, pageSize = 10, search = "", o
   if (ordering) {
     params.append("ordering", ordering);
   }
-  
-  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
+
+  if (statusFilter === "active") {
+    params.append("is_active", "true");
+  } else if (statusFilter === "inactive") {
+    params.append("is_active", "false");
+  }  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar coordenações");
   const json = await res.json();
   return json;
@@ -59,8 +64,8 @@ export async function updateCoordination(data: { id: number; name: string, manag
 
 export async function deleteCoordination(id: number) {
   const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
-    method: "DELETE",
+    method: "PUT",
   });
-  if (!res.ok) throw new Error("Erro ao deletar coordenação");
-  return true;
+  if (!res.ok) throw new Error("Erro ao inativar coordenação");
+  return res.json();
 }

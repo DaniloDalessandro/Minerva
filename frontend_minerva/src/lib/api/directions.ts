@@ -5,6 +5,7 @@ import { authFetch } from "./authFetch";
 export interface Direction {
   id: number;
   name: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   created_by?: {
@@ -17,7 +18,7 @@ export interface Direction {
 
 const API_BASE_URL = "http://localhost:8000/api/v1/sector/directions/";
 
-export async function fetchDirections(page = 1, pageSize = 10, search = "", ordering = "") {
+export async function fetchDirections(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -29,6 +30,12 @@ export async function fetchDirections(page = 1, pageSize = 10, search = "", orde
   
   if (ordering) {
     params.append("ordering", ordering);
+  }
+
+  if (statusFilter === "active") {
+    params.append("is_active", "true");
+  } else if (statusFilter === "inactive") {
+    params.append("is_active", "false");
   }
   
   const url = `${API_BASE_URL}?${params.toString()}`;
@@ -67,8 +74,8 @@ export async function updateDirection(data: { id: number; name: string }) {
 
 export async function deleteDirection(id: number) {
   const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
-    method: "DELETE",
+    method: "PUT",
   });
-  if (!res.ok) throw new Error("Erro ao deletar direção");
-  return true;
+  if (!res.ok) throw new Error("Erro ao inativar direção");
+  return res.json();
 }

@@ -17,7 +17,7 @@ class DirectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Direction
-        fields = '__all__'
+        fields = ['id', 'name', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
     def validate_name(self, value):
@@ -35,7 +35,7 @@ class ManagementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Management
-        fields = ['id', 'name', 'direction', 'direction_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'is_active', 'direction', 'direction_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
     def validate_name(self, value):
@@ -53,7 +53,7 @@ class CoordinationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Coordination
-        fields = ['id', 'name', 'management', 'management_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'is_active', 'management', 'management_id', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
 
     def validate_name(self, value):

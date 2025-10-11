@@ -5,6 +5,7 @@ import { authFetch } from "./authFetch";
 export interface Management {
   id: number;
   name: string;
+  is_active: boolean;
   direction: number;
   created_at: string;
   updated_at: string;
@@ -18,18 +19,42 @@ export interface Management {
 
 const API_BASE_URL = "http://localhost:8000/api/v1/sector/managements/";
 
-export async function fetchManagements(page = 1, pageSize = 10, search = "", ordering = "") {
+export async function fetchManagements(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
+
   const params = new URLSearchParams({
+
     page: page.toString(),
+
     page_size: pageSize.toString(),
+
   });
+
   
+
   if (search) {
+
     params.append("search", search);
+
   }
+
   
+
   if (ordering) {
+
     params.append("ordering", ordering);
+
+  }
+
+
+
+  if (statusFilter === "active") {
+
+    params.append("is_active", "true");
+
+  } else if (statusFilter === "inactive") {
+
+    params.append("is_active", "false");
+
   }
   
   const url = `${API_BASE_URL}?${params.toString()}`;
@@ -68,8 +93,8 @@ export async function updateManagement(data: { id: number; name: string, directi
 
 export async function deleteManagement(id: number) {
   const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
-    method: "DELETE",
+    method: "PUT",
   });
-  if (!res.ok) throw new Error("Erro ao deletar gerência");
-  return true;
+  if (!res.ok) throw new Error("Erro ao inativar gerência");
+  return res.json();
 }
