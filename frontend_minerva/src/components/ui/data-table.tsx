@@ -264,6 +264,17 @@ export function DataTable({
     (f) => f.value !== undefined && f.value !== ""
   );
 
+  const displayableFilters = activeFilters.filter(filter => {
+    if (
+      !filter.value ||
+      filter.value === "all" ||
+      (filter.id === "is_active" && filter.value === "active")
+    ) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <Card className="shadow-lg pb-0.5">
       <CardHeader className="pb-1">
@@ -336,9 +347,9 @@ export function DataTable({
 
       <CardContent>
         {/* TAGS DE FILTROS */}
-        {activeFilters.length > 0 && (
+        {displayableFilters.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {activeFilters.map((filter) => {
+            {displayableFilters.map((filter) => {
               const column = table.getColumn(filter.id);
               const filterMeta = column?.columnDef.meta;
               let displayValue = filter.value;
@@ -351,11 +362,6 @@ export function DataTable({
                 } else {
                   return null; // Não mostrar badge quando "Todos" está selecionado ou valor inválido
                 }
-              }
-
-              // Não mostrar badge se o valor do filtro for vazio ou "all"
-              if (!filter.value || filter.value === "all") {
-                return null;
               }
 
               return (
