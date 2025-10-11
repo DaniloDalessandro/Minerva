@@ -612,17 +612,7 @@ export function DataTable({
               {">>"}
             </Button>
 
-            <select
-              className="ml-2 rounded border border-gray-300 px-2 py-1 text-sm"
-              value={pageSize}
-              onChange={(e) => onPageSizeChange && onPageSizeChange(Number(e.target.value))}
-            >
-              {[10, 20, 50].map((size) => (
-                <option key={size} value={size}>
-                  Mostrar {size}
-                </option>
-              ))}
-            </select>
+
           </div>
         </div>
       </CardContent>
