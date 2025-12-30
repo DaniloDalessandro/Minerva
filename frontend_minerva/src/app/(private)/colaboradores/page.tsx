@@ -250,6 +250,7 @@ export default function ColaboradoresPage() {
           pageSize={pageSize}
           pageIndex={page - 1}
           totalCount={totalColaboradores}
+          initialFilters={[{ id: 'status', value: statusFilter }]}
           onPageChange={(newPageIndex) => setPage(newPageIndex + 1)}
           onPageSizeChange={(newPageSize) => {
             setPageSize(newPageSize);
@@ -261,11 +262,13 @@ export default function ColaboradoresPage() {
           onViewDetails={handleViewDetails}
           onFilterChange={(columnId, value) => {
             if (columnId === 'status') {
-              setStatusFilter(value || 'ATIVO');
+              // Se for 'ALL' ou 'all', mostrar todos os status
+              const filterValue = (value === 'ALL' || value === 'all') ? '' : (value || 'ATIVO');
+              setStatusFilter(filterValue);
               setPage(1);
             } else {
               const newFilters = { ...filters };
-              if (value) {
+              if (value && value !== 'all' && value !== 'ALL') {
                 newFilters[columnId] = value;
               } else {
                 delete newFilters[columnId];

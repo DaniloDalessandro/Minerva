@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser,DjangoModelPermissions,IsAuthenticated
+from core.pagination import CustomPageNumberPagination
 from .models import Employee
 from .utils.access_control import get_employee_queryset
 from .serializers import EmployeeSerializer, EmployeeWriteSerializer
@@ -11,6 +12,7 @@ class EmployeeListView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
         import logging

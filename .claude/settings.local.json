@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(curl -s \"http://localhost:8000/api/v1/center/management-centers/?page=1&page_size=10&is_active=true\" -H \"Content-Type: application/json\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(python manage.py:*)",
+      "Bash(venv/Scripts/python.exe:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": [],

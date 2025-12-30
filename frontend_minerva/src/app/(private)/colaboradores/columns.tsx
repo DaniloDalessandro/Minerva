@@ -100,10 +100,12 @@ export const columns: ColumnDef<Colaborador>[] = [
     },
     meta: {
       showFilterIcon: true,
-      filterType: 'status',
+      filterType: 'select',
       filterOptions: [
         { value: 'ATIVO', label: 'Ativo' },
         { value: 'INATIVO', label: 'Inativo' },
+        { value: 'FERIAS', label: 'Férias' },
+        { value: 'AFASTADO', label: 'Afastado' },
         { value: 'ALL', label: 'Todos' }
       ]
     },

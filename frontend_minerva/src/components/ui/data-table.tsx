@@ -578,6 +578,22 @@ export function DataTable({
             {totalCount} registros
           </div>
 
+          <div className="flex items-center gap-2">
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => onPageSizeChange && onPageSizeChange(Number(value))}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 por página</SelectItem>
+                <SelectItem value="15">15 por página</SelectItem>
+                <SelectItem value="20">20 por página</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="flex gap-2">
             <Button
               variant="outline"
