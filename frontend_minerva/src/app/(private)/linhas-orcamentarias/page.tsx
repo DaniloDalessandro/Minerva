@@ -258,7 +258,7 @@ export default function LinhasOrcamentariasPage() {
   };
 
   return (
-    <div className="container mx-auto py-1 px-2">
+    <div className="w-full py-1">
       <div className="space-y-2">
         <DataTable
           columns={columns}

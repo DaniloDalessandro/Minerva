@@ -185,7 +185,7 @@ export default function CentrosPage() {
   };
 
   return (
-    <div className="space-y-10 px-4 py-6">
+    <div className="w-full py-1">
       <Tabs defaultValue="management-centers" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 gap-2 bg-muted p-1 h-auto">
           <TabsTrigger 

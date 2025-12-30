@@ -254,7 +254,7 @@ export default function SetoresPage() {
   };
 
   return (
-    <div className="space-y-10 px-4 py-6">
+    <div className="w-full py-1">
       <Tabs defaultValue="directions" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-muted p-1 h-auto">
           <TabsTrigger 
