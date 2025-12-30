@@ -11,6 +11,24 @@ export const columns = (): ColumnDef<Direction>[] => [
     },
   },
   {
+    accessorKey: "is_active",
+    header: "Status",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const isActive = row.original.is_active;
+      return isActive ? "Ativo" : "Inativo";
+    },
+    meta: {
+      showFilterIcon: true,
+      filterType: "select",
+      filterOptions: [
+        { label: "Todos", value: "all" },
+        { label: "Ativo", value: "active" },
+        { label: "Inativo", value: "inactive" },
+      ],
+    },
+  },
+  {
     accessorKey: "created_at",
     header: "Criado em",
     enableSorting: true,
@@ -44,23 +62,5 @@ export const columns = (): ColumnDef<Direction>[] => [
     accessorKey: "updated_by",
     header: "Atualizado por",
     cell: ({ row }) => row.original.updated_by?.email ?? "-",
-  },
-  {
-    accessorKey: "is_active",
-    header: "Status",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const isActive = row.original.is_active;
-      return isActive ? "Ativo" : "Inativo";
-    },
-    meta: {
-      showFilterIcon: true,
-      filterType: "select",
-      filterOptions: [
-        { label: "Todos", value: "all" },
-        { label: "Ativo", value: "active" },
-        { label: "Inativo", value: "inactive" },
-      ],
-    },
   },
 ];
