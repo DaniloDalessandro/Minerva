@@ -100,10 +100,6 @@ export default function ColaboradorDetailsPage() {
         return 'default';
       case 'INATIVO':
         return 'destructive';
-      case 'FERIAS':
-        return 'secondary';
-      case 'AFASTADO':
-        return 'outline';
       default:
         return 'secondary';
     }
@@ -115,10 +111,6 @@ export default function ColaboradorDetailsPage() {
         return 'Ativo';
       case 'INATIVO':
         return 'Inativo';
-      case 'FERIAS':
-        return 'Férias';
-      case 'AFASTADO':
-        return 'Afastado';
       default:
         return status;
     }

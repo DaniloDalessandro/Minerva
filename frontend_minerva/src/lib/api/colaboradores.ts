@@ -34,7 +34,7 @@ export interface Colaborador {
   bank_name?: string
   bank_agency?: string
   bank_account?: string
-  status: 'ATIVO' | 'INATIVO' | 'FERIAS' | 'AFASTADO'
+  status: 'ATIVO' | 'INATIVO'
   created_at: string
   updated_at: string
   created_by: {
@@ -73,7 +73,7 @@ export interface CreateColaboradorData {
   bank_name?: string
   bank_agency?: string
   bank_account?: string
-  status: 'ATIVO' | 'INATIVO' | 'FERIAS' | 'AFASTADO'
+  status: 'ATIVO' | 'INATIVO'
 }
 
 export interface ColaboradoresResponse {

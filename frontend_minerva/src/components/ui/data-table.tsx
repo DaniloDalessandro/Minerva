@@ -199,13 +199,17 @@ export function DataTable({
   // Para simplificação, agora a paginação já é controlada externamente
 
   const handleFilterChange = (columnId, value) => {
-    console.log('🔄 Filter change:', columnId, '=', value);
-    // Para filtros do tipo select com valor "all", usar undefined para indicar "sem filtro"
-    const filterValue = value === "all" ? undefined : value;
+    console.log('🔄 DataTable handleFilterChange called!', columnId, '=', value);
+    // Para filtros do tipo select com valor "all" ou "ALL", usar undefined para indicar "sem filtro"
+    const filterValue = (value === "all" || value === "ALL") ? undefined : value;
     table.getColumn(columnId)?.setFilterValue(filterValue);
+    console.log('📞 Calling onFilterChange callback:', !!onFilterChange);
     // Call parent callback to trigger API call with filter
     if (onFilterChange) {
+      console.log('✅ Executing onFilterChange with:', columnId, value);
       onFilterChange(columnId, value);
+    } else {
+      console.error('❌ onFilterChange is not defined!');
     }
   };
 
@@ -268,6 +272,7 @@ export function DataTable({
     if (
       !filter.value ||
       filter.value === "all" ||
+      filter.value === "ALL" ||
       (filter.id === "is_active" && filter.value === "active")
     ) {
       return false;
@@ -524,7 +529,7 @@ export function DataTable({
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody className="max-h-64 overflow-y-auto">
+            <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
@@ -581,9 +586,12 @@ export function DataTable({
           <div className="flex items-center gap-2">
             <Select
               value={pageSize.toString()}
-              onValueChange={(value) => onPageSizeChange && onPageSizeChange(Number(value))}
+              onValueChange={(value) => {
+                console.log('📊 DataTable Select changed:', value, 'current:', pageSize);
+                onPageSizeChange && onPageSizeChange(Number(value));
+              }}
             >
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

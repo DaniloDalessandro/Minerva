@@ -262,8 +262,8 @@ export default function ColaboradoresPage() {
           onViewDetails={handleViewDetails}
           onFilterChange={(columnId, value) => {
             if (columnId === 'status') {
-              // Se for 'ALL' ou 'all', mostrar todos os status
-              const filterValue = (value === 'ALL' || value === 'all') ? '' : (value || 'ATIVO');
+              // Se for 'ALL' ou 'all', mostrar todos os status enviando 'ALL' para o backend
+              const filterValue = (value === 'ALL' || value === 'all') ? 'ALL' : (value || 'ATIVO');
               setStatusFilter(filterValue);
               setPage(1);
             } else {

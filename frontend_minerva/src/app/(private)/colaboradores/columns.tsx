@@ -87,10 +87,6 @@ export const columns: ColumnDef<Colaborador>[] = [
             return 'Ativo';
           case 'INATIVO':
             return 'Inativo';
-          case 'FERIAS':
-            return 'Férias';
-          case 'AFASTADO':
-            return 'Afastado';
           default:
             return status;
         }
@@ -104,8 +100,6 @@ export const columns: ColumnDef<Colaborador>[] = [
       filterOptions: [
         { value: 'ATIVO', label: 'Ativo' },
         { value: 'INATIVO', label: 'Inativo' },
-        { value: 'FERIAS', label: 'Férias' },
-        { value: 'AFASTADO', label: 'Afastado' },
         { value: 'ALL', label: 'Todos' }
       ]
     },

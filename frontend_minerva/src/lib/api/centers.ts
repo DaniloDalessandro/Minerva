@@ -41,13 +41,15 @@ const MANAGEMENT_CENTERS_API_URL = `${API_URL}/api/v1/center/management-centers/
 const REQUESTING_CENTERS_API_URL = `${API_URL}/api/v1/center/requesting-centers/`;
 
 // Management Centers API
-export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
+export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "active") {
+  console.log('🌐 fetchManagementCenters called with:', { page, pageSize, search, ordering, statusFilter });
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
   });
 
   if (search) {
+    console.log('🔍 Adding search param:', search);
     params.append("search", search);
   }
 
@@ -60,12 +62,20 @@ export async function fetchManagementCenters(page = 1, pageSize = 10, search = "
   } else if (statusFilter === "inactive") {
     params.append("is_active", "false");
   }
-  // Se statusFilter for "all" ou vazio, não adiciona filtro
+  // Se statusFilter for "all", não adiciona filtro
   
   const url = `${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`;
-  
+
   try {
     console.log("🌐 Making API call to:", url);
+    console.log("📋 Full params:", {
+      page,
+      pageSize,
+      search,
+      ordering,
+      statusFilter,
+      finalURL: url
+    });
     const res = await authFetch(url);
     console.log("📡 Response status:", res.status, res.statusText);
     
@@ -127,7 +137,7 @@ export async function deleteManagementCenter(id: number) {
 }
 
 // Requesting Centers API
-export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
+export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "active") {
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
@@ -146,7 +156,7 @@ export async function fetchRequestingCenters(page = 1, pageSize = 10, search = "
   } else if (statusFilter === "inactive") {
     params.append("is_active", "false");
   }
-  // Se statusFilter for "all" ou vazio, não adiciona filtro
+  // Se statusFilter for "all", não adiciona filtro
   
   const res = await authFetch(`${REQUESTING_CENTERS_API_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar centros solicitantes");

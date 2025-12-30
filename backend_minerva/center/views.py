@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
+from core.pagination import CustomPageNumberPagination
 from .models import Management_Center, Requesting_Center
 from .serializers import ManagementCenterSerializer, RequestingCenterSerializer
 from .utils.messages import CENTRO_GESTOR_MSGS, CENTRO_SOLICITANTE_MSGS
@@ -47,11 +48,21 @@ class ManagementCenterListView(generics.ListAPIView):
     queryset = Management_Center.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'description']
+    search_fields = ['name']
     filterset_fields = ['is_active']
     ordering_fields = ['name', 'created_at', 'updated_at']
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Apply is_active filter - show only active by default unless specified
+        is_active = self.request.query_params.get('is_active', None)
+        if is_active is None:
+            # Default to showing only active centers
+            queryset = queryset.filter(is_active=True)
+        return queryset
 
 
 class ManagementCenterCreateView(generics.CreateAPIView):
@@ -151,11 +162,21 @@ class RequestingCenterListView(generics.ListAPIView):
     queryset = Requesting_Center.objects.select_related('management_center')
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
+    pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'description', 'management_center__name']
+    search_fields = ['name', 'management_center__name']
     filterset_fields = ['is_active']
     ordering_fields = ['name', 'created_at', 'updated_at', 'management_center__name']
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Apply is_active filter - show only active by default unless specified
+        is_active = self.request.query_params.get('is_active', None)
+        if is_active is None:
+            # Default to showing only active centers
+            queryset = queryset.filter(is_active=True)
+        return queryset
 
 
 class RequestingCenterCreateView(generics.CreateAPIView):

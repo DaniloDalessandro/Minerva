@@ -33,7 +33,7 @@ class Employee(models.Model):
         ('ATIVO', 'Ativo'),
         ('INATIVO', 'Inativo'),
     ]
-    status = models.CharField(max_length=7, choices=STATUS, default='ATIVO')
+    status = models.CharField(max_length=10, choices=STATUS, default='ATIVO')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employees_created', verbose_name='Criado por', null=True, blank=True)
