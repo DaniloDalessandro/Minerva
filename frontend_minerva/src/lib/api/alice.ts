@@ -1,4 +1,5 @@
 import { authFetch } from './authFetch'
+import { API_URL } from './config'
 
 export interface ChatMessage {
   message: string
@@ -49,7 +50,7 @@ export interface ConversationSession {
 export const aliceAPI = {
   // Envia mensagem para o chat
   sendMessage: async (data: ChatMessage): Promise<ChatResponse> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/chat/', {
+    const response = await authFetch(`${API_URL}/api/v1/alice/chat/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ export const aliceAPI = {
 
   // Pergunta rápida sem sessão
   quickQuestion: async (data: QuickQuestionRequest): Promise<Omit<ChatResponse, 'session_id'>> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/quick/', {
+    const response = await authFetch(`${API_URL}/api/v1/alice/quick/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,7 +80,7 @@ export const aliceAPI = {
 
   // Obtém estatísticas do uso do Alice
   getStats: async (): Promise<SessionStats> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/stats/')
+    const response = await authFetch(`${API_URL}/api/v1/alice/stats/`)
     if (!response.ok) {
       throw new Error('Failed to fetch stats')
     }
@@ -88,7 +89,7 @@ export const aliceAPI = {
 
   // Lista sessões de conversa do usuário
   getSessions: async (): Promise<{ results: ConversationSession[] }> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/sessions/')
+    const response = await authFetch(`${API_URL}/api/v1/alice/sessions/`)
     if (!response.ok) {
       throw new Error('Failed to fetch sessions')
     }
@@ -97,7 +98,7 @@ export const aliceAPI = {
 
   // Obtém detalhes de uma sessão específica
   getSessionDetail: async (sessionId: number): Promise<ConversationSession & { messages: any[] }> => {
-    const response = await authFetch(`http://localhost:8000/api/v1/alice/sessions/${sessionId}/`)
+    const response = await authFetch(`${API_URL}/api/v1/alice/sessions/${sessionId}/`)
     if (!response.ok) {
       throw new Error('Failed to fetch session detail')
     }
@@ -106,7 +107,7 @@ export const aliceAPI = {
 
   // Envia mensagem para uma sessão específica
   sendMessageToSession: async (sessionId: number, message: string): Promise<ChatResponse> => {
-    const response = await authFetch(`http://localhost:8000/api/v1/alice/sessions/${sessionId}/send/`, {
+    const response = await authFetch(`${API_URL}/api/v1/alice/sessions/${sessionId}/send/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export const aliceAPI = {
 
   // Limpa mensagens de uma sessão
   clearSession: async (sessionId: number): Promise<{ success: boolean; message: string }> => {
-    const response = await authFetch(`http://localhost:8000/api/v1/alice/sessions/${sessionId}/clear/`, {
+    const response = await authFetch(`${API_URL}/api/v1/alice/sessions/${sessionId}/clear/`, {
       method: 'POST',
     })
     if (!response.ok) {
@@ -132,7 +133,7 @@ export const aliceAPI = {
 
   // Lista tabelas disponíveis no banco
   getAvailableTables: async (): Promise<string[]> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/schema/tables/')
+    const response = await authFetch(`${API_URL}/api/v1/alice/schema/tables/`)
     if (!response.ok) {
       throw new Error('Failed to fetch available tables')
     }
@@ -141,7 +142,7 @@ export const aliceAPI = {
 
   // Obtém esquema completo do banco
   getDatabaseSchema: async (): Promise<any[]> => {
-    const response = await authFetch('http://localhost:8000/api/v1/alice/schema/')
+    const response = await authFetch(`${API_URL}/api/v1/alice/schema/`)
     if (!response.ok) {
       throw new Error('Failed to fetch database schema')
     }

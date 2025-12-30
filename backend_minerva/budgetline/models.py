@@ -121,8 +121,10 @@ class BudgetLine(models.Model, HierarchicalPermissionMixin):
         verbose_name='Tipo de Aquisição'
     )
     
-    budgeted_amount = models.FloatField(
-        default=0, 
+    budgeted_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
         validators=[MinValueValidator(0.01)],
         verbose_name='Valor Orçado'
     )
@@ -258,7 +260,7 @@ class BudgetLine(models.Model, HierarchicalPermissionMixin):
 class BudgetLineMovement(models.Model):
     source_line = models.ForeignKey(BudgetLine, on_delete=models.CASCADE, related_name='outgoing_movements', verbose_name='Linha de Origem', null=True, blank=True)
     destination_line = models.ForeignKey(BudgetLine, on_delete=models.CASCADE, related_name='incoming_movements', verbose_name='Linha de Destino', null=True, blank=True)
-    movement_amount = models.FloatField(validators=[MinValueValidator(0.01)], verbose_name='Valor da Movimentação')
+    movement_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)], verbose_name='Valor da Movimentação')
     movement_notes = models.TextField(max_length=400, blank=True, null=True, verbose_name='Motivo')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
@@ -357,8 +359,10 @@ class BudgetLineVersion(models.Model):
         choices=BudgetLine.PROCUREMENT_TYPE_CHOICES,
         verbose_name='Tipo de Aquisição'
     )
-    budgeted_amount = models.FloatField(
-        default=0, 
+    budgeted_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
         validators=[MinValueValidator(0.01)],
         verbose_name='Valor Orçado'
     )

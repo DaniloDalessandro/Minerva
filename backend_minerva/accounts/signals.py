@@ -1,5 +1,6 @@
 # accounts/signals.py
 
+import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import User
@@ -7,6 +8,8 @@ import secrets
 import string
 from django.core.mail import send_mail
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 def gerar_senha(tamanho=12):
     """Gera senha segura usando secrets"""
@@ -39,4 +42,4 @@ def definir_senha_e_enviar_email(sender, instance, created, **kwargs):
             )
         except Exception as e:
             # Log do erro mas não falha a criação do usuário
-            print(f"Erro ao enviar email: {e}")
+            logger.error(f"Erro ao enviar email: {e}")

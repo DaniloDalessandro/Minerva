@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (for production)
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: minerva_db
+      POSTGRES_USER: minerva_user
+      POSTGRES_PASSWORD: minerva_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minerva_user -d minerva_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend (Django)
+  backend:
+    build:
+      context: ./backend_minerva
+      dockerfile: Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend_minerva:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend_minerva/.env
+    environment:
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=minerva_db
+      - DATABASE_USER=minerva_user
+      - DATABASE_PASSWORD=minerva_password
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend_minerva
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend_minerva:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  static_volume:

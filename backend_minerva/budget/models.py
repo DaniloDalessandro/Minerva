@@ -139,6 +139,13 @@ class Budget(models.Model, HierarchicalPermissionMixin):
         unique_together = ['year', 'category', 'management_center']
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
+        indexes = [
+            models.Index(fields=['year'], name='budget_year_idx'),
+            models.Index(fields=['category'], name='budget_category_idx'),
+            models.Index(fields=['status'], name='budget_status_idx'),
+            models.Index(fields=['management_center'], name='budget_mgmt_center_idx'),
+            models.Index(fields=['year', 'category'], name='budget_year_cat_idx'),
+        ]
         ordering = ['-year', 'category']
 
 #==================================================================================================================================

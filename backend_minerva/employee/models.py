@@ -45,3 +45,11 @@ class Employee(models.Model):
     class Meta:
         verbose_name = "Funcionário"
         verbose_name_plural = "Funcionários"
+        indexes = [
+            models.Index(fields=['email'], name='employee_email_idx'),
+            models.Index(fields=['cpf'], name='employee_cpf_idx'),
+            models.Index(fields=['status'], name='employee_status_idx'),
+            models.Index(fields=['direction'], name='employee_direction_idx'),
+            models.Index(fields=['management'], name='employee_management_idx'),
+            models.Index(fields=['coordination'], name='employee_coordination_idx'),
+        ]

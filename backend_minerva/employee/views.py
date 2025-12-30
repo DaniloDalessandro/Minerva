@@ -6,27 +6,33 @@ from .utils.access_control import get_employee_queryset
 from .serializers import EmployeeSerializer, EmployeeWriteSerializer
 from .utils.messages import EMPLOYEE_MESSAGES
 
-# Listar funcionarios - SEM FILTRO HIERARQUICO (todos podem ver todos)
+# Listar funcionarios - COM FILTRO HIERARQUICO
 class EmployeeListView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        print(f"Usuario fazendo requisicao: {self.request.user.email}")
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Usuario fazendo requisicao: {self.request.user.email}")
+
         queryset = Employee.objects.select_related('direction', 'management', 'coordination').all()
-        
+
         # Exclude employees that correspond to superusers (admin accounts)
         from accounts.models import User
         superuser_emails = list(User.objects.filter(is_superuser=True).values_list('email', flat=True))
         queryset = queryset.exclude(email__in=superuser_emails)
-        print(f"Excluindo emails de superusers: {superuser_emails}")
-        
+        logger.info(f"Excluindo emails de superusers: {superuser_emails}")
+
+        # Apply hierarchical filter
+        queryset = get_employee_queryset(self.request.user, queryset)
+
         # Apply status filter - show only ATIVO by default unless specified
         status_filter = self.request.query_params.get('status', 'ATIVO')
         if status_filter and status_filter != 'ALL':
             queryset = queryset.filter(status=status_filter)
-        
+
         # Apply search filter if provided
         search = self.request.query_params.get('search', None)
         if search:
@@ -39,8 +45,8 @@ class EmployeeListView(generics.ListAPIView):
                 Q(management__name__icontains=search) |
                 Q(coordination__name__icontains=search)
             )
-        
-        print(f"Total employees retornados: {queryset.count()}")
+
+        logger.info(f"Total employees retornados: {queryset.count()}")
         return queryset
 
 # Criar funcionario
@@ -113,13 +119,3 @@ class EmployeeToggleStatusView(generics.UpdateAPIView):
             'message': f'Colaborador {action} com sucesso.',
             **read_serializer.data
         })
-
-# Excluir funcionario
-class EmployeeDeleteView(generics.DestroyAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({'message': EMPLOYEE_MESSAGES['deleted']}, status=status.HTTP_204_NO_CONTENT)

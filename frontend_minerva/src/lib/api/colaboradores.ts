@@ -1,4 +1,5 @@
 import { authFetch } from "./authFetch"
+import { API_URL } from "./config"
 
 // Interfaces para colaboradores
 export interface Colaborador {
@@ -143,7 +144,7 @@ export async function fetchColaboradores(
     params.append('status', status)
   }
 
-  const url = `http://localhost:8000/api/v1/employee/?${params}`;
+  const url = `${API_URL}/api/v1/employee/?${params}`;
   console.log("👥 Buscando colaboradores:", url);
   
   const response = await authFetch(url)
@@ -169,7 +170,7 @@ export async function fetchColaboradores(
 }
 
 export async function fetchColaboradorById(id: number): Promise<Colaborador> {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/`)
+  const response = await authFetch(`${API_URL}/api/v1/employee/${id}/`)
   if (!response.ok) {
     throw new Error('Failed to fetch colaborador')
   }
@@ -177,7 +178,7 @@ export async function fetchColaboradorById(id: number): Promise<Colaborador> {
 }
 
 export async function createColaborador(data: CreateColaboradorData) {
-  const response = await authFetch('http://localhost:8000/api/v1/employee/create/', {
+  const response = await authFetch(`${API_URL}/api/v1/employee/create/`, {
     method: 'POST',
     body: JSON.stringify(data)
   })
@@ -189,7 +190,7 @@ export async function createColaborador(data: CreateColaboradorData) {
 }
 
 export async function updateColaborador(data: CreateColaboradorData) {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/${data.id}/update/`, {
+  const response = await authFetch(`${API_URL}/api/v1/employee/${data.id}/update/`, {
     method: 'PUT',
     body: JSON.stringify(data)
   })
@@ -201,7 +202,7 @@ export async function updateColaborador(data: CreateColaboradorData) {
 }
 
 export async function toggleColaboradorStatus(id: number) {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/toggle-status/`, {
+  const response = await authFetch(`${API_URL}/api/v1/employee/${id}/toggle-status/`, {
     method: 'PATCH'
   })
   if (!response.ok) {
@@ -211,20 +212,11 @@ export async function toggleColaboradorStatus(id: number) {
   return response.json()
 }
 
-export async function deleteColaborador(id: number) {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/${id}/delete/`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.message || 'Failed to delete colaborador')
-  }
-  return response.json()
-}
+
 
 // Funções para contratos do colaborador
 export async function fetchColaboradorContratos(colaboradorId: number): Promise<ColaboradorContrato[]> {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/contracts/?employee=${colaboradorId}`)
+  const response = await authFetch(`${API_URL}/api/v1/employee/contracts/?employee=${colaboradorId}`)
   if (!response.ok) {
     throw new Error('Failed to fetch colaborador contracts')
   }
@@ -234,7 +226,7 @@ export async function fetchColaboradorContratos(colaboradorId: number): Promise<
 
 // Funções para auxílios do colaborador
 export async function fetchColaboradorAuxilios(colaboradorId: number): Promise<ColaboradorAuxilio[]> {
-  const response = await authFetch(`http://localhost:8000/api/v1/employee/aids/?employee=${colaboradorId}`)
+  const response = await authFetch(`${API_URL}/api/v1/employee/aids/?employee=${colaboradorId}`)
   if (!response.ok) {
     throw new Error('Failed to fetch colaborador aids')
   }
@@ -254,7 +246,7 @@ export async function getColaborador(id: number) {
 // Função para buscar setores para os dropdowns
 export async function fetchDirections(): Promise<any[]> {
   console.log("🎯 Buscando direções para colaborador...");
-  const url = 'http://localhost:8000/api/v1/sector/directions/?page_size=1000&ordering=name';
+  const url = `${API_URL}/api/v1/sector/directions/?page_size=1000&ordering=name`;
   const response = await authFetch(url)
   console.log("📡 Resposta direções colaborador:", response.status);
   
@@ -268,7 +260,7 @@ export async function fetchDirections(): Promise<any[]> {
 
 export async function fetchManagements(): Promise<any[]> {
   console.log("🏢 Buscando gerências para colaborador...");
-  const url = 'http://localhost:8000/api/v1/sector/managements/?page_size=1000&ordering=name';
+  const url = `${API_URL}/api/v1/sector/managements/?page_size=1000&ordering=name`;
   const response = await authFetch(url)
   console.log("📡 Resposta gerências colaborador:", response.status);
   
@@ -282,7 +274,7 @@ export async function fetchManagements(): Promise<any[]> {
 
 export async function fetchCoordinations(): Promise<any[]> {
   console.log("🎯 Buscando coordenações para colaborador...");
-  const url = 'http://localhost:8000/api/v1/sector/coordinations/?page_size=1000&ordering=name';
+  const url = `${API_URL}/api/v1/sector/coordinations/?page_size=1000&ordering=name`;
   const response = await authFetch(url)
   console.log("📡 Resposta coordenações colaborador:", response.status);
   

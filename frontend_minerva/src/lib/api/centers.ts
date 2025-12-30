@@ -1,6 +1,7 @@
 // /lib/api/centers.ts
 
 import { authFetch } from "./authFetch";
+import { API_URL } from "./config";
 
 export interface ManagementCenter {
   id: number;
@@ -36,8 +37,8 @@ export interface RequestingCenter {
   };
 }
 
-const MANAGEMENT_CENTERS_API_URL = "http://localhost:8000/api/v1/center/management-centers/";
-const REQUESTING_CENTERS_API_URL = "http://localhost:8000/api/v1/center/requesting-centers/";
+const MANAGEMENT_CENTERS_API_URL = `${API_URL}/api/v1/center/management-centers/`;
+const REQUESTING_CENTERS_API_URL = `${API_URL}/api/v1/center/requesting-centers/`;
 
 // Management Centers API
 export async function fetchManagementCenters(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {

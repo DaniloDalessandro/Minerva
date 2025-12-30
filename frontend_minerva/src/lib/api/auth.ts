@@ -1,6 +1,5 @@
 import { authFetch } from './authFetch'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+import { API_URL } from './config'
 
 export interface ChangePasswordData {
   old_password: string
@@ -16,7 +15,7 @@ export interface ApiError {
 }
 
 export async function changePassword(data: ChangePasswordData): Promise<ChangePasswordResponse> {
-  const response = await authFetch(`${API_URL}/accounts/change-password/`, {
+  const response = await authFetch(`${API_URL}/api/v1/accounts/change-password/`, {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -31,7 +30,7 @@ export async function changePassword(data: ChangePasswordData): Promise<ChangePa
 
 export async function logout(): Promise<void> {
   try {
-    await authFetch(`${API_URL}/accounts/logout/`, {
+    await authFetch(`${API_URL}/api/v1/accounts/logout/`, {
       method: 'POST',
     })
   } catch (error) {

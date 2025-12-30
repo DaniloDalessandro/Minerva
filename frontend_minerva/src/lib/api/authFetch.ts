@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode"
+import { API_URL } from "./config"
 
 interface JWTPayload {
   exp: number
@@ -69,7 +70,7 @@ export async function authFetch(
   // Se não há access token mas há refresh, tentar renovar
   if (!access && refresh) {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/accounts/token/refresh/", {
+      const response = await fetch(`${API_URL}/api/v1/accounts/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh }),
@@ -97,7 +98,7 @@ export async function authFetch(
     // Token inválido, tentar renovar
     if (refresh) {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/accounts/token/refresh/", {
+        const response = await fetch(`${API_URL}/api/v1/accounts/token/refresh/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh }),
@@ -127,7 +128,7 @@ export async function authFetch(
   const finalAccess = getCookie("access")
   if (finalAccess && tokenExpiringSoon(finalAccess) && refresh) {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/accounts/token/refresh/", {
+      const response = await fetch(`${API_URL}/api/v1/accounts/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh }),

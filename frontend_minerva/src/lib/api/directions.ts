@@ -1,6 +1,7 @@
 // /lib/api/directions.ts
 
 import { authFetch } from "./authFetch";
+import { API_URL } from "./config";
 
 export interface Direction {
   id: number;
@@ -16,7 +17,7 @@ export interface Direction {
   };
 }
 
-const API_BASE_URL = "http://localhost:8000/api/v1/sector/directions/";
+const API_BASE_URL = `${API_URL}/api/v1/sector/directions/`;
 
 export async function fetchDirections(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({

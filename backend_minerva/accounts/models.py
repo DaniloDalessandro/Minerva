@@ -1,6 +1,9 @@
+import logging
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 
 class UserManager(BaseUserManager):
@@ -100,7 +103,7 @@ class BlacklistedToken(models.Model):
             return cls.objects.filter(jti=jti).exists()
         except Exception as e:
             # CORREÇÃO CRÍTICA: Log do erro mas NÃO considerar automaticamente como blacklisted
-            print(f"Aviso ao verificar blacklist para token: {e}")
+            logger.warning(f"Aviso ao verificar blacklist para token: {e}")
             return False  # Token com problemas de decodificação não é necessariamente blacklisted
 
     @classmethod
@@ -121,7 +124,7 @@ class BlacklistedToken(models.Model):
             )
             return True
         except Exception as e:
-            print(f"Erro ao adicionar token à blacklist: {e}")
+            logger.error(f"Erro ao adicionar token à blacklist: {e}")
             return False
 
     @classmethod

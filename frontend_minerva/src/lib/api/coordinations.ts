@@ -1,6 +1,7 @@
 // /lib/api/coordinations.ts
 
 import { authFetch } from "./authFetch";
+import { API_URL } from "./config";
 
 export interface Coordination {
   id: number;
@@ -17,7 +18,7 @@ export interface Coordination {
   };
 }
 
-const API_BASE_URL = "http://localhost:8000/api/v1/sector/coordinations/";
+const API_BASE_URL = `${API_URL}/api/v1/sector/coordinations/`;
 
 export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({

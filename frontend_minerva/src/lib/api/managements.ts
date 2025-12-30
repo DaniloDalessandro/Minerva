@@ -1,6 +1,7 @@
 // /lib/api/managements.ts
 
 import { authFetch } from "./authFetch";
+import { API_URL } from "./config";
 
 export interface Management {
   id: number;
@@ -17,7 +18,7 @@ export interface Management {
   };
 }
 
-const API_BASE_URL = "http://localhost:8000/api/v1/sector/managements/";
+const API_BASE_URL = `${API_URL}/api/v1/sector/managements/`;
 
 export async function fetchManagements(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
 

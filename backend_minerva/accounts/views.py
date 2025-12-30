@@ -1,3 +1,4 @@
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -12,6 +13,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer
 from .models import BlacklistedToken
+
+logger = logging.getLogger(__name__)
 
 from .serializers import (
     LoginSerializer,
@@ -98,8 +101,8 @@ class LogoutView(APIView):
                 
                 # Adicionar o token à blacklist
                 BlacklistedToken.add_token(token_string, request.user, 'logout')
-                print(f"Token adicionado à blacklist para usuário {request.user.email}")
-            
+                logger.info(f"Token adicionado à blacklist para usuário {request.user.email}")
+
             # Também blacklist o refresh token se fornecido
             refresh_token = request.data.get('refresh_token')
             if refresh_token:
@@ -107,10 +110,10 @@ class LogoutView(APIView):
                     refresh = RefreshToken(refresh_token)
                     BlacklistedToken.add_token(str(refresh.access_token), request.user, 'logout_refresh')
                 except Exception as e:
-                    print(f"Erro ao processar refresh token: {e}")
-            
+                    logger.warning(f"Erro ao processar refresh token: {e}")
+
         except Exception as e:
-            print(f"Erro ao adicionar token à blacklist: {e}")
+            logger.error(f"Erro ao adicionar token à blacklist: {e}")
         
         response = Response({'message': LOGOUT_MESSAGES['success']})
 

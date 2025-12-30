@@ -1,6 +1,9 @@
+import logging
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 class HierarchicalPermissionMixin:
     """
@@ -171,7 +174,7 @@ def create_coordination_groups():
                     permission = Permission.objects.get(codename=codename)
                     group.permissions.add(permission)
                 except Permission.DoesNotExist:
-                    print(f"Permissão {codename} não encontrada")
+                    logger.warning(f"Permissão {codename} não encontrada")
             
             created_groups.append(group)
     
@@ -229,7 +232,7 @@ def create_default_groups():
                     permission = Permission.objects.get(codename=codename)
                     group.permissions.add(permission)
                 except Permission.DoesNotExist:
-                    print(f"Permissão {codename} não encontrada")
+                    logger.warning(f"Permissão {codename} não encontrada")
             
             created_groups.append(group)
     
