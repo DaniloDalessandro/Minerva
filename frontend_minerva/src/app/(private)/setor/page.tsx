@@ -2,35 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  fetchDirections,
-  createDirection,
-  updateDirection,
-  deleteDirection,
-  Direction,
-} from "@/lib/api/directions";
-import {
-  fetchManagements,
-  createManagement,
-  updateManagement,
-  deleteManagement,
-  Management,
-} from "@/lib/api/managements";
-import {
-  fetchCoordinations,
-  createCoordination,
-  updateCoordination,
-  deleteCoordination,
-  Coordination,
-} from "@/lib/api/coordinations";
-
-import DirectionForm from "@/components/forms/DirectionForm";
-import ManagementForm from "@/components/forms/ManagementForm";
-import CoordinationForm from "@/components/forms/CoordinationForm";
+  DirectionForm,
+  ManagementForm,
+  CoordinationForm,
+  directionColumns,
+  managementColumns,
+  coordinationColumns,
+  type Direction,
+  type Management,
+  type Coordination
+} from "@/features/setor";
+import { SetorService } from "@/services";
 import { DataTable } from "@/components/ui/data-table";
-import { columns as directionColumns } from "./columns/directions";
-import { columns as managementColumns } from "./columns/managements";
-import { columns as coordinationColumns } from "./columns/coordinations";
-import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
+import { useRegisterRefresh } from "@/context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,7 +92,7 @@ export default function SetoresPage() {
   async function loadDirections() {
     try {
       const ordering = convertSortingToOrdering(directionSorting);
-      const data = await fetchDirections(
+      const data = await SetorService.fetchDirections(
         directionPage,
         directionPageSize,
         directionSearch,
@@ -125,7 +109,7 @@ export default function SetoresPage() {
   async function loadManagements() {
     try {
       const ordering = convertSortingToOrdering(managementSorting);
-      const data = await fetchManagements(
+      const data = await SetorService.fetchManagements(
         managementPage,
         managementPageSize,
         managementSearch,
@@ -142,7 +126,7 @@ export default function SetoresPage() {
   async function loadCoordinations() {
     try {
       const ordering = convertSortingToOrdering(coordinationSorting);
-      const data = await fetchCoordinations(
+      const data = await SetorService.fetchCoordinations(
         coordinationPage,
         coordinationPageSize,
         coordinationSearch,
@@ -191,7 +175,7 @@ export default function SetoresPage() {
   const handleInactivateDirection = async () => {
     if (directionToDelete?.id) {
       try {
-        await deleteDirection(directionToDelete.id);
+        await SetorService.deleteDirection(directionToDelete.id);
         await loadDirections();
         if (directions.length === 1 && directionPage > 1) {
           setDirectionPage(directionPage - 1);
@@ -208,7 +192,7 @@ export default function SetoresPage() {
   const handleInactivateManagement = async () => {
     if (managementToDelete?.id) {
       try {
-        await deleteManagement(managementToDelete.id);
+        await SetorService.deleteManagement(managementToDelete.id);
         await loadManagements();
         if (managements.length === 1 && managementPage > 1) {
           setManagementPage(managementPage - 1);
@@ -225,7 +209,7 @@ export default function SetoresPage() {
   const handleInactivateCoordination = async () => {
     if (coordinationToDelete?.id) {
       try {
-        await deleteCoordination(coordinationToDelete.id);
+        await SetorService.deleteCoordination(coordinationToDelete.id);
         await loadCoordinations();
         if (coordinations.length === 1 && coordinationPage > 1) {
           setCoordinationPage(coordinationPage - 1);
@@ -425,9 +409,9 @@ export default function SetoresPage() {
         onSubmit={async (data) => {
           try {
             if (data.id) {
-              await updateDirection(data);
+              await SetorService.updateDirection(data);
             } else {
-              await createDirection(data);
+              await SetorService.createDirection(data);
             }
             await loadDirections();
             setOpenDirectionForm(false);
@@ -467,9 +451,9 @@ export default function SetoresPage() {
         onSubmit={async (data) => {
           try {
             if (data.id) {
-              await updateManagement(data);
+              await SetorService.updateManagement(data);
             } else {
-              await createManagement(data);
+              await SetorService.createManagement(data);
             }
             await loadManagements();
             setOpenManagementForm(false);
@@ -509,9 +493,9 @@ export default function SetoresPage() {
         onSubmit={async (data) => {
           try {
             if (data.id) {
-              await updateCoordination(data);
+              await SetorService.updateCoordination(data);
             } else {
-              await createCoordination(data);
+              await SetorService.createCoordination(data);
             }
             await loadCoordinations();
             setOpenCoordinationForm(false);

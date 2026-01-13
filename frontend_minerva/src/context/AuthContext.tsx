@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { jwtDecode } from "jwt-decode"
+import { API_URL } from "@/lib/config"
+import { API_ENDPOINTS } from "@/constants/api-endpoints"
 
 interface UserData {
   id: string
@@ -28,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // ✅ Centraliza a leitura dos dados de autenticação
+  // Centraliza a leitura dos dados de autenticação
   const getAuthData = useCallback(() => {
     try {
       const token = localStorage.getItem("access")
@@ -43,12 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userData: token && userData.id ? userData : null 
       }
     } catch (error) {
-      console.error("Error reading auth data", error)
       return { token: null, userData: null }
     }
   }, [])
 
-  // ✅ Verifica se o token está expirado
+  // Verifica se o token está expirado
   const isTokenExpired = useCallback((token: string): boolean => {
     try {
       const decoded = jwtDecode<{ exp: number }>(token)
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // ✅ Função de login otimizada
+  // Função de login otimizada
   const login = useCallback((data: { access: string; refresh: string; user: UserData }) => {
     try {
       localStorage.setItem("access", data.access)
@@ -67,20 +68,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("user_email", data.user.email)
       localStorage.setItem("user_name", data.user.name)
 
-      // Also set cookies for server-side access
-      document.cookie = `access=${data.access}; path=/; SameSite=strict`
-      document.cookie = `refresh=${data.refresh}; path=/; SameSite=strict`
+      // Define também os cookies com tempo de expiração adequado
+      document.cookie = `access=${data.access}; path=/; max-age=${8 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`
+      document.cookie = `refresh=${data.refresh}; path=/; max-age=${7 * 24 * 60 * 60}; secure=${window.location.protocol === 'https:'}; samesite=strict`
 
       setAccessToken(data.access)
       setUser(data.user)
       setError(null)
     } catch (error) {
-      setError("Failed to save authentication data")
-      console.error("Login error:", error)
+      setError("Falha ao salvar os dados de autenticação")
     }
   }, [])
 
-  // ✅ Função de logout otimizada
+  // Função de logout otimizada
   const logout = useCallback(() => {
     try {
       localStorage.removeItem("access")
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("user_email")
       localStorage.removeItem("user_name")
 
-      // Clear cookies
+      // Limpa os cookies
       document.cookie = 'access=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
       document.cookie = 'refresh=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
 
@@ -97,12 +97,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       setError(null)
     } catch (error) {
-      setError("Failed to clear authentication data")
-      console.error("Logout error:", error)
+      setError("Falha ao limpar os dados de autenticação")
     }
   }, [])
 
-  // ✅ Verifica se o token está prestes a expirar
+  // Verifica se o token está prestes a expirar
   const tokenExpiringSoon = useCallback((token: string, thresholdSeconds = 300): boolean => {
     try {
       const decoded = jwtDecode<{ exp: number }>(token)
@@ -113,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // ✅ Refresh token com tratamento de erros melhorado
+  // Refresh token com tratamento de erros melhorado
   const refreshAccessToken = useCallback(async (): Promise<boolean> => {
     const refresh = localStorage.getItem("refresh")
     if (!refresh) {
@@ -123,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setIsLoading(true)
-      const response = await fetch("http://localhost:8000/api/v1/accounts/token/refresh/", {
+      const response = await fetch(`${API_URL}${API_ENDPOINTS.AUTH.REFRESH}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh }),
@@ -137,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null)
       return true
     } catch (error) {
-      setError("Session expired. Please login again.")
+      setError("Sessão expirada. Por favor, faça login novamente.")
       logout()
       return false
     } finally {
@@ -145,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [logout])
 
-  // ✅ Inicialização com verificação de token
+  // Inicialização com verificação de token
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -161,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        setError("Failed to initialize authentication")
+        setError("Falha ao inicializar a autenticação")
       } finally {
         setIsLoading(false)
       }
@@ -170,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
   }, [getAuthData, isTokenExpired, refreshAccessToken])
 
-  // ✅ Verificação periódica do token
+  // Verificação periódica do token
   useEffect(() => {
     if (!accessToken) return
 
@@ -183,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval)
   }, [accessToken, tokenExpiringSoon, refreshAccessToken])
 
-  // ✅ Sincronização entre abas
+  // Sincronização entre abas
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "access") {

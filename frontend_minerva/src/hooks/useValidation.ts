@@ -1,4 +1,6 @@
 import { useCallback, useRef } from 'react';
+import { API_URL } from '@/lib/config';
+import { API_ENDPOINTS } from '@/constants/api-endpoints';
 
 // Função para ler cookies
 function getCookie(name: string): string | null {
@@ -47,7 +49,7 @@ export function useDuplicateValidation() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/center/management-centers/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
+        `${API_URL}${API_ENDPOINTS.CENTER.MANAGEMENT_LIST}?search=${encodeURIComponent(name.trim())}&page_size=1000`,
         {
           headers: {
             'Authorization': `Bearer ${getCookie('access')}`,
@@ -66,7 +68,6 @@ export function useDuplicateValidation() {
         );
       }
     } catch (error) {
-      console.error("Erro ao verificar duplicata de centro gestor:", error);
     }
     return false;
   };
@@ -80,7 +81,7 @@ export function useDuplicateValidation() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/center/requesting-centers/?search=${encodeURIComponent(name.trim())}&page_size=1000`,
+        `${API_URL}${API_ENDPOINTS.CENTER.REQUESTING_LIST}?search=${encodeURIComponent(name.trim())}&page_size=1000`,
         {
           headers: {
             'Authorization': `Bearer ${getCookie('access')}`,
@@ -100,7 +101,6 @@ export function useDuplicateValidation() {
         );
       }
     } catch (error) {
-      console.error("Erro ao verificar duplicata de centro solicitante:", error);
     }
     return false;
   };

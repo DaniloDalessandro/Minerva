@@ -6,13 +6,13 @@ from .views import (
     BudgetLineRetrieveAPIView,
     BudgetLineUpdateAPIView,
     BudgetLineDestroyAPIView,
-    #==============================
+    
     BudgetLineMovementListAPIView,
     BudgetLineMovementCreateAPIView,
     BudgetLineMovementRetrieveAPIView,
     BudgetLineMovementUpdateAPIView,
     BudgetLineMovementDestroyAPIView,
-    #==============================
+    
     BudgetLineVersionListAPIView,
     BudgetLineVersionRetrieveAPIView,
     BudgetLineVersionCreateAPIView,
@@ -24,13 +24,13 @@ urlpatterns = [
     path('budgetslines/<int:pk>/', BudgetLineRetrieveAPIView.as_view(), name='budgetline-retrieve'),
     path('budgetslines/<int:pk>/update/', BudgetLineUpdateAPIView.as_view(), name='budgetline-update'),
     path('budgetslines/<int:pk>/delete/', BudgetLineDestroyAPIView.as_view(), name='budgetline-destroy'),
-    #==============================
+    
     path('budgetlinemovements/', BudgetLineMovementListAPIView.as_view(), name='budgetlinemovement-list'),
     path('budgetlinemovements/create/', BudgetLineMovementCreateAPIView.as_view(), name='budgetlinemovement-create'),
     path('budgetlinemovements/<int:pk>/', BudgetLineMovementRetrieveAPIView.as_view(), name='budgetlinemovement-retrieve'),
     path('budgetlinemovements/<int:pk>/update/', BudgetLineMovementUpdateAPIView.as_view(), name='budgetlinemovement-update'),
     path('budgetlinemovements/<int:pk>/delete/', BudgetLineMovementDestroyAPIView.as_view(), name='budgetlinemovement-destroy'),
-    #==============================
+    
     path('budgetslines/<int:budget_line_id>/versions/', BudgetLineVersionListAPIView.as_view(), name='budgetline-versions-list'),
     path('budgetslines/versions/', BudgetLineVersionListAPIView.as_view(), name='budgetline-all-versions-list'),
     path('budgetslines/versions/<int:pk>/', BudgetLineVersionRetrieveAPIView.as_view(), name='budgetline-version-detail'),

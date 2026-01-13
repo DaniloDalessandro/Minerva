@@ -7,7 +7,7 @@ import { deleteBudgetLine, fetchBudgetLineById, createBudgetLine, updateBudgetLi
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useAuth } from "@/hooks/useAuth"
-import BudgetLineForm from "@/components/forms/BudgetLineForm"
+import { BudgetLineForm } from "@/features/orcamento"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { CalendarIcon, DollarSignIcon, BuildingIcon, UserIcon, ArrowLeftRightIcon, InfoIcon, TagIcon, CheckCircleIcon, FileTextIcon } from "lucide-react"
@@ -23,9 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { BudgetMovementHistory } from "@/components/budget/BudgetMovementHistory"
-import { BudgetMovementForm } from "@/components/forms/BudgetMovementForm"
-import { BudgetLines } from "@/components/budget/BudgetLines"
+import { BudgetMovementHistory, BudgetMovementForm, BudgetLines } from "@/features/orcamento"
 
 export default function BudgetDetailsPage() {
   const params = useParams()

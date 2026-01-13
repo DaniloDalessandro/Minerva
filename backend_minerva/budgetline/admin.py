@@ -13,7 +13,7 @@ class BudgetLineAdmin(admin.ModelAdmin):
 
 admin.site.register(BudgetLine, BudgetLineAdmin)
 
-#=================================================================================================================
+
 
 class BudgetLineMovementAdmin(admin.ModelAdmin):
     list_display = ('source_line', 'destination_line','movement_amount', 'created_by', 'updated_by', 'created_at', 'updated_at')  

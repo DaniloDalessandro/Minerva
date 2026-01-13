@@ -3,11 +3,11 @@ from django.core.validators import MinValueValidator
 from accounts.models import User
 from employee.models import Employee
 from budgetline.models import BudgetLine
-from accounts.permissions import HierarchicalPermissionMixin
+from accounts.mixins import HierarchicalQuerysetMixin
 from django.utils import timezone
 from .services.services_contract import generate_protocol_number
 
-class Contract(models.Model, HierarchicalPermissionMixin):
+class Contract(models.Model, HierarchicalQuerysetMixin):
     budget_line = models.ForeignKey(BudgetLine, on_delete=models.PROTECT, related_name='contracts')
     protocol_number = models.CharField(max_length=7, unique=True, blank=True, editable=False, verbose_name='Contrato')
     signing_date = models.DateField(null=True, blank=True, verbose_name='Data de Assinatura')
@@ -15,14 +15,14 @@ class Contract(models.Model, HierarchicalPermissionMixin):
     main_inspector = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name='contracts_main_inspector', verbose_name='Fiscal Principal')
     substitute_inspector = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name='contracts_substitute_inspector', verbose_name='Fiscal Substituto')
     PAYMENT_TYPE_CHOICES = [
-        ('PAGAMENTO ÚNICO', 'PAGAMENTO ÚNICO'),
-        ('PAGAMENTO ANUAL', 'PAGAMENTO ANUAL'),
-        ('PAGAMENTO SEMANAL', 'PAGAMENTO SEMANAL'),
-        ('PAGAMENTO MENSAL', 'PAGAMENTO MENSAL'),
-        ('PAGAMENTO QUIZENAL', 'PAGAMENTO QUINZENAL'),
-        ('PAGAMENTO TRIMESTRAL', 'PAGAMENTO TRIMESTRAL'),
-        ('PAGAMENTO SEMESTRAL', 'PAGAMENTO SEMESTRAL'),
-        ('PAGAMENTO SOB DEMANDA', 'PAGAMENTO SOB DEMANDA'),
+        ('UNICO', 'Pagamento Único'),
+        ('ANUAL', 'Pagamento Anual'),
+        ('SEMANAL', 'Pagamento Semanal'),
+        ('MENSAL', 'Pagamento Mensal'),
+        ('QUINZENAL', 'Pagamento Quinzenal'),
+        ('TRIMESTRAL', 'Pagamento Trimestral'),
+        ('SEMESTRAL', 'Pagamento Semestral'),
+        ('SOB_DEMANDA', 'Pagamento Sob Demanda'),
     ]
     payment_nature = models.CharField(choices=PAYMENT_TYPE_CHOICES, max_length=30, verbose_name='Natureza do Pagamento')
     description = models.CharField(max_length=255, verbose_name='Descrição')
@@ -79,7 +79,7 @@ class Contract(models.Model, HierarchicalPermissionMixin):
         verbose_name_plural = 'Contratos'
         ordering = ['protocol_number']
 
-#=======================================================================================================================
+
 
 class ContractInstallment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='installments')
@@ -106,7 +106,7 @@ class ContractInstallment(models.Model):
         verbose_name_plural = 'Parcelas'
         ordering = ['contract', 'number']
 
-#=======================================================================================================================
+
 
 class ContractAmendment(models.Model):
     AMENDMENT_TYPES = [
@@ -114,7 +114,7 @@ class ContractAmendment(models.Model):
         ('Redução de Valor', 'Redução de Valor'),
         ('Prorrogação de Prazo', 'Prorrogação de Prazo'),
     ]
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='Contrato')
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='amendments')
     description = models.CharField(max_length=255, verbose_name='Descrição')
     type = models.CharField(max_length=20, choices=AMENDMENT_TYPES,verbose_name='Tipo')
     value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)],verbose_name='Valor')

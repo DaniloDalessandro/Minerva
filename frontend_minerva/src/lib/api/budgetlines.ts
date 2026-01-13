@@ -1,105 +1,157 @@
-import { authFetch } from "./authFetch"
+import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/constants/api-endpoints';
+import type {
+  BudgetLine,
+  BudgetLinesResponse,
+  CreateBudgetLineData,
+  BudgetLineMovement,
+  CreateBudgetLineMovementData,
+} from '@/types/entities/budget-line';
 
-// Interfaces para linhas orçamentárias
-export interface BudgetLine {
-  id: number
-  budget: {
-    id: number
-    name: string
+// Funções principais da API de linhas orçamentárias
+export async function fetchBudgetLinesAPI(params: URLSearchParams): Promise<BudgetLinesResponse> {
+  const url = `${API_ENDPOINTS.BUDGET_LINE.LIST}?${params}`;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar linhas orçamentárias');
   }
-  category: 'CAPEX' | 'OPEX'
-  expense_type: 'Base Principal' | 'Serviços Especializados' | 'Despesas Compartilhadas'
-  management_center: {
-    id: number
-    name: string
+  return response.json();
+}
+
+export async function fetchBudgetLineByIdAPI(id: number): Promise<BudgetLine> {
+  const url = API_ENDPOINTS.BUDGET_LINE.BY_ID(id);
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar linha orçamentária');
   }
-  requesting_center: {
-    id: number
-    name: string
+  return response.json();
+}
+
+export async function createBudgetLineAPI(data: CreateBudgetLineData): Promise<BudgetLine> {
+  const url = API_ENDPOINTS.BUDGET_LINE.CREATE;
+  const response = await apiClient(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao criar linha orçamentária');
   }
-  summary_description: string
-  object: string
-  budget_classification: 'NOVO' | 'RENOVAÇÃO' | 'CARY OVER' | 'REPLANEJAMENTO' | 'N/A'
-  main_fiscal: {
-    id: number
-    full_name: string
-    employee_id?: string
-  } | null
-  secondary_fiscal: {
-    id: number
-    full_name: string
-    employee_id?: string
-  } | null
-  contract_type: 'SERVIÇO' | 'FORNECIMENTO' | 'ASSINATURA' | 'FORNECIMENTO/SERVIÇO'
-  probable_procurement_type: 'LICITAÇÃO' | 'DISPENSA EM RAZÃO DO VALOR' | 'CONVÊNIO' | 'FUNDO FIXO' | 'INEXIGIBILIDADE' | 'ATA DE REGISTRO DE PREÇO' | 'ACORDO DE COOPERAÇÃO' | 'APOSTILAMENTO'
-  budgeted_amount: string
-  process_status: 'VENCIDO' | 'DENTRO DO PRAZO' | 'ELABORADO COM ATRASO' | 'ELABORADO NO PRAZO' | null
-  contract_status: 'DENTRO DO PRAZO' | 'CONTRATADO NO PRAZO' | 'CONTRATADO COM ATRASO' | 'PRAZO VENCIDO' | 'LINHA TOTALMENTE REMANEJADA' | 'LINHA TOTALMENTE EXECUTADA' | 'LINHA DE PAGAMENTO' | 'LINHA PARCIALMENTE REMANEJADA' | 'LINHA PARCIALMENTE EXECUTADA' | 'N/A' | null
-  contract_notes?: string
-  created_at: string
-  updated_at: string
-  created_by: {
-    id: number
-    email: string
-    first_name?: string
-    last_name?: string
-  } | null
-  updated_by: {
-    id: number
-    email: string
-    first_name?: string
-    last_name?: string
-  } | null
-  isOptimistic?: boolean
+  return response.json();
 }
 
-export interface BudgetLineMovement {
-  id: number
-  source_line?: number
-  destination_line?: number
-  movement_amount: number
-  movement_notes?: string
-  created_at: string
-  updated_at: string
-  created_by?: number
-  updated_by?: number
+export async function updateBudgetLineAPI(data: CreateBudgetLineData): Promise<BudgetLine> {
+  const url = API_ENDPOINTS.BUDGET_LINE.UPDATE(data.id!);
+  const response = await apiClient(url, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao atualizar linha orçamentária');
+  }
+  return response.json();
 }
 
-export interface CreateBudgetLineData {
-  id?: number
-  budget: number
-  category: 'CAPEX' | 'OPEX'
-  expense_type: 'Base Principal' | 'Serviços Especializados' | 'Despesas Compartilhadas'
-  management_center: number
-  requesting_center: number
-  summary_description: string
-  object: string
-  budget_classification: 'NOVO' | 'RENOVAÇÃO' | 'CARY OVER' | 'REPLANEJAMENTO' | 'N/A'
-  main_fiscal?: number | null
-  secondary_fiscal?: number | null
-  contract_type: 'SERVIÇO' | 'FORNECIMENTO' | 'ASSINATURA' | 'FORNECIMENTO/SERVIÇO'
-  probable_procurement_type: 'LICITAÇÃO' | 'DISPENSA EM RAZÃO DO VALOR' | 'CONVÊNIO' | 'FUNDO FIXO' | 'INEXIGIBILIDADE' | 'ATA DE REGISTRO DE PREÇO' | 'ACORDO DE COOPERAÇÃO' | 'APOSTILAMENTO'
-  budgeted_amount: string
-  process_status?: 'VENCIDO' | 'DENTRO DO PRAZO' | 'ELABORADO COM ATRASO' | 'ELABORADO NO PRAZO' | null
-  contract_status?: 'DENTRO DO PRAZO' | 'CONTRATADO NO PRAZO' | 'CONTRATADO COM ATRASO' | 'PRAZO VENCIDO' | 'LINHA TOTALMENTE REMANEJADA' | 'LINHA TOTALMENTE EXECUTADA' | 'LINHA DE PAGAMENTO' | 'LINHA PARCIALMENTE REMANEJADA' | 'LINHA PARCIALMENTE EXECUTADA' | 'N/A' | null
-  contract_notes?: string
+export async function deleteBudgetLineAPI(id: number): Promise<any> {
+  const url = API_ENDPOINTS.BUDGET_LINE.DELETE(id);
+  const response = await apiClient(url, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao excluir linha orçamentária');
+  }
+  return response.json();
 }
 
-export interface BudgetLinesResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: BudgetLine[]
+// API de movimentações de linha orçamentária
+export async function getBudgetLineMovementsAPI(): Promise<any> {
+  const url = API_ENDPOINTS.BUDGET_LINE_MOVEMENT.LIST;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar movimentações da linha orçamentária');
+  }
+  return response.json();
 }
 
-export interface CreateBudgetLineMovementData {
-  source_line?: number
-  destination_line?: number
-  movement_amount: number
-  movement_notes?: string
+export async function createBudgetLineMovementAPI(data: CreateBudgetLineMovementData): Promise<BudgetLineMovement> {
+  const url = API_ENDPOINTS.BUDGET_LINE_MOVEMENT.CREATE;
+  const response = await apiClient(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Falha ao criar movimentação da linha orçamentária');
+  }
+  return response.json();
 }
 
-// Funções principais da API
+export async function updateBudgetLineMovementAPI(id: number, data: Partial<CreateBudgetLineMovementData>): Promise<BudgetLineMovement> {
+  const url = API_ENDPOINTS.BUDGET_LINE_MOVEMENT.UPDATE(id);
+  const response = await apiClient(url, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Falha ao atualizar movimentação da linha orçamentária');
+  }
+  return response.json();
+}
+
+export async function deleteBudgetLineMovementAPI(id: number): Promise<any> {
+  const url = API_ENDPOINTS.BUDGET_LINE_MOVEMENT.DELETE(id);
+  const response = await apiClient(url, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Falha ao excluir movimentação da linha orçamentária');
+  }
+  return response.json();
+}
+
+// API de dados para dropdown
+export async function fetchBudgetsAPI(): Promise<any[]> {
+  const url = `${API_ENDPOINTS.BUDGET.LIST}?page_size=1000`;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar orçamentos');
+  }
+  const data = await response.json();
+  return data.results || data;
+}
+
+export async function fetchManagementCentersAPI(): Promise<any[]> {
+  const url = `${API_ENDPOINTS.MANAGEMENT_CENTER.LIST}?page_size=1000`;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar centros de gestão');
+  }
+  const data = await response.json();
+  return data.results || data;
+}
+
+export async function fetchRequestingCentersAPI(): Promise<any[]> {
+  const url = `${API_ENDPOINTS.REQUESTING_CENTER.LIST}?page_size=1000`;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar centros solicitantes');
+  }
+  const data = await response.json();
+  return data.results || data;
+}
+
+export async function fetchEmployeesForDropdownAPI(): Promise<any[]> {
+  const url = `${API_ENDPOINTS.EMPLOYEE.ALL_EMPLOYEES}?page_size=1000`;
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar funcionários');
+  }
+  const data = await response.json();
+  return data.results || data;
+}
+
+// Exportações legadas para compatibilidade (obsoleto - use a camada de serviço em seu lugar)
 export async function fetchBudgetLines(
   page: number = 1,
   pageSize: number = 10,
@@ -109,160 +161,73 @@ export async function fetchBudgetLines(
   const params = new URLSearchParams({
     page: page.toString(),
     page_size: pageSize.toString(),
-  })
-  
-  if (search) {
-    params.append('search', search)
-  }
-  
-  if (ordering) {
-    params.append('ordering', ordering)
-  }
-
-  const response = await authFetch(`http://localhost:8000/api/v1/budgetline/budgetslines/?${params}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch budget lines')
-  }
-  return response.json()
+  });
+  if (search) params.append('search', search);
+  if (ordering) params.append('ordering', ordering);
+  return fetchBudgetLinesAPI(params);
 }
 
 export async function fetchBudgetLineById(id: number): Promise<BudgetLine> {
-  const response = await authFetch(`http://localhost:8000/api/v1/budgetline/budgetslines/${id}/`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch budget line')
-  }
-  return response.json()
+  return fetchBudgetLineByIdAPI(id);
 }
 
-export async function createBudgetLine(data: CreateBudgetLineData) {
-  const response = await authFetch('http://localhost:8000/api/v1/budgetline/budgetslines/create/', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  })
-  if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.message || 'Failed to create budget line')
-  }
-  return response.json()
+export async function createBudgetLine(data: CreateBudgetLineData): Promise<BudgetLine> {
+  return createBudgetLineAPI(data);
 }
 
-export async function updateBudgetLine(data: CreateBudgetLineData) {
-  const response = await authFetch(`http://localhost:8000/api/v1/budgetline/budgetslines/${data.id}/update/`, {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  })
-  if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.message || 'Failed to update budget line')
-  }
-  return response.json()
+export async function updateBudgetLine(data: CreateBudgetLineData): Promise<BudgetLine> {
+  return updateBudgetLineAPI(data);
 }
 
-export async function deleteBudgetLine(id: number) {
-  const response = await authFetch(`http://localhost:8000/api/v1/budgetline/budgetslines/${id}/delete/`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.message || 'Failed to delete budget line')
-  }
-  return response.json()
+export async function deleteBudgetLine(id: number): Promise<any> {
+  return deleteBudgetLineAPI(id);
 }
 
-// Função para buscar orçamentos para o dropdown
+export async function getBudgetLineMovements(): Promise<any> {
+  return getBudgetLineMovementsAPI();
+}
+
+export async function getBudgetLineMovement(id: number): Promise<BudgetLineMovement> {
+  const url = API_ENDPOINTS.BUDGET_LINE_MOVEMENT.BY_ID(id);
+  const response = await apiClient(url);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar movimentação da linha orçamentária');
+  }
+  return response.json();
+}
+
+export async function createBudgetLineMovement(data: CreateBudgetLineMovementData): Promise<BudgetLineMovement> {
+  return createBudgetLineMovementAPI(data);
+}
+
+export async function updateBudgetLineMovement(id: number, data: Partial<CreateBudgetLineMovementData>): Promise<BudgetLineMovement> {
+  return updateBudgetLineMovementAPI(id, data);
+}
+
+export async function deleteBudgetLineMovement(id: number): Promise<any> {
+  return deleteBudgetLineMovementAPI(id);
+}
+
 export async function fetchBudgets(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/budget/budgets/?page_size=1000')
-  if (!response.ok) {
-    throw new Error('Failed to fetch budgets')
-  }
-  const data = await response.json()
-  return data.results || data
+  return fetchBudgetsAPI();
 }
 
-// Função para buscar centros de gestão para o dropdown
 export async function fetchManagementCenters(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/center/management-centers/?page_size=1000')
-  if (!response.ok) {
-    throw new Error('Failed to fetch management centers')
-  }
-  const data = await response.json()
-  return data.results || data
+  return fetchManagementCentersAPI();
 }
 
-// Função para buscar centros solicitantes para o dropdown
 export async function fetchRequestingCenters(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/center/requesting-centers/?page_size=1000')
-  if (!response.ok) {
-    throw new Error('Failed to fetch requesting centers')
-  }
-  const data = await response.json()
-  return data.results || data
+  return fetchRequestingCentersAPI();
 }
 
-// Função para buscar funcionários para o dropdown
 export async function fetchEmployees(): Promise<any[]> {
-  const response = await authFetch('http://localhost:8000/api/v1/employee/employees/?page_size=1000')
-  if (!response.ok) {
-    throw new Error('Failed to fetch employees')
-  }
-  const data = await response.json()
-  return data.results || data
+  return fetchEmployeesForDropdownAPI();
 }
 
-// Legacy functions para compatibilidade
-export async function getBudgetLines() {
-  return fetchBudgetLines()
+export async function getBudgetLines(): Promise<BudgetLinesResponse> {
+  return fetchBudgetLines();
 }
 
-export async function getBudgetLine(id: number) {
-  return fetchBudgetLineById(id)
-}
-
-// Budget Line Movements
-export async function getBudgetLineMovements() {
-  const response = await authFetch('/api/v1/budgetline/budgetlinemovements/')
-  if (!response.ok) {
-    throw new Error('Failed to fetch budget line movements')
-  }
-  return response.json()
-}
-
-export async function getBudgetLineMovement(id: number) {
-  const response = await authFetch(`/api/v1/budgetline/budgetlinemovements/${id}/`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch budget line movement')
-  }
-  return response.json()
-}
-
-export async function createBudgetLineMovement(data: CreateBudgetLineMovementData) {
-  const response = await authFetch('/api/v1/budgetline/budgetlinemovements/create/', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  })
-  if (!response.ok) {
-    throw new Error('Failed to create budget line movement')
-  }
-  return response.json()
-}
-
-export async function updateBudgetLineMovement(id: number, data: Partial<CreateBudgetLineMovementData>) {
-  const response = await authFetch(`/api/v1/budgetline/budgetlinemovements/${id}/update/`, {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  })
-  if (!response.ok) {
-    throw new Error('Failed to update budget line movement')
-  }
-  return response.json()
-}
-
-export async function deleteBudgetLineMovement(id: number) {
-  const response = await authFetch(`/api/v1/budgetline/budgetlinemovements/${id}/delete/`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    throw new Error('Failed to delete budget line movement')
-  }
-  return response.json()
+export async function getBudgetLine(id: number): Promise<BudgetLine> {
+  return fetchBudgetLineById(id);
 }

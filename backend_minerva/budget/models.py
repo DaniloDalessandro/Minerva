@@ -2,37 +2,55 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from accounts.models import User
 from .utils.validators import validate_year
-from center.models import Management_Center
-from accounts.permissions import HierarchicalPermissionMixin
+from center.models import ManagementCenter
+from accounts.mixins import HierarchicalQuerysetMixin
 from decimal import Decimal
 from django.db.models import Sum
 
-#========================================================================================================================================
-class Budget(models.Model, HierarchicalPermissionMixin):
+
+class Budget(models.Model, HierarchicalQuerysetMixin):
     BUDGET_CLASSES = [
         ('CAPEX', 'CAPEX'),
         ('OPEX', 'OPEX'),
     ]
-    year = models.PositiveIntegerField(validators=[validate_year],verbose_name='Ano')
-    category = models.CharField(max_length=5, choices=BUDGET_CLASSES,verbose_name='Categoria')
+    year = models.PositiveIntegerField(validators=[validate_year], verbose_name='Ano')
+    category = models.CharField(max_length=5, choices=BUDGET_CLASSES, verbose_name='Categoria')
     management_center = models.ForeignKey(
-        Management_Center, 
-        on_delete=models.CASCADE, 
+        ManagementCenter,
+        on_delete=models.CASCADE,
         related_name='budgets',
         verbose_name='Centro Gestor'
     )
     total_amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
         verbose_name='Valor Total'
     )
     available_amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        validators=[MinValueValidator(Decimal('0.00'))], 
-        default=0.0,
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00'),
         verbose_name='Valor Disponível'
+    )
+    cached_used_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name='Valor Utilizado (Cache)'
+    )
+    cached_incoming_movements = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name='Entrada via Movimentações (Cache)'
+    )
+    cached_outgoing_movements = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name='Saída via Movimentações (Cache)'
     )
     STATUS = [
         ('ATIVO', 'Ativo'),
@@ -43,63 +61,60 @@ class Budget(models.Model, HierarchicalPermissionMixin):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     created_by = models.ForeignKey(User, related_name='budgets_created', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
     updated_by = models.ForeignKey(User, related_name='budgets_updated', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
-    
 
     @property
     def used_amount(self):
-        """Calcula o valor utilizado baseado na soma das linhas orçamentárias"""
-        total_budgeted = self.budget_lines.aggregate(
-            total=Sum('budgeted_amount')
-        )['total']
-        # Converte float para Decimal para compatibilidade
-        if total_budgeted is None:
-            return Decimal('0.00')
-        return Decimal(str(total_budgeted))
-    
+        """Retorna valor utilizado do cache"""
+        return self.cached_used_amount
+
     @property
     def valor_remanejado_entrada(self):
-        """Calcula o valor total recebido via movimentações (entradas)"""
-        incoming_total = self.incoming_movements.aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0.00')
-        return incoming_total
-    
+        """Retorna valor de entrada do cache"""
+        return self.cached_incoming_movements
+
     @property
     def valor_remanejado_saida(self):
-        """Calcula o valor total enviado via movimentações (saídas)"""
-        outgoing_total = self.outgoing_movements.aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0.00')
-        return outgoing_total
-    
+        """Retorna valor de saída do cache"""
+        return self.cached_outgoing_movements
+
     @property
     def calculated_available_amount(self):
-        """Calcula o valor disponível considerando movimentações"""
-        # Valor base é o total_amount
+        """Calcula valor disponível usando campos em cache"""
         base_amount = Decimal(str(self.total_amount))
-        
-        # Movimentações
-        entrada = self.valor_remanejado_entrada
-        saida = self.valor_remanejado_saida
-        
-        # Valor usado pelas linhas orçamentárias
-        used_by_lines = self.used_amount
-        
-        # Disponível = total + entrada - saída - usado
-        available = base_amount + entrada - saida - used_by_lines
+        available = base_amount + self.cached_incoming_movements - self.cached_outgoing_movements - self.cached_used_amount
         return max(available, Decimal('0.00'))
-    
-    def update_calculated_amounts(self):
-        """Atualiza o available_amount com base nos cálculos automáticos"""
+
+    def recalculate_cached_amounts(self):
+        """Recalcula e atualiza todos os campos em cache"""
+        self.cached_used_amount = self.budget_lines.aggregate(
+            total=Sum('budgeted_amount')
+        )['total'] or Decimal('0.00')
+
+        self.cached_incoming_movements = self.incoming_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+
+        self.cached_outgoing_movements = self.outgoing_movements.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+
         self.available_amount = self.calculated_available_amount
-        self.save(update_fields=['available_amount', 'updated_at'])
-    
+
+    def update_calculated_amounts(self):
+        """Atualiza valores calculados e salva"""
+        self.recalculate_cached_amounts()
+        self.save(update_fields=[
+            'cached_used_amount',
+            'cached_incoming_movements',
+            'cached_outgoing_movements',
+            'available_amount',
+            'updated_at'
+        ])
+
     def save(self, *args, **kwargs):
-        # Se não é uma atualização manual do available_amount, calcular automaticamente
         if 'update_fields' not in kwargs or 'available_amount' not in kwargs.get('update_fields', []):
-            # Só calcular se já existe (não é criação inicial)
             if self.pk:
-                self.available_amount = self.calculated_available_amount
+                self.recalculate_cached_amounts()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -107,30 +122,22 @@ class Budget(models.Model, HierarchicalPermissionMixin):
     
     @classmethod
     def get_objects_by_direction(cls, direction):
-        """Retorna orçamentos baseados na direção"""
-        # Assumindo que management_center tem relação com direção
-        # Adapte conforme sua estrutura de dados
-        return cls.objects.filter(
-            management_center__direction=direction
-        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'direction') else cls.objects.none()
-    
+        """Filtra orçamentos por direção"""
+        return cls.objects.filter(management_center__direction=direction)
+
     @classmethod
     def get_objects_by_management(cls, management):
-        """Retorna orçamentos baseados na gerência"""
-        return cls.objects.filter(
-            management_center__management=management
-        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'management') else cls.objects.none()
-    
+        """Filtra orçamentos por gerência"""
+        return cls.objects.filter(management_center__management=management)
+
     @classmethod
     def get_objects_by_coordination(cls, coordination):
-        """Retorna orçamentos baseados na coordenação - filtro principal"""
-        return cls.objects.filter(
-            management_center__coordination=coordination
-        ) if hasattr(cls.objects.model._meta.get_field('management_center').remote_field.model, 'coordination') else cls.objects.none()
-    
+        """Filtra orçamentos por coordenação"""
+        return cls.objects.filter(management_center__coordination=coordination)
+
     @classmethod
     def get_objects_by_user(cls, user):
-        """Retorna orçamentos que o usuário específico pode ver"""
+        """Filtra orçamentos acessíveis ao usuário"""
         if user.employee and user.employee.coordination:
             return cls.get_objects_by_coordination(user.employee.coordination)
         return cls.objects.none()
@@ -148,30 +155,28 @@ class Budget(models.Model, HierarchicalPermissionMixin):
         ]
         ordering = ['-year', 'category']
 
-#==================================================================================================================================
+
 
 class BudgetMovement(models.Model):
-    source = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='outgoing_movements',verbose_name='Origem')
-    destination = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='incoming_movements',verbose_name='Destino')
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))],verbose_name='Valor')
-    movement_date = models.DateField(auto_now_add=True,verbose_name='Data da Movimentação')
-    notes = models.TextField(blank=True, null=True,verbose_name='Observações')
-    created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
-    updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, related_name='budget_movements_created', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, related_name='budget_movements_updated', on_delete=models.SET_NULL, null=True, blank=True,verbose_name='Atualizado por')
-    
+    source = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='outgoing_movements', verbose_name='Origem')
+    destination = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='incoming_movements', verbose_name='Destino')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))], verbose_name='Valor')
+    movement_date = models.DateField(auto_now_add=True, verbose_name='Data da Movimentação')
+    notes = models.TextField(blank=True, null=True, verbose_name='Observações')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    created_by = models.ForeignKey(User, related_name='budget_movements_created', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, related_name='budget_movements_updated', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Atualizar os valores calculados dos orçamentos relacionados
         self.source.update_calculated_amounts()
         self.destination.update_calculated_amounts()
-    
+
     def delete(self, *args, **kwargs):
         source_budget = self.source
         destination_budget = self.destination
         super().delete(*args, **kwargs)
-        # Atualizar os valores calculados dos orçamentos relacionados
         source_budget.update_calculated_amounts()
         destination_budget.update_calculated_amounts()
 

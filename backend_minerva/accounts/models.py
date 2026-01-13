@@ -95,16 +95,32 @@ class BlacklistedToken(models.Model):
 
     @classmethod
     def is_blacklisted(cls, token: str) -> bool:
-        """Verifica se um token está na blacklist"""
+        """
+        Verifica se um token está na blacklist.
+
+        IMPORTANTE: Este método apenas verifica se o token está na blacklist,
+        NÃO verifica se o token é válido ou expirado. A validação de token
+        deve ser feita pelo JWTAuthentication antes de chamar este método.
+
+        Se não conseguir extrair o JTI do token, retorna False para permitir
+        que o erro de validação seja tratado pelo sistema de autenticação.
+        """
         try:
             from rest_framework_simplejwt.tokens import AccessToken
-            decoded_token = AccessToken(token)
+            # Tenta decodificar sem verificar expiração
+            decoded_token = AccessToken(token, verify=False)
             jti = decoded_token.get('jti')
+
+            if not jti:
+                # Sem JTI, não pode estar na blacklist
+                return False
+
             return cls.objects.filter(jti=jti).exists()
         except Exception as e:
-            # CORREÇÃO CRÍTICA: Log do erro mas NÃO considerar automaticamente como blacklisted
-            logger.warning(f"Aviso ao verificar blacklist para token: {e}")
-            return False  # Token com problemas de decodificação não é necessariamente blacklisted
+            # Se não consegue extrair o JTI, assume que não está na blacklist
+            # O erro de validação será tratado pelo middleware/autenticação
+            logger.debug(f"Não foi possível verificar blacklist (token pode ser inválido): {e}")
+            return False
 
     @classmethod
     def add_token(cls, token: str, user, reason: str = 'logout'):

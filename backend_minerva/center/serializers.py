@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError
-from .models import Management_Center, Requesting_Center
+from .models import ManagementCenter, RequestingCenter
 from .utils.validators import validate_registry_field
 from django.contrib.auth import get_user_model
 
@@ -20,8 +20,8 @@ class ManagementCenterSerializer(serializers.ModelSerializer):
     updated_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
-        model = Management_Center
-        fields = '__all__'
+        model = ManagementCenter
+        fields = ['id', 'name', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'is_active']
 
     def validate_name(self, value):
@@ -40,7 +40,7 @@ class ManagementCenterSerializer(serializers.ModelSerializer):
                 error_detail = e.message_dict['name']
                 if isinstance(error_detail, dict):
                     raise ValidationError(error_detail)
-            # Handle both dict and string error messages
+            # Trata both dict and string error messages
             error_message = e.message_dict if hasattr(e, 'message_dict') else str(e)
             raise ValidationError({
                 'field': 'name',
@@ -52,8 +52,8 @@ class ManagementCenterSerializer(serializers.ModelSerializer):
         """Cross-field validation"""
         name = attrs.get('name')
         if name:
-            # Check for duplicates
-            existing = Management_Center.objects.filter(name=name.upper())
+            # Verifica for duplicates
+            existing = ManagementCenter.objects.filter(name=name.upper())
             if self.instance:
                 existing = existing.exclude(pk=self.instance.pk)
             
@@ -79,7 +79,7 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
     updated_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
-        model = Requesting_Center
+        model = RequestingCenter
         fields = ['id', 'name', 'management_center', 'management_center_id', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by']
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'is_active']
 
@@ -99,7 +99,7 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
                 error_detail = e.message_dict['name']
                 if isinstance(error_detail, dict):
                     raise ValidationError(error_detail)
-            # Handle both dict and string error messages
+            # Trata both dict and string error messages
             error_message = e.message_dict if hasattr(e, 'message_dict') else str(e)
             raise ValidationError({
                 'field': 'name',
@@ -117,9 +117,9 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
             })
         
         try:
-            Management_Center.objects.get(id=value)
+            ManagementCenter.objects.get(id=value)
             return value
-        except Management_Center.DoesNotExist:
+        except ManagementCenter.DoesNotExist:
             raise ValidationError({
                 'field': 'management_center_id',
                 'code': 'not_found',
@@ -132,8 +132,8 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
         management_center_id = attrs.get('management_center_id')
         
         if name and management_center_id:
-            # Check for duplicates within the same management center
-            existing = Requesting_Center.objects.filter(
+            # Verifica for duplicates within the same management center
+            existing = RequestingCenter.objects.filter(
                 management_center_id=management_center_id,
                 name=name.upper()
             )
@@ -155,9 +155,9 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
         management_center_id = validated_data.pop('management_center_id', None)
         if management_center_id:
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 validated_data['management_center'] = management_center
-            except Management_Center.DoesNotExist:
+            except ManagementCenter.DoesNotExist:
                 raise ValidationError({
                     'management_center_id': {
                         'field': 'management_center_id',
@@ -171,9 +171,9 @@ class RequestingCenterSerializer(serializers.ModelSerializer):
         management_center_id = validated_data.pop('management_center_id', None)
         if management_center_id:
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 validated_data['management_center'] = management_center
-            except Management_Center.DoesNotExist:
+            except ManagementCenter.DoesNotExist:
                 raise ValidationError({
                     'management_center_id': {
                         'field': 'management_center_id',

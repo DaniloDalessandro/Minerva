@@ -30,7 +30,11 @@ class CoordinationSerializer(serializers.ModelSerializer):
 class EmployeeWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = [
+            'id', 'full_name', 'cpf', 'email', 'phone', 'admission_date',
+            'direction', 'management', 'coordination', 'status',
+            'created_at', 'updated_at', 'created_by', 'updated_by'
+        ]
         read_only_fields = ('created_by', 'updated_by')
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -39,9 +43,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
     coordination = CoordinationSerializer(read_only=True)
     created_by = UserSerializer(read_only=True)
     updated_by = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = [
+            'id', 'full_name', 'cpf', 'email', 'phone', 'admission_date',
+            'direction', 'management', 'coordination', 'status',
+            'created_at', 'updated_at', 'created_by', 'updated_by'
+        ]
         read_only_fields = ('created_by', 'updated_by')
 

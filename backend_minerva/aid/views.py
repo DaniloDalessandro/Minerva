@@ -7,14 +7,14 @@ from .serializers import AidSerializer
 from .utils.exceptions import AidNotFound
 from .utils.messages import AID_MESSAGES
 
-#=======================================================================================================================
+
 
 class AidListAPIView(generics.ListAPIView):
     queryset = Assistance.objects.all()
     serializer_class = AidSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
-#=======================================================================================================================
+
 
 class AidCreateAPIView(generics.CreateAPIView):
     queryset = Assistance.objects.all()
@@ -32,7 +32,7 @@ class AidCreateAPIView(generics.CreateAPIView):
         }
         return response
 
-#=======================================================================================================================
+
 
 class AidRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Assistance.objects.all()
@@ -45,7 +45,7 @@ class AidRetrieveAPIView(generics.RetrieveAPIView):
         except Assistance.DoesNotExist:
             raise AidNotFound
 
-#=======================================================================================================================
+
 
 class AidUpdateAPIView(generics.UpdateAPIView):
     queryset = Assistance.objects.all()
@@ -63,7 +63,7 @@ class AidUpdateAPIView(generics.UpdateAPIView):
         }
         return response
 
-#=======================================================================================================================
+
 
 class AidDestroyAPIView(generics.DestroyAPIView):
     queryset = Assistance.objects.all()

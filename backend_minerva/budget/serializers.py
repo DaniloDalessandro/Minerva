@@ -1,6 +1,6 @@
 from .models import Budget, BudgetMovement
 from rest_framework import serializers
-from center.models import Management_Center
+from center.models import ManagementCenter
 from center.serializers import ManagementCenterSerializer, UserInfoSerializer
 from django.core.exceptions import ValidationError as DjangoValidationError
 import logging
@@ -65,187 +65,160 @@ class BudgetDetailSerializer(BudgetSerializer):
         return BudgetLineDetailSerializer(budget_lines, many=True).data
     
     def get_budget_lines_summary(self, obj):
-        """
-        Retorna um resumo das linhas orçamentárias
-        """
-        budget_lines = obj.budget_lines.all()
-        total_budgeted = sum(line.budgeted_amount for line in budget_lines)
-        
-        # Contagem por status de processo
-        process_status_counts = {}
-        for line in budget_lines:
-            status = line.process_status or 'N/A'
-            process_status_counts[status] = process_status_counts.get(status, 0) + 1
-        
-        # Contagem por status de contrato
-        contract_status_counts = {}
-        for line in budget_lines:
-            status = line.contract_status or 'N/A'
-            contract_status_counts[status] = contract_status_counts.get(status, 0) + 1
-        
-        # Contagem por tipo de despesa
-        expense_type_counts = {}
-        for line in budget_lines:
-            expense_type = line.expense_type or 'N/A'
-            expense_type_counts[expense_type] = expense_type_counts.get(expense_type, 0) + 1
-        
+        """Retorna resumo das linhas orçamentárias usando agregações SQL"""
+        from django.db.models import Count, Sum, Q
+        from django.db.models.functions import Coalesce
+
+        lines_qs = obj.budget_lines.all()
+
+        total_budgeted = lines_qs.aggregate(
+            total=Coalesce(Sum('budgeted_amount'), 0)
+        )['total']
+
+        process_status = lines_qs.values('process_status').annotate(
+            count=Count('id')
+        )
+        contract_status = lines_qs.values('contract_status').annotate(
+            count=Count('id')
+        )
+        expense_type = lines_qs.values('expense_type').annotate(
+            count=Count('id')
+        )
+
         return {
-            'total_lines': budget_lines.count(),
+            'total_lines': lines_qs.count(),
             'total_budgeted_amount': float(total_budgeted),
             'remaining_amount': float(obj.available_amount),
             'utilization_percentage': round((float(total_budgeted) / float(obj.total_amount)) * 100, 2) if obj.total_amount > 0 else 0,
-            'process_status_distribution': process_status_counts,
-            'contract_status_distribution': contract_status_counts,
-            'expense_type_distribution': expense_type_counts
+            'process_status_distribution': {
+                item['process_status'] or 'N/A': item['count'] for item in process_status
+            },
+            'contract_status_distribution': {
+                item['contract_status'] or 'N/A': item['count'] for item in contract_status
+            },
+            'expense_type_distribution': {
+                item['expense_type'] or 'N/A': item['count'] for item in expense_type
+            }
         }
     
     def get_movements_summary(self, obj):
-        """
-        Retorna um resumo das movimentações do orçamento
-        """
-        # Movimentações onde este orçamento é origem (saídas)
-        outgoing_movements = obj.outgoing_movements.all()
-        total_outgoing = sum(movement.amount for movement in outgoing_movements)
-        
-        # Movimentações onde este orçamento é destino (entradas)
-        incoming_movements = obj.incoming_movements.all()
-        total_incoming = sum(movement.amount for movement in incoming_movements)
-        
+        """Retorna resumo das movimentações usando agregações SQL"""
+        from django.db.models import Sum, Max
+        from django.db.models.functions import Coalesce
+
+        outgoing = obj.outgoing_movements.aggregate(
+            count=Count('id'),
+            total=Coalesce(Sum('amount'), 0),
+            last_date=Max('movement_date')
+        )
+        incoming = obj.incoming_movements.aggregate(
+            count=Count('id'),
+            total=Coalesce(Sum('amount'), 0),
+            last_date=Max('movement_date')
+        )
+
+        last_movement = max(
+            filter(None, [outgoing['last_date'], incoming['last_date']]),
+            default=None
+        )
+
         return {
-            'total_outgoing_movements': outgoing_movements.count(),
-            'total_incoming_movements': incoming_movements.count(),
-            'total_outgoing_amount': float(total_outgoing),
-            'total_incoming_amount': float(total_incoming),
-            'net_movement': float(total_incoming - total_outgoing),
-            'last_movement_date': max(
-                [m.movement_date for m in list(outgoing_movements) + list(incoming_movements)],
-                default=None
-            )
+            'total_outgoing_movements': outgoing['count'],
+            'total_incoming_movements': incoming['count'],
+            'total_outgoing_amount': float(outgoing['total']),
+            'total_incoming_amount': float(incoming['total']),
+            'net_movement': float(incoming['total'] - outgoing['total']),
+            'last_movement_date': last_movement
         }
 
     def create(self, validated_data):
-        logger = logging.getLogger(__name__)
-        logger.info(f"Creating budget with validated_data: {validated_data}")
-        
-        # Handle management_center_id
         management_center_id = validated_data.pop('management_center_id', None)
         if management_center_id:
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 validated_data['management_center'] = management_center
-                logger.info(f"Management center found: {management_center.name}")
-            except Management_Center.DoesNotExist:
-                logger.error(f"Management center with ID {management_center_id} not found")
+            except ManagementCenter.DoesNotExist:
                 raise serializers.ValidationError(
                     {'management_center_id': 'Centro gestor não encontrado.'}
                 )
-        
-        # Define o available_amount com o valor de total_amount ao criar
+
         total_amount = validated_data.get('total_amount')
         if total_amount is None:
-            logger.error("total_amount is missing from validated_data")
             raise serializers.ValidationError(
                 {'total_amount': 'Valor total é obrigatório.'}
             )
-        
+
         validated_data['available_amount'] = total_amount
-        logger.info(f"Setting available_amount to {total_amount}")
-        
-        try:
-            return super().create(validated_data)
-        except Exception as e:
-            logger.error(f"Error creating budget: {str(e)}")
-            raise
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # Handle management_center_id for updates
         management_center_id = validated_data.pop('management_center_id', None)
         if management_center_id:
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 validated_data['management_center'] = management_center
-            except Management_Center.DoesNotExist:
+            except ManagementCenter.DoesNotExist:
                 raise serializers.ValidationError(
                     {'management_center_id': 'Centro gestor não encontrado.'}
                 )
-        
+
         return super().update(instance, validated_data)
 
     def validate(self, data):
-        logger = logging.getLogger(__name__)
-        logger.info(f"Validating budget data: {data}")
-        
-        # Validate required fields
         required_fields = ['year', 'category', 'total_amount']
         for field in required_fields:
             if not data.get(field):
-                logger.error(f"Required field missing: {field}")
                 raise serializers.ValidationError(
                     {field: f"O campo {field} é obrigatório."}
                 )
-        
-        # Handle management_center for validation
+
         management_center = data.get('management_center')
         management_center_id = data.get('management_center_id')
-        
+
         if not management_center and management_center_id:
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 data['management_center'] = management_center
-                logger.info(f"Management center resolved: {management_center.name}")
-            except Management_Center.DoesNotExist:
-                logger.error(f"Management center with ID {management_center_id} not found")
+            except ManagementCenter.DoesNotExist:
                 raise serializers.ValidationError(
                     {'management_center_id': 'Centro gestor não encontrado.'}
                 )
-        
+
         if not management_center and not management_center_id:
-            logger.error("No management center provided")
             raise serializers.ValidationError(
                 {'management_center_id': 'Centro gestor é obrigatório.'}
             )
 
-        # Validate total_amount
         total_amount = data.get('total_amount')
         if total_amount is not None and total_amount <= 0:
-            logger.error(f"Invalid total_amount: {total_amount}")
             raise serializers.ValidationError(
                 {'total_amount': 'O valor total deve ser maior que zero.'}
             )
-        
-        # Validate year
+
         year = data.get('year')
         if year:
             try:
-                # Call the model's year validator
                 from .utils.validators import validate_year
                 validate_year(year)
             except DjangoValidationError as e:
-                logger.error(f"Year validation failed: {str(e)}")
-                raise serializers.ValidationError(
-                    {'year': str(e)}
-                )
+                raise serializers.ValidationError({'year': str(e)})
 
-        # Verifica a restrição unique_together
         category = data.get('category')
-        
+
         if management_center and year and category:
             budget_exists = Budget.objects.filter(
-                year=year, 
-                category=category, 
+                year=year,
+                category=category,
                 management_center=management_center
             )
-            
-            # Exclude current instance if updating
+
             if self.instance:
                 budget_exists = budget_exists.exclude(pk=self.instance.pk)
-            
+
             if budget_exists.exists():
                 error_msg = f"Já existe um orçamento para o ano de {year}, categoria {category} e centro gestor {management_center.name}."
-                logger.error(error_msg)
                 raise serializers.ValidationError({'non_field_errors': [error_msg]})
-        
-        logger.info("Budget validation completed successfully")
+
         return data
 
 class BudgetMovementSerializer(serializers.ModelSerializer):

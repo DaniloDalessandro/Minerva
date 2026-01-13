@@ -27,16 +27,16 @@ class EmployeeListView(generics.ListAPIView):
         queryset = queryset.exclude(email__in=superuser_emails)
         logger.info(f"Excluindo emails de superusers: {superuser_emails}")
 
-        # Apply hierarchical filter
+        # Aplica hierarchical filter
         queryset = get_employee_queryset(self.request.user, queryset)
 
-        # Apply status filter - show only ATIVO by default unless specified
+        # Aplica status filter - show only ATIVO by default unless specified
         status_filter = self.request.query_params.get('status', 'ATIVO')
         # Se o status_filter for vazio ou 'ALL', não filtra (mostra todos)
         if status_filter and status_filter != 'ALL' and status_filter.strip() != '':
             queryset = queryset.filter(status=status_filter)
 
-        # Apply search filter if provided
+        # Aplica search filter if provided
         search = self.request.query_params.get('search', None)
         if search:
             from django.db.models import Q

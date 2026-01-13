@@ -1,7 +1,6 @@
-// /lib/api/managements.ts
-
-import { authFetch } from "./authFetch";
-import { API_URL } from "./config";
+import { apiClient } from "./client";
+import { API_URL } from "@/lib/config";
+import { API_ENDPOINTS } from "@/constants/api-endpoints";
 
 export interface Management {
   id: number;
@@ -18,7 +17,7 @@ export interface Management {
   };
 }
 
-const API_BASE_URL = `${API_URL}/api/v1/sector/managements/`;
+const API_BASE_URL = `${API_URL}${API_ENDPOINTS.MANAGEMENT.LIST}`;
 
 export async function fetchManagements(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
 
@@ -59,22 +58,18 @@ export async function fetchManagements(page = 1, pageSize = 10, search = "", ord
   }
   
   const url = `${API_BASE_URL}?${params.toString()}`;
-  console.log("🏢 Fazendo requisição de gerências para:", url);
   
-  const res = await authFetch(url);
-  console.log("📡 Resposta da API de gerências:", res.status, res.statusText);
+  const res = await apiClient(url);
   
   if (!res.ok) throw new Error(`Erro ao buscar gerências: ${res.status}`);
   
   const json = await res.json();
-  console.log("🔍 JSON de gerências recebido:", json);
-  console.log("📊 Quantidade de gerências:", json.results?.length || 0);
   
   return json;
 }
 
 export async function createManagement(data: { name: string, direction_id: number }) {
-  const res = await authFetch(`${API_BASE_URL}create/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.MANAGEMENT.CREATE}`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -84,7 +79,7 @@ export async function createManagement(data: { name: string, direction_id: numbe
 
 
 export async function updateManagement(data: { id: number; name: string, direction_id: number }) {
-  const res = await authFetch(`${API_BASE_URL}${data.id}/update/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.MANAGEMENT.UPDATE(data.id)}`, {
     method: "PUT",
     body: JSON.stringify({ name: data.name, direction_id: data.direction_id }),
   });
@@ -93,7 +88,7 @@ export async function updateManagement(data: { id: number; name: string, directi
 }
 
 export async function deleteManagement(id: number) {
-  const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.MANAGEMENT.DELETE(id)}`, {
     method: "PUT",
   });
   if (!res.ok) throw new Error("Erro ao inativar gerência");

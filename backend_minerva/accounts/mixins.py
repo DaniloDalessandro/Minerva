@@ -1,8 +1,115 @@
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+
+class HierarchicalQuerysetMixin:
+    """
+    Mixin para modelos que precisam de filtragem hierárquica em nível de queryset.
+
+    Fornece métodos de classe para filtrar objetos baseados na hierarquia organizacional.
+    Os modelos que herdam este mixin devem implementar os métodos get_objects_by_*.
+
+    Uso:
+        class MyModel(models.Model, HierarchicalQuerysetMixin):
+            @classmethod
+            def get_objects_by_direction(cls, direction):
+                return cls.objects.filter(...)
+    """
+
+    @classmethod
+    def get_user_accessible_objects(cls, user):
+        """
+        Retorna os objetos que o usuário pode acessar baseado em sua hierarquia.
+
+        Args:
+            user: Usuário para verificar acesso
+
+        Returns:
+            QuerySet com objetos acessíveis ao usuário
+        """
+        if user.is_superuser:
+            return cls.objects.all()
+
+        if not user.groups.exists():
+            return cls.objects.none()
+
+        # Obter employee do usuário
+        if not hasattr(user, 'employee') or not user.employee:
+            return cls.objects.none()
+
+        employee = user.employee
+        accessible_objects = cls.objects.none()
+
+        # Verificar grupos e suas permissões
+        for group in user.groups.all():
+            group_name = group.name.lower()
+
+            if group_name == 'presidente':
+                # Presidente pode ver tudo
+                accessible_objects |= cls.objects.all()
+
+            elif group_name.startswith('diretor'):
+                # Diretor pode ver dados de sua direção e hierarquias abaixo
+                if employee.direction:
+                    accessible_objects |= cls.get_objects_by_direction(employee.direction)
+
+            elif group_name.startswith('gerente'):
+                # Gerente pode ver dados de sua gerência e coordenações abaixo
+                if employee.management:
+                    accessible_objects |= cls.get_objects_by_management(employee.management)
+
+            elif group_name.startswith('coordenador'):
+                # Coordenador pode ver apenas dados de sua coordenação
+                if employee.coordination:
+                    accessible_objects |= cls.get_objects_by_coordination(employee.coordination)
+
+            elif group_name == 'funcionario':
+                # Funcionário comum - sem acesso ou acesso limitado
+                accessible_objects |= cls.get_objects_by_user(user)
+
+        return accessible_objects.distinct()
+
+    @classmethod
+    def get_objects_by_direction(cls, direction):
+        """
+        Retorna objetos filtrados por direção.
+
+        Deve ser implementado em cada modelo específico.
+        """
+        return cls.objects.none()
+
+    @classmethod
+    def get_objects_by_management(cls, management):
+        """
+        Retorna objetos filtrados por gerência.
+
+        Deve ser implementado em cada modelo específico.
+        """
+        return cls.objects.none()
+
+    @classmethod
+    def get_objects_by_coordination(cls, coordination):
+        """
+        Retorna objetos filtrados por coordenação.
+
+        Deve ser implementado em cada modelo específico.
+        """
+        return cls.objects.none()
+
+    @classmethod
+    def get_objects_by_user(cls, user):
+        """
+        Retorna objetos filtrados por usuário específico.
+
+        Deve ser implementado em cada modelo específico.
+        """
+        return cls.objects.none()
+
 
 class HierarchicalFilterMixin:
     """
@@ -42,7 +149,7 @@ class HierarchicalFilterMixin:
     
     def get_accessible_management_centers(self, user):
         """Retorna queryset dos centros gestores acessíveis ao usuário"""
-        from center.models import Management_Center, CenterHierarchy
+        from center.models import ManagementCenter, CenterHierarchy
         import logging
         
         logger = logging.getLogger(__name__)
@@ -52,13 +159,13 @@ class HierarchicalFilterMixin:
         
         if hierarchy_level == 'president':
             # Presidente vê tudo
-            centers = Management_Center.objects.all()
+            centers = ManagementCenter.objects.all()
             logger.info(f"User {user.email} is president - access to all {centers.count()} centers")
             return centers
             
         elif hierarchy_level == 'direction':
             # Diretor vê centros de sua direção
-            centers = Management_Center.objects.filter(
+            centers = ManagementCenter.objects.filter(
                 hierarchy_associations__direction=hierarchy_object
             ).distinct()
             logger.info(f"User {user.email} is director - access to {centers.count()} centers")
@@ -66,7 +173,7 @@ class HierarchicalFilterMixin:
             
         elif hierarchy_level == 'management':
             # Gerente vê centros de sua gerência
-            centers = Management_Center.objects.filter(
+            centers = ManagementCenter.objects.filter(
                 hierarchy_associations__management=hierarchy_object
             ).distinct()
             logger.info(f"User {user.email} is manager - access to {centers.count()} centers")
@@ -74,7 +181,7 @@ class HierarchicalFilterMixin:
             
         elif hierarchy_level == 'coordination':
             # Coordenador vê centros de sua coordenação
-            centers = Management_Center.objects.filter(
+            centers = ManagementCenter.objects.filter(
                 hierarchy_associations__coordination=hierarchy_object
             ).distinct()
             logger.info(f"User {user.email} is coordinator - access to {centers.count()} centers")
@@ -86,16 +193,16 @@ class HierarchicalFilterMixin:
         # Verificar se é superuser sem hierarquia definida
         if user.is_superuser:
             logger.warning(f"Superuser {user.email} without hierarchy - granting access to all centers")
-            return Management_Center.objects.all()
+            return ManagementCenter.objects.all()
             
-        return Management_Center.objects.none()
+        return ManagementCenter.objects.none()
     
     def get_accessible_requesting_centers(self, user):
         """Retorna queryset dos centros solicitantes acessíveis ao usuário"""
-        from center.models import Requesting_Center
+        from center.models import RequestingCenter
         
         accessible_management_centers = self.get_accessible_management_centers(user)
-        return Requesting_Center.objects.filter(
+        return RequestingCenter.objects.filter(
             management_center__in=accessible_management_centers
         )
     

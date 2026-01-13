@@ -1,26 +1,44 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.throttling import UserRateThrottle
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 import logging
 
 from .models import Budget, BudgetMovement
 from .serializers import BudgetSerializer, BudgetDetailSerializer, BudgetMovementSerializer
 from .utils.messages import BUDGET_MSGS, BUDGET_MOVEMENT_MSGS
 from .utils.pdf_generator import generate_budget_pdf, generate_budget_summary_pdf
-from center.models import Management_Center
+from center.models import ManagementCenter
 from center.serializers import ManagementCenterSerializer
 from accounts.mixins import HierarchicalFilterMixin
 
 
+# Helper function for secure error responses
+def get_error_details(exception):
+    """
+    Returns exception details only if DEBUG is enabled.
+    In production, returns a generic message to avoid information leakage.
+    """
+    if settings.DEBUG:
+        return str(exception)
+    return "Contact support for more information"
+
+
+# Custom throttle class for PDF export
+class PDFExportRateThrottle(UserRateThrottle):
+    scope = 'pdf_export'
+
+
 # Budget Views
 class BudgetListView(generics.ListAPIView, HierarchicalFilterMixin):
-    queryset = Budget.objects.select_related('management_center', 'created_by', 'updated_by')
+    queryset = Budget.objects.select_related('management_center', 'created_by', 'updated_by').prefetch_related('budget_lines')
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -52,25 +70,25 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
         
         # Se management_center não foi processado, buscar pelo ID
         if not management_center and management_center_id:
-            from center.models import Management_Center
+            from center.models import ManagementCenter
             try:
-                management_center = Management_Center.objects.get(id=management_center_id)
+                management_center = ManagementCenter.objects.get(id=management_center_id)
                 logger.info(f"Found management center by ID: {management_center}")
                 # Atualizar o validated_data para incluir o objeto management_center
                 serializer.validated_data['management_center'] = management_center
-            except Management_Center.DoesNotExist:
+            except ManagementCenter.DoesNotExist:
                 logger.error(f"Management center with ID {management_center_id} not found")
                 from rest_framework.exceptions import ValidationError
                 raise ValidationError("Centro gestor não encontrado.")
         
         # Se ainda não tem management_center, tentar obter do validated_data diretamente
         if not management_center and 'management_center_id' in serializer.validated_data:
-            from center.models import Management_Center
+            from center.models import ManagementCenter
             try:
-                management_center = Management_Center.objects.get(id=serializer.validated_data['management_center_id'])
+                management_center = ManagementCenter.objects.get(id=serializer.validated_data['management_center_id'])
                 logger.info(f"Found management center by validated_data ID: {management_center}")
                 serializer.validated_data['management_center'] = management_center
-            except Management_Center.DoesNotExist:
+            except ManagementCenter.DoesNotExist:
                 logger.error(f"Management center with ID {serializer.validated_data['management_center_id']} not found")
                 from rest_framework.exceptions import ValidationError
                 raise ValidationError("Centro gestor não encontrado.")
@@ -138,7 +156,7 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
             return Response({
                 'error': 'Erro de integridade dos dados',
                 'message': 'Já existe um orçamento com essas características. Verifique ano, categoria e centro gestor.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
@@ -162,7 +180,7 @@ class BudgetCreateView(generics.CreateAPIView, HierarchicalFilterMixin):
             return Response({
                 'error': 'Erro interno do servidor',
                 'message': 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -257,7 +275,7 @@ class BudgetUpdateView(generics.UpdateAPIView):
             return Response({
                 'error': 'Erro de integridade dos dados',
                 'message': 'Já existe um orçamento com essas características. Verifique ano, categoria e centro gestor.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
@@ -265,7 +283,7 @@ class BudgetUpdateView(generics.UpdateAPIView):
             return Response({
                 'error': 'Erro interno do servidor',
                 'message': 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -351,8 +369,8 @@ def budget_form_metadata(request):
     This endpoint helps populate dropdown fields in frontend forms.
     """
     try:
-        # Get all active management centers
-        management_centers = Management_Center.objects.all().order_by('name')
+        # Obtém all active management centers
+        management_centers = ManagementCenter.objects.all().order_by('name')
         centers_serializer = ManagementCenterSerializer(management_centers, many=True)
         
         # Budget categories choices
@@ -372,7 +390,7 @@ def budget_form_metadata(request):
         
     except Exception as e:
         return Response(
-            {'error': 'Erro ao carregar metadata do formulário', 'details': str(e)}, 
+            {'error': 'Erro ao carregar metadata do formulário', 'details': get_error_details(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -380,6 +398,7 @@ def budget_form_metadata(request):
 # PDF Report Views
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PDFExportRateThrottle])
 def generate_budget_report_pdf(request, budget_id):
     """
     Gera e retorna um relatório PDF completo para um orçamento específico.
@@ -432,7 +451,7 @@ def generate_budget_report_pdf(request, budget_id):
             {
                 'error': 'Erro ao gerar relatório PDF',
                 'message': 'Ocorreu um erro interno durante a geração do relatório. Tente novamente mais tarde.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
@@ -440,6 +459,7 @@ def generate_budget_report_pdf(request, budget_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PDFExportRateThrottle])
 def generate_budget_summary_report_pdf(request):
     """
     Gera e retorna um relatório PDF resumido com múltiplos orçamentos.
@@ -505,7 +525,7 @@ def generate_budget_summary_report_pdf(request):
             {
                 'error': 'Erro ao gerar relatório resumo PDF',
                 'message': 'Ocorreu um erro interno durante a geração do relatório. Tente novamente mais tarde.',
-                'details': str(e)
+                'details': get_error_details(e)
             }, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

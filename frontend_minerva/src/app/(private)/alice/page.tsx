@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,7 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Bot, Send, User, Loader2, MessageCircle, RefreshCw, Sparkles } from "lucide-react"
-import { aliceAPI } from "@/lib/api/alice"
+import { AliceService } from "@/services"
+import { toast } from "@/hooks/use-toast"
 
 interface Message {
   id: string
@@ -25,6 +27,9 @@ interface Message {
 
 
 export default function AlicePage() {
+  const searchParams = useSearchParams()
+  const sessionParam = searchParams.get('session')
+
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -41,8 +46,59 @@ export default function AlicePage() {
     scrollToBottom()
   }, [messages])
 
+  // Carregar sessão específica se houver parâmetro na URL
   useEffect(() => {
-    // Adiciona mensagem inicial
+    const loadSession = async () => {
+      if (sessionParam) {
+        try {
+          setIsPageLoading(true)
+          // Buscar detalhes da sessão pelo session_id (UUID)
+          const sessions = await AliceService.getSessions()
+          const session = sessions.results.find(s => s.session_id === sessionParam)
+
+          if (session) {
+            const sessionDetail = await AliceService.getSessionDetail(session.id)
+
+            // Converter mensagens da sessão para o formato Message
+            const loadedMessages: Message[] = sessionDetail.messages?.map((msg: any, index: number) => ({
+              id: `${session.id}_${index}`,
+              type: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content,
+              timestamp: new Date(msg.timestamp || sessionDetail.created_at),
+              metadata: msg.metadata
+            })) || []
+
+            setMessages(loadedMessages)
+            setSessionId(sessionParam)
+
+            toast({
+              title: "Conversa carregada",
+              description: `${loadedMessages.length} mensagens restauradas`,
+            })
+          } else {
+            throw new Error("Sessão não encontrada")
+          }
+        } catch (error) {
+          console.error("Erro ao carregar sessão:", error)
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar a conversa",
+            variant: "destructive",
+          })
+          // Iniciar nova conversa em caso de erro
+          initializeWelcome()
+        } finally {
+          setIsPageLoading(false)
+        }
+      } else {
+        initializeWelcome()
+      }
+    }
+
+    loadSession()
+  }, [sessionParam])
+
+  const initializeWelcome = () => {
     try {
       const welcomeMessage: Message = {
         id: "welcome",
@@ -56,7 +112,7 @@ export default function AlicePage() {
       console.error("Erro ao inicializar página Alice:", error)
       setIsPageLoading(false)
     }
-  }, [])
+  }
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return
@@ -74,7 +130,7 @@ export default function AlicePage() {
 
     try {
       console.log("🚀 Enviando mensagem para Alice:", inputMessage.trim())
-      const response = await aliceAPI.sendMessage({
+      const response = await AliceService.sendMessage({
         message: inputMessage.trim(),
         session_id: sessionId || undefined,
         create_new_session: !sessionId

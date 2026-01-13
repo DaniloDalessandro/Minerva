@@ -10,6 +10,17 @@ from ..models import DatabaseSchema, QueryLog, ConversationSession
 logger = logging.getLogger(__name__)
 
 
+# Helper function for secure error responses
+def get_error_details(exception):
+    """
+    Returns exception details only if DEBUG is enabled.
+    In production, returns a generic message to avoid information leakage.
+    """
+    if settings.DEBUG:
+        return str(exception)
+    return "Contact support for more information"
+
+
 class SQLInterpreterService:
     """
     Serviço para interpretar perguntas em linguagem natural e executar consultas SQL
@@ -278,7 +289,7 @@ class SQLInterpreterService:
             return {
                 'success': False,
                 'error': 'Erro interno do servidor',
-                'details': str(e)
+                'details': get_error_details(e)
             }
     
     def _validate_sql_query(self, sql_query: str) -> Dict[str, Any]:

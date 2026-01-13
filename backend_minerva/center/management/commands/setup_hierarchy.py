@@ -67,7 +67,7 @@ class Command(BaseCommand):
         contract_ct = ContentType.objects.get(app_label='contract', model='contract')
         budgetline_ct = ContentType.objects.get(app_label='budgetline', model='budgetline')
         employee_ct = ContentType.objects.get(app_label='employee', model='employee')
-        center_ct = ContentType.objects.get(app_label='center', model='management_center')
+        center_ct = ContentType.objects.get(app_label='center', model='managementcenter')
         
         # Presidente - acesso total
         try:

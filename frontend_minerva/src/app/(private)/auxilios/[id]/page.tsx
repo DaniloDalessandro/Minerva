@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fetchAuxilioById, Auxilio } from "@/lib/api/auxilios";
+import { type Auxilio } from "@/features/auxilios";
+import { AuxilioService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,10 +28,9 @@ export default function AuxilioDetailsPage() {
   const loadAuxilioDetails = async () => {
     try {
       setLoading(true);
-      const auxilioData = await fetchAuxilioById(parseInt(id));
+      const auxilioData = await AuxilioService.fetchAuxilioById(parseInt(id));
       setAuxilio(auxilioData);
     } catch (error) {
-      console.error("Erro ao carregar detalhes do auxílio:", error);
       setError("Erro ao carregar os detalhes do auxílio");
     } finally {
       setLoading(false);
@@ -38,7 +38,7 @@ export default function AuxilioDetailsPage() {
   };
 
   const handleEdit = () => {
-    // Store the auxilio ID in session storage to trigger edit mode
+    // Armazena o ID do auxílio no session storage para acionar o modo de edição
     window.sessionStorage.setItem('editAuxilioId', id);
     router.push('/auxilios');
   };
@@ -154,7 +154,7 @@ export default function AuxilioDetailsPage() {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="space-y-6">
-        {/* Header */}
+        {/* Cabeçalho */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -177,7 +177,7 @@ export default function AuxilioDetailsPage() {
           </Button>
         </div>
 
-        {/* Expiration Warning */}
+        {/* Aviso de Expiração */}
         {(expirationStatus.isExpiring || expirationStatus.isExpired) && (
           <Card className={`border-l-4 ${expirationStatus.isExpired ? 'border-l-red-500 bg-red-50' : 'border-l-yellow-500 bg-yellow-50'}`}>
             <CardContent className="pt-4">
@@ -193,7 +193,7 @@ export default function AuxilioDetailsPage() {
           </Card>
         )}
 
-        {/* Main Content */}
+        {/* Conteúdo Principal */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Dados do Colaborador */}
           <Card>

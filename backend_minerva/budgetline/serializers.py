@@ -78,7 +78,7 @@ class BudgetLineSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']
 
-#=================================================================================================================
+
 
 class BudgetLineMovementSerializer(serializers.ModelSerializer):
     class Meta:

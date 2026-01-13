@@ -10,10 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-j-lu3=l!j!p%+q9gx*-d@77p+^&a5o%7hj=3d7!gp%o)!t$xn*')
+# SECRET_KEY is required and must be set in environment variables
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+# DEBUG defaults to False for security. Set DEBUG=True in .env for development.
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
@@ -54,7 +56,8 @@ CORS_ALLOWED_ORIGINS = config(
 )
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+# Nunca permitir todas as origens - sempre usar lista específica
+CORS_ALLOW_ALL_ORIGINS = False
 
 # Configurações de segurança para cookies
 SESSION_COOKIE_SECURE = not DEBUG  # True em produção
@@ -211,8 +214,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sistemacontratos.local')
 
-# Google Gemini AI Configuration
-GEMINI_API_KEY = config('GEMINI_API_KEY')
+# Configuração da API do Google Gemini
+# Se não configurada, o assistente de IA ficará desabilitado
+GEMINI_API_KEY = config('GEMINI_API_KEY', default=None)
 
 
 REST_FRAMEWORK = {
@@ -240,10 +244,13 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',  # 100 requests per hour for anonymous users
-        'user': '1000/hour',  # 1000 requests per hour for authenticated users
-        'login': '10/hour',  # 10 login attempts per hour
-        'ai_assistant': '100/hour',  # 100 AI requests per hour per user
+        'anon': '50/hour',  # 50 requisições por hora para usuários anônimos
+        'user': '1000/hour',  # 1000 requisições por hora para usuários autenticados
+        'login': '5/hour',  # 5 tentativas de login por hora (previne brute force)
+        'registration': '3/hour',  # 3 registros por hora (previne spam de contas)
+        'password_reset': '3/hour',  # 3 resets de senha por hora (previne abuso)
+        'pdf_export': '10/hour',  # 10 PDFs por hora (previne sobrecarga do servidor)
+        'ai_assistant': '30/hour',  # 30 requisições de IA por hora (previne abuso)
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -308,8 +315,8 @@ JAZZMIN_SETTINGS = {
         
         # Centros
         "center": "fas fa-building",
-        "center.Management_Center": "fas fa-warehouse",
-        "center.Requesting_Center": "fas fa-store-alt",
+        "center.ManagementCenter": "fas fa-warehouse",
+        "center.RequestingCenter": "fas fa-store-alt",
         
         # Setores
         "sector": "fas fa-sitemap",

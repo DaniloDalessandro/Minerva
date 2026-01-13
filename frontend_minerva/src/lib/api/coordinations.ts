@@ -1,7 +1,6 @@
-// /lib/api/coordinations.ts
-
-import { authFetch } from "./authFetch";
-import { API_URL } from "./config";
+import { apiClient } from "./client";
+import { API_URL } from "@/lib/config";
+import { API_ENDPOINTS } from "@/constants/api-endpoints";
 
 export interface Coordination {
   id: number;
@@ -18,7 +17,7 @@ export interface Coordination {
   };
 }
 
-const API_BASE_URL = `${API_URL}/api/v1/sector/coordinations/`;
+const API_BASE_URL = `${API_URL}${API_ENDPOINTS.COORDINATION.LIST}`;
 
 export async function fetchCoordinations(page = 1, pageSize = 10, search = "", ordering = "", statusFilter = "") {
   const params = new URLSearchParams({
@@ -38,14 +37,15 @@ export async function fetchCoordinations(page = 1, pageSize = 10, search = "", o
     params.append("is_active", "true");
   } else if (statusFilter === "inactive") {
     params.append("is_active", "false");
-  }  const res = await authFetch(`${API_BASE_URL}?${params.toString()}`);
+  }
+  const res = await apiClient(`${API_BASE_URL}?${params.toString()}`);
   if (!res.ok) throw new Error("Erro ao buscar coordenações");
   const json = await res.json();
   return json;
 }
 
 export async function createCoordination(data: { name: string, management_id: number }) {
-  const res = await authFetch(`${API_BASE_URL}create/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.COORDINATION.CREATE}`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -55,7 +55,7 @@ export async function createCoordination(data: { name: string, management_id: nu
 
 
 export async function updateCoordination(data: { id: number; name: string, management_id: number }) {
-  const res = await authFetch(`${API_BASE_URL}${data.id}/update/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.COORDINATION.UPDATE(data.id)}`, {
     method: "PUT",
     body: JSON.stringify({ name: data.name, management_id: data.management_id }),
   });
@@ -64,7 +64,7 @@ export async function updateCoordination(data: { id: number; name: string, manag
 }
 
 export async function deleteCoordination(id: number) {
-  const res = await authFetch(`${API_BASE_URL}${id}/delete/`, {
+  const res = await apiClient(`${API_URL}${API_ENDPOINTS.COORDINATION.DELETE(id)}`, {
     method: "PUT",
   });
   if (!res.ok) throw new Error("Erro ao inativar coordenação");

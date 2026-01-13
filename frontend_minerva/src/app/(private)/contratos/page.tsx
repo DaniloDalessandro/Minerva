@@ -2,12 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
-import { fetchContracts, Contract, createContract, updateContract, deleteContract } from "@/lib/api/contratos";
-import { fetchEmployees, fetchBudgetLines } from "@/lib/api/contratos";
-import ContractForm from "@/components/forms/ContractForm";
-import { useOptimisticContracts } from "@/hooks/useOptimisticContracts";
-import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
+import { contractColumns, ContractForm, useOptimisticContracts, type Contract } from "@/features/contratos";
+import { ContractService, ColaboradorService, BudgetLineService } from "@/services";
+import { useRegisterRefresh } from "@/context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +68,7 @@ export default function ContratosPage() {
       const filterValues = Object.values(filters).filter(Boolean);
       const searchParam = filterValues.length > 0 ? filterValues[filterValues.length - 1] : search;
       
-      const data = await fetchContracts(page, pageSize, searchParam, ordering);
+      const data = await ContractService.fetchContracts(page, pageSize, searchParam, ordering);
       setContracts(data.results);
       setTotalCount(data.count);
       console.log("✅ Contracts loaded successfully:", data.results.length, "items");
@@ -126,7 +123,7 @@ export default function ContratosPage() {
   const confirmDeleteContract = async () => {
     if (contractToDelete?.id) {
       try {
-        await deleteContract(contractToDelete.id);
+        await ContractService.deleteContract(contractToDelete.id);
         await loadContratos(); // Reload the list
         if (contracts.length === 1 && page > 1) {
           setPage(page - 1);
@@ -151,7 +148,7 @@ export default function ContratosPage() {
       
       if (isEditing) {
         console.log("📝 Updating existing contract with ID:", contractData.id);
-        const result = await updateContract(contractData);
+        const result = await ContractService.updateContract(contractData);
         
         // Extract the actual contract data from the API response
         const updatedContract = result.data || result;
@@ -170,26 +167,26 @@ export default function ContratosPage() {
         
         if (contractData.main_inspector) {
           try {
-            const employees = await fetchEmployees();
-            selectedMainInspector = employees.find((emp: any) => emp.id === contractData.main_inspector);
+            const data = await ColaboradorService.fetchColaboradores(1, 1000);
+            selectedMainInspector = data.results.find((emp: any) => emp.id === contractData.main_inspector);
           } catch (error) {
             console.warn("Could not fetch employees for optimistic UI");
           }
         }
-        
+
         if (contractData.substitute_inspector) {
           try {
-            const employees = await fetchEmployees();
-            selectedSubstituteInspector = employees.find((emp: any) => emp.id === contractData.substitute_inspector);
+            const data = await ColaboradorService.fetchColaboradores(1, 1000);
+            selectedSubstituteInspector = data.results.find((emp: any) => emp.id === contractData.substitute_inspector);
           } catch (error) {
             console.warn("Could not fetch employees for optimistic UI");
           }
         }
-        
+
         if (contractData.budget_line) {
           try {
-            const budgetLines = await fetchBudgetLines();
-            selectedBudgetLine = budgetLines.find((bl: any) => bl.id === contractData.budget_line);
+            const data = await BudgetLineService.fetchBudgetLines(1, 1000);
+            selectedBudgetLine = data.results.find((bl: any) => bl.id === contractData.budget_line);
           } catch (error) {
             console.warn("Could not fetch budget lines for optimistic UI");
           }
@@ -204,7 +201,7 @@ export default function ContratosPage() {
         });
         
         // Make the API call
-        const result = await createContract(contractData);
+        const result = await ContractService.createContract(contractData);
         
         // Extract the actual contract data from the API response
         const newContract = result.data || result;
@@ -239,7 +236,7 @@ export default function ContratosPage() {
     <div className="w-full py-1">
       <div className="space-y-2">
         <DataTable
-          columns={columns}
+          columns={contractColumns}
           data={contracts}
           title="Contratos"
           pageSize={pageSize}

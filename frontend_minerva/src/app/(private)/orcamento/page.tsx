@@ -2,12 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
-import { fetchBudgets, Budget, createBudget, updateBudget, deleteBudget } from "@/lib/api/budgets";
-import { fetchManagementCenters } from "@/lib/api/centers";
-import BudgetForm from "@/components/forms/BudgetForm";
-import { useOptimisticBudgets } from "@/hooks/useOptimisticBudgets";
-import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
+import { budgetColumns, BudgetForm, useOptimisticBudgets, type Budget } from "@/features/orcamento";
+import { BudgetService, CenterService } from "@/services";
+import { useRegisterRefresh } from "@/context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +68,7 @@ export default function BudgetPage() {
       const filterValues = Object.values(filters).filter(Boolean);
       const searchParam = filterValues.length > 0 ? filterValues[filterValues.length - 1] : search;
       
-      const data = await fetchBudgets(page, pageSize, searchParam, ordering);
+      const data = await BudgetService.fetchBudgets(page, pageSize, searchParam, ordering);
       setBudgets(data.results);
       setTotalCount(data.count);
       console.log("✅ Budgets loaded successfully:", data.results.length, "items");
@@ -112,7 +109,7 @@ export default function BudgetPage() {
   const confirmDeleteBudget = async () => {
     if (budgetToDelete?.id) {
       try {
-        await deleteBudget(budgetToDelete.id);
+        await BudgetService.deleteBudget(budgetToDelete.id);
         await loadBudgets(); // Reload the list
         if (budgets.length === 1 && page > 1) {
           setPage(page - 1);
@@ -137,7 +134,7 @@ export default function BudgetPage() {
       
       if (isEditing) {
         console.log("📝 Updating existing budget with ID:", budgetData.id);
-        const result = await updateBudget(budgetData);
+        const result = await BudgetService.updateBudget(budgetData);
         
         // Extract the actual budget data from the API response
         const updatedBudget = result.data || result;
@@ -150,8 +147,8 @@ export default function BudgetPage() {
         console.log("➕ Creating new budget...");
         
         // Find the selected management center for better optimistic UI
-        const selectedCenter = budgetData.management_center_id ? 
-          await fetchManagementCenters(1, 1000).then(data => 
+        const selectedCenter = budgetData.management_center_id ?
+          await CenterService.fetchManagementCenters(1, 1000).then(data =>
             (data.results || data).find((center: any) => center.id === budgetData.management_center_id)
           ).catch(() => null) : null;
         
@@ -162,7 +159,7 @@ export default function BudgetPage() {
         });
         
         // Make the API call
-        const result = await createBudget(budgetData);
+        const result = await BudgetService.createBudget(budgetData);
         
         // Extract the actual budget data from the API response
         const newBudget = result.data || result;
@@ -197,7 +194,7 @@ export default function BudgetPage() {
     <div className="w-full py-1">
       <div className="space-y-2">
         <DataTable
-          columns={columns}
+          columns={budgetColumns}
           data={budgets}
           title="Orçamentos"
           pageSize={pageSize}

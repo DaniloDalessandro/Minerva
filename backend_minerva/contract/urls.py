@@ -16,13 +16,13 @@ urlpatterns = [
     path('contracts/<int:pk>/', ContractRetrieveAPIView.as_view(), name='contract-detail'),
     path('contracts/<int:pk>/update/', ContractUpdateAPIView.as_view(), name='contract-update'),
     path('contracts/<int:pk>/delete/', ContractDestroyAPIView.as_view(), name='contract-delete'),
-    #=============================================================================================================
+    
     path('contract-installments/', ContractInstallmentListAPIView.as_view(), name='contract-installment-list'),
     path('contract-installments/create/', ContractInstallmentCreateAPIView.as_view(), name='contract-installment-create'),
     path('contract-installments/<int:pk>/', ContractInstallmentRetrieveAPIView.as_view(), name='contract-installment-detail'),
     path('contract-installments/<int:pk>/update/', ContractInstallmentUpdateAPIView.as_view(), name='contract-installment-update'),
     path('contract-installments/<int:pk>/delete/', ContractInstallmentDestroyAPIView.as_view(), name='contract-installment-delete'),
-    #==============================================================================================================
+    
     path('contract-amendments/', ContractAmendmentListAPIView.as_view(), name='contract-amendment-list'),
     path('contract-amendments/create/', ContractAmendmentCreateAPIView.as_view(), name='contract-amendment-create'),
     path('contract-amendments/<int:pk>/', ContractAmendmentRetrieveAPIView.as_view(), name='contract-amendment-detail'),

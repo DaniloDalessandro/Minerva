@@ -16,7 +16,7 @@ interface DataRefreshContextType {
 const DataRefreshContext = createContext<DataRefreshContextType | undefined>(undefined)
 
 export function DataRefreshProvider({ children }: { children: React.ReactNode }) {
-  // Use useRef to store refresh functions to avoid re-renders when they change
+  // Usa useRef para armazenar as funções de atualização para evitar re-renderizações quando elas mudam
   const refreshFunctions = useRef<Map<string, RefreshFunction>>(new Map())
 
   const registerRefreshFunction = useCallback((entityType: string, refreshFn: RefreshFunction) => {
@@ -32,16 +32,13 @@ export function DataRefreshProvider({ children }: { children: React.ReactNode })
     if (refreshFn) {
       try {
         await refreshFn()
-        console.log(`✅ Data refreshed for entity type: ${entityType}`)
       } catch (error) {
-        console.error(`❌ Error refreshing data for ${entityType}:`, error)
       }
     } else {
-      console.warn(`⚠️ No refresh function registered for entity type: ${entityType}`)
     }
   }, [])
 
-  // Map pathnames to entity types for automatic refresh
+  // Mapeia os pathnames para os tipos de entidade para atualização automática
   const getEntityTypeFromPathname = (pathname: string): string | null => {
     if (pathname.includes('/colaboradores')) return 'colaboradores'
     if (pathname.includes('/auxilios')) return 'auxilios'
@@ -82,16 +79,19 @@ export function useDataRefresh() {
   return context
 }
 
-// Hook for pages to easily register their refresh functions
+// Hook para que as páginas registrem facilmente suas funções de atualização
 export function usePageRefresh(entityType: string, refreshFunction: RefreshFunction) {
   const { registerRefreshFunction, unregisterRefreshFunction } = useDataRefresh()
-  
-  // Register on mount, unregister on unmount
+
+  // Registra na montagem, desregistra na desmontagem
   useCallback(() => {
     registerRefreshFunction(entityType, refreshFunction)
-    
+
     return () => {
       unregisterRefreshFunction(entityType)
     }
   }, [entityType, refreshFunction, registerRefreshFunction, unregisterRefreshFunction])()
 }
+
+// Alias para compatibilidade com versões anteriores
+export { usePageRefresh as useRegisterRefresh }

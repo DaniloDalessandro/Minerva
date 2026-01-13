@@ -2,6 +2,7 @@ import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
@@ -38,9 +39,20 @@ from .utils.messages import (
 
 User = get_user_model()
 
+# Custom throttle classes for specific endpoints
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'
+
+class RegistrationRateThrottle(AnonRateThrottle):
+    scope = 'registration'
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    scope = 'password_reset'
+
 # -------------------------------
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -129,6 +141,7 @@ class LogoutView(APIView):
 # -------------------------------
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [RegistrationRateThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -151,7 +164,8 @@ class RegisterView(APIView):
 # -------------------------------
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
-    
+    throttle_classes = [PasswordResetRateThrottle]
+
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
@@ -187,7 +201,8 @@ class PasswordResetView(APIView):
 # -------------------------------
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
-    
+    throttle_classes = [PasswordResetRateThrottle]
+
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         if serializer.is_valid():
@@ -241,7 +256,7 @@ class UserMeView(APIView):
         return Response(serializer.data)
     
 
-#=========================================================================
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer

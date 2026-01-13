@@ -22,9 +22,32 @@ class ContractListAPIView(generics.ListAPIView):
     serializer_class = ContractSerializer
 
     def get_queryset(self):
-        # contratos que o fiscal principal ou substituto esteja dentro do escopo
+        # Contratos que o fiscal principal ou substituto esteja dentro do escopo
         employee_qs = get_employee_queryset(self.request.user, Employee.objects.all())
-        return Contract.objects.filter(main_inspector__in=employee_qs) | Contract.objects.filter(substitute_inspector__in=employee_qs)
+        return (Contract.objects
+                .select_related(
+                    'budget_line__budget__management_center',
+                    'main_inspector__direction',
+                    'main_inspector__management',
+                    'main_inspector__coordination',
+                    'substitute_inspector__direction',
+                    'substitute_inspector__management',
+                    'substitute_inspector__coordination'
+                )
+                .prefetch_related('installments', 'amendments')
+                .filter(main_inspector__in=employee_qs) |
+                Contract.objects
+                .select_related(
+                    'budget_line__budget__management_center',
+                    'main_inspector__direction',
+                    'main_inspector__management',
+                    'main_inspector__coordination',
+                    'substitute_inspector__direction',
+                    'substitute_inspector__management',
+                    'substitute_inspector__coordination'
+                )
+                .prefetch_related('installments', 'amendments')
+                .filter(substitute_inspector__in=employee_qs))
 
 
 class ContractCreateAPIView(generics.CreateAPIView):
@@ -33,6 +56,22 @@ class ContractCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
+
+        # Validação hierárquica: verifica se o usuário tem permissão para criar contrato
+        if user.is_authenticated and not user.is_superuser:
+            employee_qs = get_employee_queryset(user, Employee.objects.all())
+            main_inspector = serializer.validated_data.get('main_inspector')
+            substitute_inspector = serializer.validated_data.get('substitute_inspector')
+
+            # Verifica se os fiscais estão na hierarquia do usuário
+            if main_inspector and main_inspector not in employee_qs:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Você não tem permissão para criar contratos com este fiscal principal.")
+
+            if substitute_inspector and substitute_inspector not in employee_qs:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Você não tem permissão para criar contratos com este fiscal substituto.")
+
         serializer.save(user=user) if user.is_authenticated else serializer.save()
 
     def create(self, request, *args, **kwargs):

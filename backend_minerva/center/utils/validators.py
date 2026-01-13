@@ -35,7 +35,7 @@ def validate_registry_field(value):
             'message': 'O registro deve conter mais de uma letra.'
         })
     
-    # Check for valid characters (letters, numbers, spaces, hyphens, underscores)
+    # Verifica for valid characters (letters, numbers, spaces, hyphens, underscores)
     if not re.match(r'^[a-zA-Z0-9\s\-_]+$', cleaned_value):
         raise ValidationError({
             'field': 'name',

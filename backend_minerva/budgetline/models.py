@@ -3,10 +3,10 @@ from django.core.validators import MinValueValidator
 from accounts.models import User
 from budget.models import Budget
 from employee.models import Employee
-from center.models import Management_Center, Requesting_Center
-from accounts.permissions import HierarchicalPermissionMixin
+from center.models import ManagementCenter, RequestingCenter
+from accounts.mixins import HierarchicalQuerysetMixin
 
-class BudgetLine(models.Model, HierarchicalPermissionMixin):
+class BudgetLine(models.Model, HierarchicalQuerysetMixin):
     budget = models.ForeignKey(Budget, on_delete=models.PROTECT, related_name='budget_lines',verbose_name='Orçamento')
     BUDGET_CATEGORY_CHOICES = [
         ('CAPEX', 'CAPEX'),
@@ -32,7 +32,7 @@ class BudgetLine(models.Model, HierarchicalPermissionMixin):
     )
 
     management_center = models.ForeignKey(
-        Management_Center, 
+        ManagementCenter, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 
@@ -40,7 +40,7 @@ class BudgetLine(models.Model, HierarchicalPermissionMixin):
         verbose_name='Centro de Gestor'
     )
     requesting_center = models.ForeignKey(
-        Requesting_Center, 
+        RequestingCenter, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -255,7 +255,7 @@ class BudgetLine(models.Model, HierarchicalPermissionMixin):
         verbose_name_plural = 'Linhas Orçamentárias'
         ordering = ['-created_at']
 
-#=================================================================================================================
+
         
 class BudgetLineMovement(models.Model):
     source_line = models.ForeignKey(BudgetLine, on_delete=models.CASCADE, related_name='outgoing_movements', verbose_name='Linha de Origem', null=True, blank=True)
@@ -298,7 +298,7 @@ class BudgetLineVersion(models.Model):
         verbose_name='Tipo de Despesa'
     )
     management_center = models.ForeignKey(
-        Management_Center, 
+        ManagementCenter, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 
@@ -306,7 +306,7 @@ class BudgetLineVersion(models.Model):
         verbose_name='Centro de Gestor'
     )
     requesting_center = models.ForeignKey(
-        Requesting_Center, 
+        RequestingCenter, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,

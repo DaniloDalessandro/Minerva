@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContext"; // ✅ importe aqui
-import { InterceptorProvider } from "@/contexts/InterceptorContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { InterceptorProvider } from "@/context";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress-bar";
 
 const geistSans = Geist({

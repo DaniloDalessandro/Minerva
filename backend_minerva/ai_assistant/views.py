@@ -1,5 +1,6 @@
 import uuid
 import logging
+from django.conf import settings
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from rest_framework import status, viewsets, permissions
@@ -28,6 +29,17 @@ from .serializers import (
 from .services.sql_interpreter import SQLInterpreterService
 
 logger = logging.getLogger(__name__)
+
+
+# Helper function for secure error responses
+def get_error_details(exception):
+    """
+    Returns exception details only if DEBUG is enabled.
+    In production, returns a generic message to avoid information leakage.
+    """
+    if settings.DEBUG:
+        return str(exception)
+    return "Contact support for more information"
 
 
 class ConversationSessionViewSet(viewsets.ModelViewSet):
@@ -292,7 +304,7 @@ class AliceChatView(APIView):
             return Response({
                 'success': False,
                 'error': 'Erro interno do servidor',
-                'details': str(e)
+                'details': get_error_details(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

@@ -3,15 +3,15 @@ from django.core.exceptions import ValidationError
 from accounts.models import User
 from .utils.validators import validate_registry_field
 
-#=================================================================================================================
 
-class Management_Center(models.Model):
+
+class ManagementCenter(models.Model):
     name = models.CharField(max_length=100, unique=True, validators=[validate_registry_field], verbose_name='Nome')
     is_active = models.BooleanField(default=True, verbose_name='Ativo')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, related_name='centros_gertores_criados', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, related_name='centros_gestores_atualizados', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, related_name='management_centers_created', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, related_name='management_centers_updated', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
 
     def clean(self):
         """Custom validation with Zod-like behavior"""
@@ -19,12 +19,12 @@ class Management_Center(models.Model):
         
         if self.name:
             try:
-                # Validate and clean the name
+                # Valida and clean the name
                 cleaned_name = validate_registry_field(self.name)
                 self.name = cleaned_name
                 
-                # Check for duplicates (excluding current instance)
-                existing = Management_Center.objects.filter(name=cleaned_name)
+                # Verifica for duplicates (excluding current instance)
+                existing = ManagementCenter.objects.filter(name=cleaned_name)
                 if self.pk:
                     existing = existing.exclude(pk=self.pk)
                     
@@ -52,16 +52,16 @@ class Management_Center(models.Model):
         verbose_name_plural = 'Centros Gestores'
         ordering = ['name']
     
-#=================================================================================================================
 
-class Requesting_Center(models.Model):
-    management_center = models.ForeignKey(Management_Center, on_delete=models.CASCADE, related_name='solicitantes', verbose_name='Centro Gestor')
+
+class RequestingCenter(models.Model):
+    management_center = models.ForeignKey(ManagementCenter, on_delete=models.CASCADE, related_name='requesting_centers', verbose_name='Centro Gestor')
     name = models.CharField(max_length=100, validators=[validate_registry_field], verbose_name='Nome')
     is_active = models.BooleanField(default=True, verbose_name='Ativo')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, related_name='centros_solicitantes_criados', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, related_name='centros_solicitantes_atualizados', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, related_name='requesting_centers_created', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, related_name='requesting_centers_updated', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Atualizado por')
 
     def clean(self):
         """Custom validation with Zod-like behavior"""
@@ -69,13 +69,13 @@ class Requesting_Center(models.Model):
         
         if self.name:
             try:
-                # Validate and clean the name
+                # Valida and clean the name
                 cleaned_name = validate_registry_field(self.name)
                 self.name = cleaned_name
                 
-                # Check for duplicates within the same management center
+                # Verifica for duplicates within the same management center
                 if self.management_center:
-                    existing = Requesting_Center.objects.filter(
+                    existing = RequestingCenter.objects.filter(
                         management_center=self.management_center,
                         name=cleaned_name
                     )
@@ -114,7 +114,7 @@ class Requesting_Center(models.Model):
         unique_together = ('management_center', 'name')
         ordering = ['name']
 
-#=================================================================================================================
+
 
 class CenterHierarchy(models.Model):
     """
@@ -122,7 +122,7 @@ class CenterHierarchy(models.Model):
     Permite implementar permissões baseadas na estrutura organizacional
     """
     management_center = models.ForeignKey(
-        Management_Center, 
+        ManagementCenter, 
         on_delete=models.CASCADE, 
         related_name='hierarchy_associations',
         verbose_name='Centro Gestor'

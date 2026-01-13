@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Management_Center, Requesting_Center, CenterHierarchy
+from .models import ManagementCenter, RequestingCenter, CenterHierarchy
 
-@admin.register(Management_Center)
+@admin.register(ManagementCenter)
 class ManagementCenterAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -39,7 +39,7 @@ class ManagementCenterAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(Requesting_Center)
+@admin.register(RequestingCenter)
 class RequestingCenterAdmin(admin.ModelAdmin):
     list_display = (
         'management_center',

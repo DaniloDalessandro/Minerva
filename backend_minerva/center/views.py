@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.pagination import CustomPageNumberPagination
-from .models import Management_Center, Requesting_Center
+from .models import ManagementCenter, RequestingCenter
 from .serializers import ManagementCenterSerializer, RequestingCenterSerializer
 from .utils.messages import CENTRO_GESTOR_MSGS, CENTRO_SOLICITANTE_MSGS
 
@@ -20,17 +20,17 @@ def format_validation_errors(errors):
     
     for field, field_errors in errors.items():
         if isinstance(field_errors, list):
-            # Handle simple list of error messages
+            # Trata simple list of error messages
             formatted_errors[field] = {
                 'field': field,
                 'code': 'validation_error',
                 'message': field_errors[0] if field_errors else 'Erro de validação'
             }
         elif isinstance(field_errors, dict):
-            # Handle structured error dict
+            # Trata structured error dict
             formatted_errors[field] = field_errors
         else:
-            # Handle string error
+            # Trata string error
             formatted_errors[field] = {
                 'field': field,
                 'code': 'validation_error',
@@ -45,7 +45,7 @@ def format_validation_errors(errors):
 # --------------------------------------------------------------------------------------------------------------------
 
 class ManagementCenterListView(generics.ListAPIView):
-    queryset = Management_Center.objects.all()
+    queryset = ManagementCenter.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     pagination_class = CustomPageNumberPagination
@@ -57,7 +57,7 @@ class ManagementCenterListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Apply is_active filter - show only active by default unless specified
+        # Aplica is_active filter - show only active by default unless specified
         is_active = self.request.query_params.get('is_active', None)
         if is_active is None:
             # Default to showing only active centers
@@ -66,7 +66,7 @@ class ManagementCenterListView(generics.ListAPIView):
 
 
 class ManagementCenterCreateView(generics.CreateAPIView):
-    queryset = Management_Center.objects.all()
+    queryset = ManagementCenter.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
@@ -98,13 +98,13 @@ class ManagementCenterCreateView(generics.CreateAPIView):
 
 
 class ManagementCenterDetailView(generics.RetrieveAPIView):
-    queryset = Management_Center.objects.all()
+    queryset = ManagementCenter.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 
 class ManagementCenterUpdateView(generics.UpdateAPIView):
-    queryset = Management_Center.objects.all()
+    queryset = ManagementCenter.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
@@ -136,7 +136,7 @@ class ManagementCenterUpdateView(generics.UpdateAPIView):
 
 
 class ManagementCenterDeleteView(generics.UpdateAPIView):
-    queryset = Management_Center.objects.all()
+    queryset = ManagementCenter.objects.all()
     serializer_class = ManagementCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
@@ -159,7 +159,7 @@ class ManagementCenterDeleteView(generics.UpdateAPIView):
 # --------------------------------------------------------------------------------------------------------------------
 
 class RequestingCenterListView(generics.ListAPIView):
-    queryset = Requesting_Center.objects.select_related('management_center')
+    queryset = RequestingCenter.objects.select_related('management_center')
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
     pagination_class = CustomPageNumberPagination
@@ -171,7 +171,7 @@ class RequestingCenterListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Apply is_active filter - show only active by default unless specified
+        # Aplica is_active filter - show only active by default unless specified
         is_active = self.request.query_params.get('is_active', None)
         if is_active is None:
             # Default to showing only active centers
@@ -180,7 +180,7 @@ class RequestingCenterListView(generics.ListAPIView):
 
 
 class RequestingCenterCreateView(generics.CreateAPIView):
-    queryset = Requesting_Center.objects.all()
+    queryset = RequestingCenter.objects.all()
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
@@ -212,13 +212,13 @@ class RequestingCenterCreateView(generics.CreateAPIView):
 
 
 class RequestingCenterDetailView(generics.RetrieveAPIView):
-    queryset = Requesting_Center.objects.all()
+    queryset = RequestingCenter.objects.all()
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
 
 class RequestingCenterUpdateView(generics.UpdateAPIView):
-    queryset = Requesting_Center.objects.all()
+    queryset = RequestingCenter.objects.all()
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
@@ -250,7 +250,7 @@ class RequestingCenterUpdateView(generics.UpdateAPIView):
 
 
 class RequestingCenterDeleteView(generics.UpdateAPIView):
-    queryset = Requesting_Center.objects.all()
+    queryset = RequestingCenter.objects.all()
     serializer_class = RequestingCenterSerializer
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 

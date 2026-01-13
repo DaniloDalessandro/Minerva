@@ -1,7 +1,7 @@
 from django.db import models
 from accounts.models import User
 
-#=================================================================================================================
+
 
 class Direction(models.Model):
     name = models.CharField(max_length=100,unique=True,verbose_name='Nome')
@@ -23,7 +23,7 @@ class Direction(models.Model):
         verbose_name = 'Direção'
         verbose_name_plural = 'Direções'
 
-#=================================================================================================================
+
 
 class Management(models.Model):
     direction = models.ForeignKey(Direction, on_delete=models.CASCADE, related_name='gerencias',verbose_name='Direção')
@@ -48,7 +48,7 @@ class Management(models.Model):
         unique_together = ('direction', 'name')
         ordering = ['name']
 
-#=================================================================================================================
+
 
 class Coordination(models.Model):
     management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='coordenacoes',verbose_name='Gerência')

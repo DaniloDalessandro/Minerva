@@ -1,7 +1,6 @@
-import { authFetch } from "./authFetch";
-
-const MANAGEMENT_CENTERS_API_URL = "http://localhost:8000/api/v1/center/management-centers/";
-const REQUESTING_CENTERS_API_URL = "http://localhost:8000/api/v1/center/requesting-centers/";
+import { apiClient } from "./client";
+import { API_URL } from "@/lib/config";
+import { API_ENDPOINTS } from "@/constants/api-endpoints";
 
 // Função para verificar se um nome de centro gestor já existe
 export async function checkManagementCenterNameExists(
@@ -14,9 +13,8 @@ export async function checkManagementCenterNameExists(
       page_size: "1000",
     });
     
-    const res = await authFetch(`${MANAGEMENT_CENTERS_API_URL}?${params.toString()}`);
+    const res = await apiClient(`${API_URL}${API_ENDPOINTS.CENTER.MANAGEMENT_LIST}?${params.toString()}`);
     if (!res.ok) {
-      console.error("Erro ao verificar duplicata de centro gestor");
       return false;
     }
     
@@ -32,7 +30,6 @@ export async function checkManagementCenterNameExists(
     
     return duplicateExists;
   } catch (error) {
-    console.error("Erro ao verificar duplicata:", error);
     return false;
   }
 }
@@ -49,9 +46,8 @@ export async function checkRequestingCenterNameExists(
       page_size: "1000",
     });
     
-    const res = await authFetch(`${REQUESTING_CENTERS_API_URL}?${params.toString()}`);
+    const res = await apiClient(`${API_URL}${API_ENDPOINTS.CENTER.REQUESTING_LIST}?${params.toString()}`);
     if (!res.ok) {
-      console.error("Erro ao verificar duplicata de centro solicitante");
       return false;
     }
     
@@ -68,7 +64,6 @@ export async function checkRequestingCenterNameExists(
     
     return duplicateExists;
   } catch (error) {
-    console.error("Erro ao verificar duplicata:", error);
     return false;
   }
 }

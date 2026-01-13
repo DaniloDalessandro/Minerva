@@ -5,73 +5,39 @@ from django.db import models
 
 logger = logging.getLogger(__name__)
 
+# DEPRECATED: This mixin has been moved to accounts.mixins.HierarchicalQuerysetMixin
+# This placeholder is kept for backwards compatibility during migration
+# TODO: Remove this after all imports are updated to use accounts.mixins
+
 class HierarchicalPermissionMixin:
     """
-    Mixin para adicionar verificação de permissões hierárquicas aos modelos
+    DEPRECATED: Use accounts.mixins.HierarchicalQuerysetMixin instead.
+
+    This mixin has been consolidated into accounts.mixins to avoid confusion
+    between queryset-level and instance-level permission mixins.
     """
-    
+
     @classmethod
     def get_user_accessible_objects(cls, user):
-        """
-        Retorna os objetos que o usuário pode acessar baseado em sua hierarquia
-        """
-        if user.is_superuser:
-            return cls.objects.all()
-        
-        if not user.groups.exists():
-            return cls.objects.none()
-        
-        # Obter employee do usuário
-        if not hasattr(user, 'employee') or not user.employee:
-            return cls.objects.none()
-        
-        employee = user.employee
-        accessible_objects = cls.objects.none()
-        
-        # Verificar grupos e suas permissões
-        for group in user.groups.all():
-            group_name = group.name.lower()
-            
-            if group_name == 'presidente':
-                # Presidente pode ver tudo
-                accessible_objects |= cls.objects.all()
-            
-            elif group_name.startswith('diretor'):
-                # Diretor pode ver dados de sua direção e hierarquias abaixo
-                if employee.direction:
-                    accessible_objects |= cls.get_objects_by_direction(employee.direction)
-            
-            elif group_name.startswith('gerente'):
-                # Gerente pode ver dados de sua gerência e coordenações abaixo
-                if employee.management:
-                    accessible_objects |= cls.get_objects_by_management(employee.management)
-            
-            elif group_name.startswith('coordenador'):
-                # Coordenador pode ver apenas dados de sua coordenação
-                if employee.coordination:
-                    accessible_objects |= cls.get_objects_by_coordination(employee.coordination)
-            
-            elif group_name == 'funcionario':
-                # Funcionário comum - sem acesso ou acesso limitado
-                accessible_objects |= cls.get_objects_by_user(user)
-        
-        return accessible_objects.distinct()
-    
+        """DEPRECATED: Import from accounts.mixins.HierarchicalQuerysetMixin"""
+        from .mixins import HierarchicalQuerysetMixin
+        return HierarchicalQuerysetMixin.get_user_accessible_objects(cls, user)
+
     @classmethod
     def get_objects_by_direction(cls, direction):
         """Implementar em cada modelo específico"""
         return cls.objects.none()
-    
+
     @classmethod
     def get_objects_by_management(cls, management):
         """Implementar em cada modelo específico"""
         return cls.objects.none()
-    
+
     @classmethod
     def get_objects_by_coordination(cls, coordination):
         """Implementar em cada modelo específico"""
         return cls.objects.none()
-    
+
     @classmethod
     def get_objects_by_user(cls, user):
         """Implementar em cada modelo específico"""

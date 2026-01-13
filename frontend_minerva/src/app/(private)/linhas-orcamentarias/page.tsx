@@ -2,12 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
-import { fetchBudgetLines, BudgetLine, createBudgetLine, updateBudgetLine, deleteBudgetLine } from "@/lib/api/budgetlines";
-import { fetchBudgets, fetchManagementCenters, fetchRequestingCenters, fetchEmployees } from "@/lib/api/budgetlines";
-import BudgetLineForm from "@/components/forms/BudgetLineForm";
-import { useOptimisticBudgetLines } from "@/hooks/useOptimisticBudgetLines";
-import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
+import { budgetLineColumns, BudgetLineForm, useOptimisticBudgetLines, type BudgetLine } from "@/features/orcamento";
+import { BudgetLineService, BudgetService, CenterService, ColaboradorService } from "@/services";
+import { useRegisterRefresh } from "@/context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +68,7 @@ export default function LinhasOrcamentariasPage() {
       const filterValues = Object.values(filters).filter(Boolean);
       const searchParam = filterValues.length > 0 ? filterValues[filterValues.length - 1] : search;
       
-      const data = await fetchBudgetLines(page, pageSize, searchParam, ordering);
+      const data = await BudgetLineService.fetchBudgetLines(page, pageSize, searchParam, ordering);
       setBudgetLines(data.results);
       setTotalCount(data.count);
       console.log("✅ Budget lines loaded successfully:", data.results.length, "items");
@@ -126,7 +123,7 @@ export default function LinhasOrcamentariasPage() {
   const confirmDeleteBudgetLine = async () => {
     if (budgetLineToDelete?.id) {
       try {
-        await deleteBudgetLine(budgetLineToDelete.id);
+        await BudgetLineService.deleteBudgetLine(budgetLineToDelete.id);
         await loadBudgetLines(); // Reload the list
         if (budgetLines.length === 1 && page > 1) {
           setPage(page - 1);
@@ -151,7 +148,7 @@ export default function LinhasOrcamentariasPage() {
       
       if (isEditing) {
         console.log("📝 Updating existing budget line with ID:", budgetLineData.id);
-        const result = await updateBudgetLine(budgetLineData);
+        const result = await BudgetLineService.updateBudgetLine(budgetLineData);
         
         // Extract the actual budget line data from the API response
         const updatedBudgetLine = result.data || result;
@@ -172,44 +169,44 @@ export default function LinhasOrcamentariasPage() {
         
         if (budgetLineData.budget) {
           try {
-            const budgets = await fetchBudgets();
-            selectedBudget = budgets.find((b: any) => b.id === budgetLineData.budget);
+            const data = await BudgetService.fetchBudgets(1, 1000);
+            selectedBudget = data.results.find((b: any) => b.id === budgetLineData.budget);
           } catch (error) {
             console.warn("Could not fetch budgets for optimistic UI");
           }
         }
-        
+
         if (budgetLineData.management_center) {
           try {
-            const centers = await fetchManagementCenters();
-            selectedManagementCenter = centers.find((c: any) => c.id === budgetLineData.management_center);
+            const data = await CenterService.fetchManagementCenters(1, 1000);
+            selectedManagementCenter = data.results.find((c: any) => c.id === budgetLineData.management_center);
           } catch (error) {
             console.warn("Could not fetch management centers for optimistic UI");
           }
         }
-        
+
         if (budgetLineData.requesting_center) {
           try {
-            const centers = await fetchRequestingCenters();
-            selectedRequestingCenter = centers.find((c: any) => c.id === budgetLineData.requesting_center);
+            const data = await CenterService.fetchRequestingCenters(1, 1000);
+            selectedRequestingCenter = data.results.find((c: any) => c.id === budgetLineData.requesting_center);
           } catch (error) {
             console.warn("Could not fetch requesting centers for optimistic UI");
           }
         }
-        
+
         if (budgetLineData.main_fiscal) {
           try {
-            const employees = await fetchEmployees();
-            selectedMainFiscal = employees.find((e: any) => e.id === budgetLineData.main_fiscal);
+            const data = await ColaboradorService.fetchColaboradores(1, 1000);
+            selectedMainFiscal = data.results.find((e: any) => e.id === budgetLineData.main_fiscal);
           } catch (error) {
             console.warn("Could not fetch employees for optimistic UI");
           }
         }
-        
+
         if (budgetLineData.secondary_fiscal) {
           try {
-            const employees = await fetchEmployees();
-            selectedSecondaryFiscal = employees.find((e: any) => e.id === budgetLineData.secondary_fiscal);
+            const data = await ColaboradorService.fetchColaboradores(1, 1000);
+            selectedSecondaryFiscal = data.results.find((e: any) => e.id === budgetLineData.secondary_fiscal);
           } catch (error) {
             console.warn("Could not fetch employees for optimistic UI");
           }
@@ -226,7 +223,7 @@ export default function LinhasOrcamentariasPage() {
         });
         
         // Make the API call
-        const result = await createBudgetLine(budgetLineData);
+        const result = await BudgetLineService.createBudgetLine(budgetLineData);
         
         // Extract the actual budget line data from the API response
         const newBudgetLine = result.data || result;
@@ -261,7 +258,7 @@ export default function LinhasOrcamentariasPage() {
     <div className="w-full py-1">
       <div className="space-y-2">
         <DataTable
-          columns={columns}
+          columns={budgetLineColumns}
           data={budgetLines}
           title="Linhas Orçamentárias"
           pageSize={pageSize}

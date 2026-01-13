@@ -5,9 +5,9 @@ from .models import BudgetLine, BudgetLineMovement, BudgetLineVersion
 from .serializers import BudgetLineSerializer, BudgetLineMovementSerializer, BudgetLineVersionSerializer
 from .utils.message import BUDGETSLINE_MESSAGES
 
-#=======================================================================================================
+
 # Budget Line Views
-#=======================================================================================================
+
 
 class BudgetLineListAPIView(generics.ListAPIView):
     queryset = BudgetLine.objects.all()
@@ -70,9 +70,9 @@ class BudgetLineDestroyAPIView(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         instance.delete()
 
-#=======================================================================================================
+
 # Budget Line Movement Views
-#=======================================================================================================
+
 
 class BudgetLineMovementListAPIView(generics.ListAPIView):
     queryset = BudgetLineMovement.objects.all()
@@ -136,9 +136,9 @@ class BudgetLineMovementDestroyAPIView(generics.DestroyAPIView):
         instance.delete()
 
 
-#=======================================================================================================
+
 # Budget Line Version Views
-#=======================================================================================================
+
 
 class BudgetLineVersionListAPIView(generics.ListAPIView):
     serializer_class = BudgetLineVersionSerializer

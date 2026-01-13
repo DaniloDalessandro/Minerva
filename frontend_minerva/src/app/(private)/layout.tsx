@@ -1,6 +1,6 @@
 "use client"
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/layout"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,9 +16,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { NavigationProgressBar } from "@/components/ui/navigation-progress-bar"
-import { DataRefreshProvider } from "@/contexts/DataRefreshContext"
+import { DataRefreshProvider } from "@/context"
 import { usePathname } from "next/navigation"
-import AuthGuard from "@/components/AuthGuard"
+import { AuthGuard } from "@/components/auth"
 import React from "react"
 
 const capitalize = (s: string) => {

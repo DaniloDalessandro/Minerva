@@ -2,12 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
-import { fetchColaboradores, Colaborador, createColaborador, updateColaborador, toggleColaboradorStatus } from "@/lib/api/colaboradores";
-import { fetchDirections, fetchManagements, fetchCoordinations } from "@/lib/api/colaboradores";
-import ColaboradorForm from "@/components/forms/ColaboradorForm";
-import { useOptimisticColaboradores } from "@/hooks/useOptimisticColaboradores";
-import { useRegisterRefresh } from "@/contexts/DataRefreshContext";
+import { colaboradorColumns, ColaboradorForm, useOptimisticColaboradores, type Colaborador } from "@/features/colaboradores";
+import { ColaboradorService, SetorService } from "@/services";
+import { useRegisterRefresh } from "@/context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +38,7 @@ export default function ColaboradoresPage() {
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const [statusFilter, setStatusFilter] = useState("ATIVO");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // Form states
   const [colaboradorFormOpen, setColaboradorFormOpen] = useState(false);
@@ -73,7 +70,7 @@ export default function ColaboradoresPage() {
       const filterValues = Object.values(filters).filter(Boolean);
       const searchParam = filterValues.length > 0 ? filterValues[filterValues.length - 1] : search;
       
-      const data = await fetchColaboradores(page, pageSize, searchParam, ordering, statusFilter);
+      const data = await ColaboradorService.fetchColaboradores(page, pageSize, searchParam, ordering, statusFilter);
       setColaboradores(data.results);
       setTotalCount(data.count);
       console.log("✅ Colaboradores loaded successfully:", data.results.length, "items");
@@ -129,7 +126,7 @@ export default function ColaboradoresPage() {
   const confirmToggleColaboradorStatus = async () => {
     if (colaboradorToDelete?.id) {
       try {
-        await toggleColaboradorStatus(colaboradorToDelete.id);
+        await ColaboradorService.toggleColaboradorStatus(colaboradorToDelete.id);
         await loadColaboradores(); // Reload the list
         if (colaboradores.length === 1 && page > 1) {
           setPage(page - 1);
@@ -154,7 +151,7 @@ export default function ColaboradoresPage() {
       
       if (isEditing) {
         console.log("📝 Updating existing colaborador with ID:", colaboradorData.id);
-        const result = await updateColaborador(colaboradorData);
+        const result = await ColaboradorService.updateColaborador(colaboradorData);
         
         // Extract the actual colaborador data from the API response
         const updatedColaborador = result.data || result;
@@ -173,25 +170,25 @@ export default function ColaboradoresPage() {
         
         if (colaboradorData.direction) {
           try {
-            const directions = await fetchDirections();
+            const directions = await SetorService.fetchDirections();
             selectedDirection = directions.find((dir: any) => dir.id === colaboradorData.direction);
           } catch (error) {
             console.warn("Could not fetch directions for optimistic UI");
           }
         }
-        
+
         if (colaboradorData.management) {
           try {
-            const managements = await fetchManagements();
+            const managements = await SetorService.fetchManagements();
             selectedManagement = managements.find((mgmt: any) => mgmt.id === colaboradorData.management);
           } catch (error) {
             console.warn("Could not fetch managements for optimistic UI");
           }
         }
-        
+
         if (colaboradorData.coordination) {
           try {
-            const coordinations = await fetchCoordinations();
+            const coordinations = await SetorService.fetchCoordinations();
             selectedCoordination = coordinations.find((coord: any) => coord.id === colaboradorData.coordination);
           } catch (error) {
             console.warn("Could not fetch coordinations for optimistic UI");
@@ -207,7 +204,7 @@ export default function ColaboradoresPage() {
         });
         
         // Make the API call
-        const result = await createColaborador(colaboradorData);
+        const result = await ColaboradorService.createColaborador(colaboradorData);
         
         // Extract the actual colaborador data from the API response
         const newColaborador = result.data || result;
@@ -244,13 +241,13 @@ export default function ColaboradoresPage() {
       <div className="space-y-2">
         
         <DataTable
-          columns={columns}
+          columns={colaboradorColumns}
           data={colaboradores}
           title="Colaboradores"
           pageSize={pageSize}
           pageIndex={page - 1}
           totalCount={totalColaboradores}
-          initialFilters={[{ id: 'status', value: statusFilter }]}
+          initialFilters={statusFilter ? [{ id: 'status', value: statusFilter }] : []}
           onPageChange={(newPageIndex) => setPage(newPageIndex + 1)}
           onPageSizeChange={(newPageSize) => {
             setPageSize(newPageSize);
@@ -262,9 +259,7 @@ export default function ColaboradoresPage() {
           onViewDetails={handleViewDetails}
           onFilterChange={(columnId, value) => {
             if (columnId === 'status') {
-              // Se for 'ALL' ou 'all', mostrar todos os status enviando 'ALL' para o backend
-              const filterValue = (value === 'ALL' || value === 'all') ? 'ALL' : (value || 'ATIVO');
-              setStatusFilter(filterValue);
+              setStatusFilter(value);
               setPage(1);
             } else {
               const newFilters = { ...filters };
