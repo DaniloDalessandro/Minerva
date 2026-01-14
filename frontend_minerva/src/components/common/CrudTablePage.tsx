@@ -222,11 +222,7 @@ export function CrudTablePage<T extends { id: number; [key: string]: any }>({
           pageSize={crud.pageSize}
           pageIndex={crud.page - 1}
           totalCount={crud.totalCount}
-          initialFilters={
-            crud.statusFilter
-              ? ([{ id: "status", value: crud.statusFilter }] as any)
-              : ([] as any)
-          }
+          initialFilters={([] as any)}
           onPageChange={crud.handlePageChange}
           onPageSizeChange={crud.handlePageSizeChange}
           onAdd={readOnly ? undefined : handleAdd}
