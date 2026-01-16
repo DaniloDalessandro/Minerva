@@ -1,5 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Coordination } from "@/lib/api/coordinations";
+import { IS_ACTIVE_FILTER_OPTIONS } from "@/constants/status";
 
 export const columns = (): ColumnDef<Coordination>[] => [
   {
@@ -8,24 +9,6 @@ export const columns = (): ColumnDef<Coordination>[] => [
     enableSorting: true,
     meta: {
       showFilterIcon: true,
-    },
-  },
-  {
-    accessorKey: "is_active",
-    header: "Status",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const isActive = row.original.is_active;
-      return isActive ? "Ativo" : "Inativo";
-    },
-    meta: {
-      showFilterIcon: true,
-      filterType: "select",
-      filterOptions: [
-        { label: "Todos", value: "all" },
-        { label: "Ativo", value: "active" },
-        { label: "Inativo", value: "inactive" },
-      ],
     },
   },
   {
@@ -70,5 +53,19 @@ export const columns = (): ColumnDef<Coordination>[] => [
     accessorKey: "updated_by",
     header: "Atualizado por",
     cell: ({ row }) => row.original.updated_by?.email ?? "-",
+  },
+  {
+    accessorKey: "is_active",
+    header: "Status",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const isActive = row.original.is_active;
+      return isActive ? "Ativo" : "Inativo";
+    },
+    meta: {
+      showFilterIcon: true,
+      filterType: "select",
+      filterOptions: IS_ACTIVE_FILTER_OPTIONS,
+    },
   },
 ];

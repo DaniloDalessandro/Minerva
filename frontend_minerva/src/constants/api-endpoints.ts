@@ -133,6 +133,8 @@ export const API_ENDPOINTS = {
     LOGIN: `/api/v1/accounts/token/`,
     REFRESH: `/api/v1/accounts/token/refresh/`,
     CHANGE_PASSWORD: `${API_BASE}/api/v1/accounts/change-password/`,
+    UPDATE_PROFILE: `${API_BASE}/api/v1/accounts/update-profile/`,
+    ME: `${API_BASE}/api/v1/accounts/me/`,
     LOGOUT: `${API_BASE}/api/v1/accounts/logout/`,
   },
 } as const;

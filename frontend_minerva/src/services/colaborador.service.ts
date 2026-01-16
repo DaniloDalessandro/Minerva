@@ -34,7 +34,8 @@ export class ColaboradorService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
-    if (status) params.append('status', status);
+    // Only append status if it's not empty (empty means "all")
+    if (status && status !== "") params.append('status', status);
 
     console.log("👥 Buscando colaboradores:", params.toString());
 

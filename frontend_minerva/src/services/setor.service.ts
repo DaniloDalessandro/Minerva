@@ -35,6 +35,7 @@ export class SetorService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    // Só aplica filtro se não for vazio (vazio = mostrar todos)
     if (statusFilter === "active") {
       params.append("is_active", "true");
     } else if (statusFilter === "inactive") {
@@ -87,6 +88,7 @@ export class SetorService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    // Só aplica filtro se não for vazio (vazio = mostrar todos)
     if (statusFilter === "active") {
       params.append("is_active", "true");
     } else if (statusFilter === "inactive") {
@@ -139,6 +141,7 @@ export class SetorService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    // Só aplica filtro se não for vazio (vazio = mostrar todos)
     if (statusFilter === "active") {
       params.append("is_active", "true");
     } else if (statusFilter === "inactive") {

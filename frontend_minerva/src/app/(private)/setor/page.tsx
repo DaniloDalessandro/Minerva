@@ -114,11 +114,12 @@ export default function SetoresPage() {
               existingNames: directionsForForm.map((d) => d.name),
             }}
             onLoadSuccess={handleDirectionsLoaded}
+            initialStatusFilter=""
             deleteDialogTitle="Confirmar inativação"
             deleteDialogDescription={(direction) =>
               `Tem certeza que deseja inativar a direção "${direction.name}"?`
             }
-            refreshKey="setores"
+            refreshKey="setores-directions"
           />
         </TabsContent>
 
@@ -134,11 +135,12 @@ export default function SetoresPage() {
               existingNames: managementsForForm.map((m) => m.name),
             }}
             onLoadSuccess={handleManagementsLoaded}
+            initialStatusFilter=""
             deleteDialogTitle="Confirmar inativação"
             deleteDialogDescription={(management) =>
               `Tem certeza que deseja inativar a gerência "${management.name}"?`
             }
-            refreshKey="setores"
+            refreshKey="setores-managements"
           />
         </TabsContent>
 
@@ -154,11 +156,12 @@ export default function SetoresPage() {
               existingNames: coordinationsForForm.map((c) => c.name),
             }}
             onLoadSuccess={handleCoordinationsLoaded}
+            initialStatusFilter=""
             deleteDialogTitle="Confirmar inativação"
             deleteDialogDescription={(coordination) =>
               `Tem certeza que deseja inativar a coordenação "${coordination.name}"?`
             }
-            refreshKey="setores"
+            refreshKey="setores-coordinations"
           />
         </TabsContent>
       </Tabs>

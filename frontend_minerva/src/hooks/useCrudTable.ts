@@ -39,6 +39,7 @@ export interface UseCrudTableReturn<T> {
   sorting: any[];
   filters: Record<string, string>;
   statusFilter: string;
+  initialFilters: any[];
   setSearch: (search: string) => void;
   setSorting: (sorting: any[]) => void;
   setFilters: (filters: Record<string, string>) => void;
@@ -95,6 +96,9 @@ export function useCrudTable<T = any>(
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
 
+  // Track whether the status filter is user-selected (should be visible) or default (hidden)
+  const [isStatusFilterUserSelected, setIsStatusFilterUserSelected] = useState(false);
+
   // Form states
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
@@ -115,14 +119,7 @@ export function useCrudTable<T = any>(
   const loadItems = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log("🔄 Loading items with params:", {
-        page,
-        pageSize,
-        search,
-        sorting,
-        filters,
-        statusFilter,
-      });
+      console.log("🔄 Loading items - statusFilter:", statusFilter);
 
       const ordering = convertSortingToOrdering(sorting);
 
@@ -144,7 +141,7 @@ export function useCrudTable<T = any>(
       setItems(data.results);
       setTotalCount(data.count);
 
-      console.log("✅ Items loaded successfully:", data.results.length, "items");
+      console.log("✅ Loaded", data.results.length, "items");
 
       if (onLoadSuccess) {
         onLoadSuccess(data.results);
@@ -197,8 +194,26 @@ export function useCrudTable<T = any>(
   }, []);
 
   const handleFilterChange = useCallback((columnId: string, value: string) => {
+    console.log("🔄 Filter change:", columnId, "=", value);
+
     if (columnId === "status" || columnId === "is_active") {
-      setStatusFilter(value);
+      // Handle status filter
+      if (value === "ALL" || value === "all") {
+        // "Todos" - buscar sem filtro
+        setStatusFilter("");
+        setIsStatusFilterUserSelected(true);
+        console.log("   → Set statusFilter to empty (ALL)");
+      } else if (value && value !== "") {
+        // Status específico
+        setStatusFilter(value);
+        setIsStatusFilterUserSelected(true);
+        console.log("   → Set statusFilter to:", value);
+      } else {
+        // Resetar ao padrão
+        setStatusFilter(initialStatusFilter);
+        setIsStatusFilterUserSelected(false);
+        console.log("   → Reset statusFilter to default:", initialStatusFilter);
+      }
       setPage(1);
     } else {
       setFilters((prev) => {
@@ -212,7 +227,7 @@ export function useCrudTable<T = any>(
       });
       setPage(1);
     }
-  }, []);
+  }, [initialStatusFilter]);
 
   const handleSortingChange = useCallback((newSorting: any[]) => {
     setSorting(newSorting);
@@ -227,6 +242,21 @@ export function useCrudTable<T = any>(
     setPageSize(newPageSize);
     setPage(1);
   }, []);
+
+  // Build initial filters for DataTable - only show filters that are user-selected
+  const getInitialFilters = () => {
+    const initialFilters: any[] = [];
+
+    // Only add status filter to initial filters if user explicitly selected it
+    // Don't show the default filter in the UI
+    if (isStatusFilterUserSelected && statusFilter && statusFilter !== "") {
+      // Determine the column ID based on the status value format
+      const statusColumnId = (statusFilter === "active" || statusFilter === "inactive") ? "is_active" : "status";
+      initialFilters.push({ id: statusColumnId, value: statusFilter });
+    }
+
+    return initialFilters;
+  };
 
   return {
     // Data states
@@ -273,5 +303,8 @@ export function useCrudTable<T = any>(
     handlePageChange,
     handlePageSizeChange,
     convertSortingToOrdering,
+
+    // Helper for DataTable
+    initialFilters: getInitialFilters(),
   };
 }

@@ -119,10 +119,51 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 # -------------------------------
 class ProfileUpdateSerializer(serializers.ModelSerializer):
+    # Campos do Employee
+    full_name = serializers.CharField(required=False, write_only=True)
+    cpf = serializers.CharField(required=False, write_only=True)
+    phone = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    direction_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+    management_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+    coordination_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('first_name', 'last_name', 'email', 'full_name', 'cpf', 'phone', 'direction_id', 'management_id', 'coordination_id')
         read_only_fields = ('email',)
+
+    def update(self, instance, validated_data):
+        # Extrair dados do Employee
+        employee_data = {}
+        for field in ['full_name', 'cpf', 'phone', 'direction_id', 'management_id', 'coordination_id']:
+            if field in validated_data:
+                employee_data[field] = validated_data.pop(field)
+
+        # Atualizar User
+        instance = super().update(instance, validated_data)
+
+        # Atualizar Employee se existir e houver dados
+        if instance.employee and employee_data:
+            employee = instance.employee
+            for field, value in employee_data.items():
+                setattr(employee, field, value)
+            employee.save()
+
+        return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.employee:
+            data['full_name'] = instance.employee.full_name
+            data['cpf'] = instance.employee.cpf
+            data['phone'] = instance.employee.phone
+            data['direction_id'] = instance.employee.direction_id
+            data['management_id'] = instance.employee.management_id
+            data['coordination_id'] = instance.employee.coordination_id
+            data['direction_name'] = instance.employee.direction.name if instance.employee.direction else None
+            data['management_name'] = instance.employee.management.name if instance.employee.management else None
+            data['coordination_name'] = instance.employee.coordination.name if instance.employee.coordination else None
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):

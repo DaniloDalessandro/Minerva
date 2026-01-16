@@ -175,18 +175,19 @@ export function DataTable({
   });
 
   // Sincronizar filtros externos com estado interno da tabela
-  // Usa JSON.stringify para comparar os valores reais, não a referência do array
+  // Apenas sincroniza quando há filtros explícitos para mostrar
   const initialFiltersStr = JSON.stringify(initialFilters);
   React.useEffect(() => {
     console.log('🔍 DataTable initialFilters:', initialFilters);
     if (initialFilters && initialFilters.length > 0) {
       const processedFilters = initialFilters.map(filter => ({
         id: filter.id,
-        value: filter.value === "all" ? undefined : filter.value
-      }));
+        value: filter.value === "all" || filter.value === "ALL" ? undefined : filter.value
+      })).filter(f => f.value !== undefined);
       console.log('📝 Setting column filters:', processedFilters);
       setColumnFilters(processedFilters);
     }
+    // Não faz nada quando initialFilters está vazio - mantém o estado atual
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFiltersStr]); // Depende da string serializada para evitar loops infinitos
 
@@ -217,19 +218,14 @@ export function DataTable({
     const column = table.getColumn(columnId);
     const filterMeta = column?.columnDef.meta;
 
-    // Se for um filtro do tipo select, resetar para "all"
-    if (filterMeta?.filterType === "select") {
-      table.getColumn(columnId)?.setFilterValue(undefined);
-      setOpenFilterId(null);
-      if (onFilterChange) {
-        onFilterChange(columnId, "all");
-      }
-    } else {
-      table.getColumn(columnId)?.setFilterValue("");
-      setOpenFilterId(null);
-      if (onFilterChange) {
-        onFilterChange(columnId, "");
-      }
+    // Resetar o filtro
+    table.getColumn(columnId)?.setFilterValue(undefined);
+    setOpenFilterId(null);
+
+    // Chamar callback para resetar ao padrão (não para "all")
+    if (onFilterChange) {
+      // Passar valor vazio para resetar ao padrão do sistema
+      onFilterChange(columnId, "");
     }
   };
 
@@ -239,27 +235,20 @@ export function DataTable({
     table.getAllColumns().forEach((col) => {
       const currentValue = col.getFilterValue();
       if (currentValue !== undefined && currentValue !== "") {
-        const filterMeta = col.columnDef.meta;
-        const resetValue = filterMeta?.filterType === "select" ? "all" : "";
-        filtersToReset.push({ columnId: col.id, resetValue });
+        filtersToReset.push({ columnId: col.id });
       }
     });
 
-    // Agora limpar os filtros localmente
+    // Limpar os filtros localmente
     table.getAllColumns().forEach((col) => {
-      const filterMeta = col.columnDef.meta;
-      if (filterMeta?.filterType === "select") {
-        col.setFilterValue(undefined);
-      } else {
-        col.setFilterValue("");
-      }
+      col.setFilterValue(undefined);
     });
     setOpenFilterId(null);
 
-    // Chamar os callbacks para resetar no backend
+    // Chamar os callbacks para resetar ao padrão (passar vazio reseta ao padrão do sistema)
     if (onFilterChange && filtersToReset.length > 0) {
-      filtersToReset.forEach(({ columnId, resetValue }) => {
-        onFilterChange(columnId, resetValue);
+      filtersToReset.forEach(({ columnId }) => {
+        onFilterChange(columnId, "");
       });
     }
   };
@@ -269,11 +258,13 @@ export function DataTable({
   );
 
   const displayableFilters = activeFilters.filter(filter => {
+    // Don't show badge for empty values, "all", "ALL", or default "active" status
     if (
       !filter.value ||
       filter.value === "all" ||
       filter.value === "ALL" ||
-      (filter.id === "is_active" && filter.value === "active")
+      (filter.id === "is_active" && filter.value === "active") ||
+      (filter.id === "status" && filter.value === "ATIVO")
     ) {
       return false;
     }
@@ -465,13 +456,13 @@ export function DataTable({
                                       </div>
                                       {header.column.columnDef.meta?.filterType === "select" ? (
                                         <Select
-                                          value={filterValue ?? "all"}
+                                          value={filterValue || undefined}
                                           onValueChange={(value) =>
                                             handleFilterChange(columnId, value)
                                           }
                                         >
                                           <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Selecione..." />
+                                            <SelectValue placeholder="Filtrar..." />
                                           </SelectTrigger>
                                           <SelectContent>
                                             {header.column.columnDef.meta?.filterOptions?.map((option) => (

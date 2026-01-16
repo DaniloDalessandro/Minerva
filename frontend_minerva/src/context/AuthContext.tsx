@@ -9,6 +9,15 @@ interface UserData {
   id: string
   email: string
   name: string
+  cpf?: string
+  phone?: string
+  direction_id?: number
+  direction_name?: string
+  management_id?: number
+  management_name?: string
+  coordination_id?: number
+  coordination_name?: string
+  avatar?: string
 }
 
 interface AuthContextType {
@@ -20,6 +29,7 @@ interface AuthContextType {
   login: (data: { access: string; refresh: string; user: UserData }) => void
   logout: () => void
   refreshAccessToken: () => Promise<boolean>
+  updateUserProfile: (data: Partial<UserData>) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -34,15 +44,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const getAuthData = useCallback(() => {
     try {
       const token = localStorage.getItem("access")
-      const userData = {
+      const userData: UserData = {
         id: localStorage.getItem("user_id") || '',
         email: localStorage.getItem("user_email") || '',
         name: localStorage.getItem("user_name") || '',
+        cpf: localStorage.getItem("user_cpf") || '',
+        phone: localStorage.getItem("user_phone") || '',
+        direction_id: localStorage.getItem("user_direction_id") ? parseInt(localStorage.getItem("user_direction_id")!) : undefined,
+        direction_name: localStorage.getItem("user_direction_name") || '',
+        management_id: localStorage.getItem("user_management_id") ? parseInt(localStorage.getItem("user_management_id")!) : undefined,
+        management_name: localStorage.getItem("user_management_name") || '',
+        coordination_id: localStorage.getItem("user_coordination_id") ? parseInt(localStorage.getItem("user_coordination_id")!) : undefined,
+        coordination_name: localStorage.getItem("user_coordination_name") || '',
+        avatar: localStorage.getItem("user_avatar") || '',
       }
-      
-      return { 
+
+      return {
         token,
-        userData: token && userData.id ? userData : null 
+        userData: token && userData.id ? userData : null
       }
     } catch (error) {
       return { token: null, userData: null }
@@ -77,6 +96,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null)
     } catch (error) {
       setError("Falha ao salvar os dados de autenticação")
+    }
+  }, [])
+
+  // Função para atualizar o perfil do usuário
+  const updateUserProfile = useCallback((data: Partial<UserData>) => {
+    try {
+      if (data.name) localStorage.setItem("user_name", data.name)
+      if (data.email) localStorage.setItem("user_email", data.email)
+      if (data.cpf) localStorage.setItem("user_cpf", data.cpf)
+      if (data.phone) localStorage.setItem("user_phone", data.phone)
+      if (data.direction_id) localStorage.setItem("user_direction_id", data.direction_id.toString())
+      if (data.direction_name) localStorage.setItem("user_direction_name", data.direction_name)
+      if (data.management_id) localStorage.setItem("user_management_id", data.management_id.toString())
+      if (data.management_name) localStorage.setItem("user_management_name", data.management_name)
+      if (data.coordination_id) localStorage.setItem("user_coordination_id", data.coordination_id.toString())
+      if (data.coordination_name) localStorage.setItem("user_coordination_name", data.coordination_name)
+      if (data.avatar) localStorage.setItem("user_avatar", data.avatar)
+
+      setUser(prev => prev ? { ...prev, ...data } : null)
+    } catch (error) {
+      setError("Falha ao atualizar o perfil do usuário")
     }
   }, [])
 
@@ -207,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         refreshAccessToken,
+        updateUserProfile,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Colaborador } from "@/lib/api/colaboradores";
+import { STATUS_FILTER_OPTIONS, getStatusLabel } from "@/constants/status";
 
 export const columns: ColumnDef<Colaborador>[] = [
   {
@@ -80,28 +81,12 @@ export const columns: ColumnDef<Colaborador>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       const status = row.original.status;
-      
-      const getStatusLabel = (status: string) => {
-        switch (status) {
-          case 'ATIVO':
-            return 'Ativo';
-          case 'INATIVO':
-            return 'Inativo';
-          default:
-            return status;
-        }
-      };
-
       return <span>{getStatusLabel(status)}</span>;
     },
     meta: {
       showFilterIcon: true,
       filterType: 'select',
-      filterOptions: [
-        { value: 'ATIVO', label: 'Ativo' },
-        { value: 'INATIVO', label: 'Inativo' },
-        { value: 'ALL', label: 'Todos' }
-      ]
+      filterOptions: STATUS_FILTER_OPTIONS
     },
   },
   {

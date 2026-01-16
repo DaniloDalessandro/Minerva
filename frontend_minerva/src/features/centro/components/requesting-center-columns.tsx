@@ -1,5 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { RequestingCenter } from "@/lib/api/centers";
+import { IS_ACTIVE_FILTER_OPTIONS } from "@/constants/status";
 
 export const columns = (): ColumnDef<RequestingCenter>[] => [
   {
@@ -27,11 +28,7 @@ export const columns = (): ColumnDef<RequestingCenter>[] => [
     meta: {
       showFilterIcon: true,
       filterType: "select",
-      filterOptions: [
-        { label: "Todos", value: "all" },
-        { label: "Ativo", value: "active" },
-        { label: "Inativo", value: "inactive" },
-      ],
+      filterOptions: IS_ACTIVE_FILTER_OPTIONS,
     },
   },
   {

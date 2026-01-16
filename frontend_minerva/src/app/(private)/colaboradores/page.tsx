@@ -54,6 +54,7 @@ export default function ColaboradoresPage() {
       entityNamePlural="colaboradores"
       title="Colaboradores"
       FormComponent={ColaboradorForm}
+      initialStatusFilter="ATIVO"
       onViewDetails={handleViewDetails}
       deleteDialogTitle={getDeleteDialogTitle}
       deleteDialogDescription={getDeleteDialogDescription}
