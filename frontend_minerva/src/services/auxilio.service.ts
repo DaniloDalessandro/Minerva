@@ -15,11 +15,16 @@ import type {
 import { PAGINATION_DEFAULTS } from '@/constants/ui';
 
 export class AuxilioService {
+  /**
+   * Busca auxílios com suporte a filtros opcionais.
+   * @param status - Filtro de status. Vazio ou não informado = retorna todos.
+   */
   static async fetchAuxilios(
     page: number = PAGINATION_DEFAULTS.PAGE,
     pageSize: number = PAGINATION_DEFAULTS.PAGE_SIZE,
     search: string = "",
-    ordering: string = ""
+    ordering: string = "",
+    status: string = "" // Sem valor padrão - vazio significa "todos"
   ): Promise<AuxiliosResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -28,8 +33,12 @@ export class AuxilioService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    // Só adiciona status se tiver valor (vazio = sem filtro = todos)
+    if (status && status.trim() !== "") {
+      params.append('status', status);
+    }
 
-    console.log("💰 Buscando auxílios:", params.toString());
+    console.log("💰 Buscando auxílios:", params.toString(), status ? `(filtro: ${status})` : "(sem filtro - todos)");
 
     const data = await fetchAuxiliosAPI(params);
     console.log("📊 Auxílios recebidos:", {

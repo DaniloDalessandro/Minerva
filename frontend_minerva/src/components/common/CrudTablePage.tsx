@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useCrudTable, CrudService } from "@/hooks/useCrudTable";
+import { useCrudTable, CrudService, STATUS_FILTER_ALL } from "@/hooks/useCrudTable";
 import { useRegisterRefresh } from "@/context";
 
 export interface CrudTablePageProps<T> {
@@ -69,7 +69,7 @@ export function CrudTablePage<T extends { id: number; [key: string]: any }>({
   FormComponent,
   subtitle,
   initialPageSize = 10,
-  initialStatusFilter = "active",
+  initialStatusFilter = STATUS_FILTER_ALL, // Por padrão, sem filtro (Todos)
   readOnly = false,
   onAdd,
   onEdit,

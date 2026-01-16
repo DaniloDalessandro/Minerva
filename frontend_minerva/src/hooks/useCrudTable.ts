@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 
+/**
+ * Constante especial para representar "sem filtro" (Todos)
+ * Usado para distinguir de string vazia ou undefined
+ */
+export const STATUS_FILTER_ALL = "ALL";
+
 export interface CrudService<T> {
   fetch: (
     page?: number,
@@ -17,6 +23,10 @@ export interface CrudService<T> {
 export interface UseCrudTableOptions<T> {
   service: CrudService<T>;
   initialPageSize?: number;
+  /**
+   * Filtro inicial de status. Use "ALL" para não aplicar filtro.
+   * Se não definido, usa "ALL" (sem filtro).
+   */
   initialStatusFilter?: string;
   onLoadSuccess?: (data: T[]) => void;
   onLoadError?: (error: any) => void;
@@ -76,7 +86,7 @@ export function useCrudTable<T = any>(
   const {
     service,
     initialPageSize = 10,
-    initialStatusFilter = "active",
+    initialStatusFilter = STATUS_FILTER_ALL, // Por padrão, sem filtro (Todos)
     onLoadSuccess,
     onLoadError,
   } = options;
@@ -115,11 +125,25 @@ export function useCrudTable<T = any>(
     return `${prefix}${sortItem.id}`;
   }, []);
 
+  /**
+   * Verifica se o valor de status representa "sem filtro" (Todos)
+   */
+  const isAllFilter = useCallback((value: string | undefined): boolean => {
+    if (!value) return true;
+    const normalizedValue = value.toUpperCase();
+    return normalizedValue === "ALL" || normalizedValue === "TODOS";
+  }, []);
+
   // Load items function
   const loadItems = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log("🔄 Loading items - statusFilter:", statusFilter);
+
+      // Determina o valor real do filtro a ser enviado para o backend
+      // Se for "ALL" ou equivalente, envia string vazia para indicar "sem filtro"
+      const effectiveStatusFilter = isAllFilter(statusFilter) ? "" : statusFilter;
+
+      console.log("🔄 Loading items - statusFilter:", statusFilter, "→ effective:", effectiveStatusFilter || "(sem filtro)");
 
       const ordering = convertSortingToOrdering(sorting);
 
@@ -135,7 +159,7 @@ export function useCrudTable<T = any>(
         pageSize,
         searchParam,
         ordering,
-        statusFilter
+        effectiveStatusFilter // Passa string vazia quando "Todos" está selecionado
       );
 
       setItems(data.results);
@@ -163,6 +187,7 @@ export function useCrudTable<T = any>(
     statusFilter,
     service,
     convertSortingToOrdering,
+    isAllFilter,
     onLoadSuccess,
     onLoadError,
   ]);
@@ -198,18 +223,20 @@ export function useCrudTable<T = any>(
 
     if (columnId === "status" || columnId === "is_active") {
       // Handle status filter
-      if (value === "ALL" || value === "all") {
-        // "Todos" - buscar sem filtro
-        setStatusFilter("");
-        setIsStatusFilterUserSelected(true);
-        console.log("   → Set statusFilter to empty (ALL)");
-      } else if (value && value !== "") {
-        // Status específico
+      const normalizedValue = value?.toUpperCase?.() || "";
+
+      if (normalizedValue === "ALL" || normalizedValue === "TODOS" || value === "") {
+        // "Todos" ou limpar filtro - usar valor especial "ALL" para indicar "sem filtro"
+        setStatusFilter(STATUS_FILTER_ALL);
+        setIsStatusFilterUserSelected(value !== ""); // true se usuário selecionou "Todos", false se limpou
+        console.log("   → Set statusFilter to ALL (sem filtro)");
+      } else if (value) {
+        // Status específico (ATIVO, INATIVO, active, inactive, etc.)
         setStatusFilter(value);
         setIsStatusFilterUserSelected(true);
         console.log("   → Set statusFilter to:", value);
       } else {
-        // Resetar ao padrão
+        // Resetar ao padrão quando valor é undefined/null
         setStatusFilter(initialStatusFilter);
         setIsStatusFilterUserSelected(false);
         console.log("   → Reset statusFilter to default:", initialStatusFilter);
@@ -218,7 +245,8 @@ export function useCrudTable<T = any>(
     } else {
       setFilters((prev) => {
         const newFilters = { ...prev };
-        if (value && value !== "all" && value !== "ALL") {
+        const normalizedValue = value?.toUpperCase?.() || "";
+        if (value && normalizedValue !== "ALL" && normalizedValue !== "TODOS") {
           newFilters[columnId] = value;
         } else {
           delete newFilters[columnId];
@@ -247,9 +275,15 @@ export function useCrudTable<T = any>(
   const getInitialFilters = () => {
     const initialFilters: any[] = [];
 
-    // Only add status filter to initial filters if user explicitly selected it
-    // Don't show the default filter in the UI
-    if (isStatusFilterUserSelected && statusFilter && statusFilter !== "") {
+    // Only add status filter to initial filters if:
+    // 1. User explicitly selected it
+    // 2. It's not "ALL" (sem filtro)
+    // 3. It has a value
+    if (
+      isStatusFilterUserSelected &&
+      statusFilter &&
+      !isAllFilter(statusFilter)
+    ) {
       // Determine the column ID based on the status value format
       const statusColumnId = (statusFilter === "active" || statusFilter === "inactive") ? "is_active" : "status";
       initialFilters.push({ id: statusColumnId, value: statusFilter });

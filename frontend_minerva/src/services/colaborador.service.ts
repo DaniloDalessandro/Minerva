@@ -20,12 +20,16 @@ import type {
 import { PAGINATION_DEFAULTS } from '@/constants/ui';
 
 export class ColaboradorService {
+  /**
+   * Busca colaboradores com suporte a filtros opcionais.
+   * @param status - Filtro de status. Vazio ou não informado = retorna todos.
+   */
   static async fetchColaboradores(
     page: number = PAGINATION_DEFAULTS.PAGE,
     pageSize: number = PAGINATION_DEFAULTS.PAGE_SIZE,
     search: string = "",
     ordering: string = "",
-    status: string = "ATIVO"
+    status: string = "" // Sem valor padrão - vazio significa "todos"
   ): Promise<ColaboradoresResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -34,10 +38,12 @@ export class ColaboradorService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
-    // Only append status if it's not empty (empty means "all")
-    if (status && status !== "") params.append('status', status);
+    // Só adiciona status se tiver valor (vazio = sem filtro = todos)
+    if (status && status.trim() !== "") {
+      params.append('status', status);
+    }
 
-    console.log("👥 Buscando colaboradores:", params.toString());
+    console.log("👥 Buscando colaboradores:", params.toString(), status ? `(filtro: ${status})` : "(sem filtro - todos)");
 
     const data = await fetchColaboradoresAPI(params);
     console.log("📊 Dados colaboradores recebidos:", {

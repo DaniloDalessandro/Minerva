@@ -1,7 +1,46 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Auxilio } from "@/lib/api/auxilios";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Calendar, User } from "lucide-react";
+
+/**
+ * Opções de filtro para o status de auxílios
+ */
+export const AUXILIO_STATUS_FILTER_OPTIONS = [
+  { value: 'ALL', label: 'Todos' },
+  { value: 'AGUARDANDO', label: 'Aguardando' },
+  { value: 'ATIVO', label: 'Ativo' },
+  { value: 'CONCLUIDO', label: 'Concluído' },
+  { value: 'CANCELADO', label: 'Cancelado' },
+];
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'GRADUACAO':
+      return 'Graduação';
+    case 'POS_GRADUACAO':
+      return 'Pós-Graduação';
+    case 'AUXILIO_CRECHE_ESCOLA':
+      return 'Creche/Escola';
+    case 'LINGUA_ESTRANGEIRA':
+      return 'Língua Estrangeira';
+    default:
+      return type;
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'AGUARDANDO':
+      return 'Aguardando';
+    case 'ATIVO':
+      return 'Ativo';
+    case 'CONCLUIDO':
+      return 'Concluído';
+    case 'CANCELADO':
+      return 'Cancelado';
+    default:
+      return status;
+  }
+};
 
 export const defaultColumns: ColumnDef<Auxilio>[] = [
   {
@@ -9,21 +48,8 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
     header: "Colaborador",
     enableSorting: true,
     cell: ({ row }) => {
-      const isOptimistic = row.original.isOptimistic;
       const employeeName = row.original.employee?.full_name;
-      
-      if (isOptimistic && !employeeName) {
-        return <span className="text-gray-400 italic">Carregando...</span>;
-      }
-      
-      return (
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-gray-400" />
-          <span className="font-semibold">
-            {employeeName || "-"}
-          </span>
-        </div>
-      );
+      return <span>{employeeName || "-"}</span>;
     },
     meta: {
       showFilterIcon: true,
@@ -35,42 +61,7 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       const type = row.original.type;
-      
-      const getTypeVariant = (type: string) => {
-        switch (type) {
-          case 'GRADUACAO':
-            return 'default';
-          case 'POS_GRADUACAO':
-            return 'secondary';
-          case 'AUXILIO_CRECHE_ESCOLA':
-            return 'outline';
-          case 'LINGUA_ESTRANGEIRA':
-            return 'destructive';
-          default:
-            return 'secondary';
-        }
-      };
-
-      const getTypeLabel = (type: string) => {
-        switch (type) {
-          case 'GRADUACAO':
-            return 'Graduação';
-          case 'POS_GRADUACAO':
-            return 'Pós-Graduação';
-          case 'AUXILIO_CRECHE_ESCOLA':
-            return 'Creche/Escola';
-          case 'LINGUA_ESTRANGEIRA':
-            return 'Língua Estrangeira';
-          default:
-            return type;
-        }
-      };
-
-      return (
-        <Badge variant={getTypeVariant(type)} className="text-xs">
-          {getTypeLabel(type)}
-        </Badge>
-      );
+      return <span>{getTypeLabel(type)}</span>;
     },
     meta: {
       showFilterIcon: true,
@@ -83,7 +74,7 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
     cell: ({ row }) => {
       const totalAmount = row.original.total_amount;
       return (
-        <span className="font-mono text-green-600 font-semibold">
+        <span>
           R$ {parseFloat(totalAmount).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -95,55 +86,15 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    enableSorting: true,
     cell: ({ row }) => {
-      const isOptimistic = row.original.isOptimistic;
       const status = row.original.status;
-      
-      const getStatusVariant = (status: string) => {
-        switch (status) {
-          case 'AGUARDANDO':
-            return 'outline';
-          case 'ATIVO':
-            return 'default';
-          case 'CONCLUIDO':
-            return 'secondary';
-          case 'CANCELADO':
-            return 'destructive';
-          default:
-            return 'secondary';
-        }
-      };
-
-      const getStatusLabel = (status: string) => {
-        switch (status) {
-          case 'AGUARDANDO':
-            return 'Aguardando';
-          case 'ATIVO':
-            return 'Ativo';
-          case 'CONCLUIDO':
-            return 'Concluído';
-          case 'CANCELADO':
-            return 'Cancelado';
-          default:
-            return status;
-        }
-      };
-
-      return (
-        <div className="flex items-center gap-2">
-          <Badge variant={getStatusVariant(status)}>
-            {getStatusLabel(status)}
-          </Badge>
-          {isOptimistic && (
-            <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-              Salvando...
-            </Badge>
-          )}
-        </div>
-      );
+      return <span>{getStatusLabel(status)}</span>;
     },
     meta: {
       showFilterIcon: true,
+      filterType: 'select',
+      filterOptions: AUXILIO_STATUS_FILTER_OPTIONS,
     },
   },
 ];
@@ -156,11 +107,7 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableHiding: true,
     cell: ({ row }) => {
       const id = row.original.id;
-      return (
-        <span className="font-mono text-sm">
-          #{id}
-        </span>
-      );
+      return <span>#{id}</span>;
     },
     meta: {
       showFilterIcon: true,
@@ -173,11 +120,7 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableHiding: true,
     cell: ({ row }) => {
       const installmentCount = row.original.installment_count;
-      return (
-        <span className="font-mono">
-          {installmentCount}x
-        </span>
-      );
+      return <span>{installmentCount}x</span>;
     },
   },
   {
@@ -188,7 +131,7 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     cell: ({ row }) => {
       const amountPerInstallment = row.original.amount_per_installment;
       return (
-        <span className="font-mono text-blue-600">
+        <span>
           R$ {parseFloat(amountPerInstallment).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -204,19 +147,15 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableHiding: true,
     cell: ({ row }) => {
       const startDate = row.original.start_date;
-      if (!startDate) return "-";
-      
+      if (!startDate) return <span>-</span>;
       return (
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className="text-sm">
-            {new Date(startDate).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-        </div>
+        <span>
+          {new Date(startDate).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
       );
     },
   },
@@ -227,28 +166,15 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableHiding: true,
     cell: ({ row }) => {
       const endDate = row.original.end_date;
-      if (!endDate) return "-";
-      
-      const endDateObj = new Date(endDate);
-      const today = new Date();
-      const daysDiff = Math.ceil((endDateObj.getTime() - today.getTime()) / (1000 * 3600 * 24));
-      const isExpiringSoon = daysDiff <= 30 && daysDiff >= 0;
-      const isExpired = daysDiff < 0;
-      
+      if (!endDate) return <span>-</span>;
       return (
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className={`text-sm ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
-            {endDateObj.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-          {(isExpiringSoon || isExpired) && (
-            <AlertTriangle className={`w-4 h-4 ${isExpired ? 'text-red-500' : 'text-yellow-500'}`} />
-          )}
-        </div>
+        <span>
+          {new Date(endDate).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
       );
     },
   },
@@ -258,18 +184,8 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableSorting: false,
     enableHiding: true,
     cell: ({ row }) => {
-      const isOptimistic = row.original.isOptimistic;
       const budgetLineName = row.original.budget_line?.name;
-      
-      if (isOptimistic && !budgetLineName) {
-        return <span className="text-gray-400 italic">Carregando...</span>;
-      }
-      
-      return (
-        <span className="text-sm">
-          {budgetLineName || "-"}
-        </span>
-      );
+      return <span>{budgetLineName || "-"}</span>;
     },
   },
   {
@@ -279,13 +195,8 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     enableHiding: true,
     cell: ({ row }) => {
       const notes = row.original.notes;
-      if (!notes) return "-";
-      
-      return (
-        <span className="text-sm text-gray-600 max-w-xs truncate" title={notes}>
-          {notes}
-        </span>
-      );
+      if (!notes) return <span>-</span>;
+      return <span title={notes}>{notes}</span>;
     },
   },
   {
@@ -293,14 +204,17 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     header: "Criado em",
     enableSorting: true,
     enableHiding: true,
-    cell: ({ row }) =>
-      new Date(row.original.created_at).toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).replace(",", ""),
+    cell: ({ row }) => (
+      <span>
+        {new Date(row.original.created_at).toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).replace(",", "")}
+      </span>
+    ),
   },
   {
     accessorKey: "created_by",
@@ -310,11 +224,15 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     cell: ({ row }) => {
       const createdBy = row.original.created_by;
       if (createdBy) {
-        return createdBy.first_name && createdBy.last_name 
-          ? `${createdBy.first_name} ${createdBy.last_name}` 
-          : createdBy.email;
+        return (
+          <span>
+            {createdBy.first_name && createdBy.last_name
+              ? `${createdBy.first_name} ${createdBy.last_name}`
+              : createdBy.email}
+          </span>
+        );
       }
-      return "N/A";
+      return <span>-</span>;
     },
   },
 ];

@@ -4,12 +4,18 @@
  */
 
 /**
+ * Constante especial para representar "sem filtro" (Todos)
+ * Usado genericamente em qualquer módulo
+ */
+export const STATUS_FILTER_ALL = 'ALL';
+
+/**
  * Valores de status usados por entidades com campo "status" (ex: Colaborador)
  */
 export const STATUS_VALUES = {
   ATIVO: 'ATIVO',
   INATIVO: 'INATIVO',
-  ALL: 'ALL',
+  ALL: STATUS_FILTER_ALL,
 } as const;
 
 /**
@@ -18,7 +24,7 @@ export const STATUS_VALUES = {
 export const IS_ACTIVE_VALUES = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
-  ALL: 'ALL',
+  ALL: STATUS_FILTER_ALL,
 } as const;
 
 /**

@@ -41,7 +41,7 @@ export default function AuxiliosPage() {
       )}
       deleteDialogConfirmText="Excluir"
       refreshKey="auxilios"
-      initialStatusFilter=""
+      initialStatusFilter="ATIVO"
     />
   );
 }

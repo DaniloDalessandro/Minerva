@@ -30,10 +30,10 @@ class EmployeeListView(generics.ListAPIView):
         # Aplica hierarchical filter
         queryset = get_employee_queryset(self.request.user, queryset)
 
-        # Aplica status filter - show only ATIVO by default unless specified
-        status_filter = self.request.query_params.get('status', 'ATIVO')
-        # Se o status_filter for vazio ou 'ALL', não filtra (mostra todos)
-        if status_filter and status_filter != 'ALL' and status_filter.strip() != '':
+        # Aplica status filter
+        # Se não informado, vazio ou 'ALL' → não filtra (mostra todos)
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter and status_filter.upper() != 'ALL' and status_filter.strip() != '':
             queryset = queryset.filter(status=status_filter)
 
         # Aplica search filter if provided
