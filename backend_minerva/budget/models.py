@@ -86,19 +86,40 @@ class Budget(models.Model, HierarchicalQuerysetMixin):
 
     def recalculate_cached_amounts(self):
         """Recalcula e atualiza todos os campos em cache"""
+        # Valor alocado em linhas orçamentárias
         self.cached_used_amount = self.budget_lines.aggregate(
             total=Sum('budgeted_amount')
         )['total'] or Decimal('0.00')
 
+        # Movimentações de entrada
         self.cached_incoming_movements = self.incoming_movements.aggregate(
             total=Sum('amount')
         )['total'] or Decimal('0.00')
 
+        # Movimentações de saída
         self.cached_outgoing_movements = self.outgoing_movements.aggregate(
             total=Sum('amount')
         )['total'] or Decimal('0.00')
 
-        self.available_amount = self.calculated_available_amount
+        # Auxílios concedidos
+        cached_assistances = self.assistances.filter(
+            status__in=['AGUARDANDO', 'ATIVO']
+        ).aggregate(
+            total=Sum('total_amount')
+        )['total'] or Decimal('0.00')
+
+        # Calcular disponível: total + entradas - saídas - linhas - auxílios
+        base_amount = Decimal(str(self.total_amount))
+        self.available_amount = (
+            base_amount +
+            self.cached_incoming_movements -
+            self.cached_outgoing_movements -
+            self.cached_used_amount -
+            cached_assistances
+        )
+
+        # Garantir que não fique negativo
+        self.available_amount = max(self.available_amount, Decimal('0.00'))
 
     def update_calculated_amounts(self):
         """Atualiza valores calculados e salva"""

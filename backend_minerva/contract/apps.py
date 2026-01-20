@@ -6,3 +6,6 @@ class ContractConfig(AppConfig):
     name = 'contract'
     verbose_name = 'Contratos'
 
+    def ready(self):
+        import contract.signals
+

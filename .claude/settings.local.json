@@ -12,7 +12,9 @@
       "Bash(findstr:*)",
       "Bash(npm run clean:*)",
       "Bash(if exist .next rmdir /s /q .next)",
-      "Bash(node scripts/seed-auxilios-interactive.js:*)"
+      "Bash(node scripts/seed-auxilios-interactive.js:*)",
+      "Bash(venvScriptsactivate)",
+      "Bash(call venvScriptsactivate.bat)"
     ],
     "deny": [],
     "ask": [],

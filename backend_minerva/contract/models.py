@@ -1,11 +1,13 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator
 from accounts.models import User
 from employee.models import Employee
 from budgetline.models import BudgetLine
 from accounts.mixins import HierarchicalQuerysetMixin
 from django.utils import timezone
+from decimal import Decimal
 from .services.services_contract import generate_protocol_number
+from .exceptions import InsufficientContractBudgetException, ContractOperationException
 
 class Contract(models.Model, HierarchicalQuerysetMixin):
     budget_line = models.ForeignKey(BudgetLine, on_delete=models.PROTECT, related_name='contracts')
@@ -38,10 +40,83 @@ class Contract(models.Model, HierarchicalQuerysetMixin):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='contracts_created', verbose_name='Criado por')
     updated_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='contracts_updated', verbose_name='Atualizado por')
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
+        """
+        Ao criar um contrato:
+        - Deve subtrair o valor do available_amount da linha orçamentária
+        - Validar se a linha tem saldo suficiente
+        """
+        is_new = self.pk is None
+        old_original_value = Decimal('0.00')
+        old_status = None
+
+        if not is_new:
+            # Recuperar valores antigos
+            old_instance = Contract.objects.get(pk=self.pk)
+            old_original_value = old_instance.original_value
+            old_status = old_instance.status
+
+        # Gerar número de protocolo se for novo
         if not self.protocol_number:
             self.protocol_number = generate_protocol_number()
+
+        # Se for novo contrato, validar saldo da linha
+        if is_new:
+            if not self.budget_line:
+                raise ContractOperationException("O contrato deve estar vinculado a uma linha orçamentária.")
+
+            # Recarregar linha com lock
+            budget_line = BudgetLine.objects.select_for_update().get(pk=self.budget_line.pk)
+
+            if budget_line.available_amount < self.original_value:
+                raise InsufficientContractBudgetException(
+                    budget_line.available_amount,
+                    self.original_value
+                )
+
+        # Se o valor mudou em uma atualização
+        if not is_new and old_original_value != self.original_value:
+            difference = self.original_value - old_original_value
+            budget_line = BudgetLine.objects.select_for_update().get(pk=self.budget_line.pk)
+
+            if difference > 0:  # Aumento no valor
+                if budget_line.available_amount < difference:
+                    raise InsufficientContractBudgetException(
+                        budget_line.available_amount,
+                        difference,
+                        f"Operação não permitida: o aumento de valor (R$ {difference:.2f}) "
+                        f"excede o saldo disponível da linha orçamentária (R$ {budget_line.available_amount:.2f})."
+                    )
+
+        # Se o status mudou de ATIVO para ENCERRADO, devolver valor à linha
+        if not is_new and old_status == 'ATIVO' and self.status == 'ENCERRADO':
+            # O valor será devolvido automaticamente pelo recalculate_available_amount
+            pass
+
         super().save(*args, **kwargs)
+
+        # Atualizar linha orçamentária
+        if self.budget_line:
+            self.budget_line.update_available_amount()
+            # Atualizar orçamento também
+            if self.budget_line.budget:
+                self.budget_line.budget.update_calculated_amounts()
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        """
+        Ao deletar um contrato:
+        - O valor deve retornar à linha orçamentária
+        """
+        budget_line = self.budget_line
+        super().delete(*args, **kwargs)
+
+        # Atualizar valores (o valor retorna automaticamente)
+        if budget_line:
+            budget_line.update_available_amount()
+            if budget_line.budget:
+                budget_line.budget.update_calculated_amounts()
 
     def __str__(self):
         return self.protocol_number

@@ -1,10 +1,12 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator
 from accounts.models import User
 from budget.models import Budget
 from employee.models import Employee
 from center.models import ManagementCenter, RequestingCenter
 from accounts.mixins import HierarchicalQuerysetMixin
+from decimal import Decimal
+from .exceptions import InsufficientBudgetLineException, BudgetLineOperationException
 
 class BudgetLine(models.Model, HierarchicalQuerysetMixin):
     budget = models.ForeignKey(Budget, on_delete=models.PROTECT, related_name='budget_lines',verbose_name='Orçamento')
@@ -116,17 +118,26 @@ class BudgetLine(models.Model, HierarchicalQuerysetMixin):
         ('APOSTILAMENTO', 'APOSTILAMENTO'),
     ]
     probable_procurement_type = models.CharField(
-        max_length=100, 
+        max_length=100,
         choices=PROCUREMENT_TYPE_CHOICES,
         verbose_name='Tipo de Aquisição'
     )
-    
+
     budgeted_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(0.01)],
         verbose_name='Valor Orçado'
+    )
+
+    available_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Valor Disponível',
+        help_text='Valor disponível para criação de contratos'
     )
 
     PROCESS_STATUS_CHOICES = [
@@ -187,23 +198,135 @@ class BudgetLine(models.Model, HierarchicalQuerysetMixin):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_lines_created',verbose_name='Criado por')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_lines_updated',verbose_name='Atualizado por')   
    
+    @transaction.atomic
     def save(self, *args, **kwargs):
+        from budget.exceptions import InsufficientBudgetException
+
         is_new = self.pk is None
+        old_budgeted_amount = Decimal('0.00')
+
+        if not is_new:
+            # Recuperar valor antigo se estiver atualizando
+            old_instance = BudgetLine.objects.get(pk=self.pk)
+            old_budgeted_amount = old_instance.budgeted_amount
+
+        # Se for nova linha, validar se o orçamento tem saldo suficiente
+        if is_new:
+            if not self.budget:
+                raise BudgetLineOperationException("A linha orçamentária deve estar vinculada a um orçamento.")
+
+            # Recarregar orçamento com lock para evitar race conditions
+            budget = Budget.objects.select_for_update().get(pk=self.budget.pk)
+
+            if budget.available_amount < self.budgeted_amount:
+                raise InsufficientBudgetException(
+                    budget.available_amount,
+                    self.budgeted_amount,
+                    f"Operação não permitida: o valor da linha orçamentária (R$ {self.budgeted_amount:.2f}) "
+                    f"excede o saldo disponível do orçamento (R$ {budget.available_amount:.2f})."
+                )
+
+            # Inicializar available_amount com o valor total
+            if not self.available_amount or self.available_amount == 0:
+                self.available_amount = self.budgeted_amount
+
+        # Se o valor orçado mudou em uma atualização
+        if not is_new and old_budgeted_amount != self.budgeted_amount:
+            difference = self.budgeted_amount - old_budgeted_amount
+            budget = Budget.objects.select_for_update().get(pk=self.budget.pk)
+
+            if difference > 0:  # Aumento no valor
+                if budget.available_amount < difference:
+                    raise InsufficientBudgetException(
+                        budget.available_amount,
+                        difference,
+                        f"Operação não permitida: o aumento de valor (R$ {difference:.2f}) "
+                        f"excede o saldo disponível do orçamento (R$ {budget.available_amount:.2f})."
+                    )
+            # Se diminuiu o valor, o available_amount da linha deve ajustar proporcionalmente
+            # mas não pode ficar negativo
+            if difference < 0:  # Redução no valor
+                reduction = abs(difference)
+                if reduction > self.available_amount:
+                    # Não pode reduzir mais do que está disponível na linha
+                    raise BudgetLineOperationException(
+                        f"Operação não permitida: não é possível reduzir R$ {reduction:.2f} "
+                        f"pois apenas R$ {self.available_amount:.2f} está disponível na linha."
+                    )
+                self.available_amount -= reduction
+
         super().save(*args, **kwargs)
-        
+
         # Atualizar valores calculados do orçamento relacionado
         if self.budget:
             self.budget.update_calculated_amounts()
-        
+
         if not is_new:
             self.create_version("Atualização da linha orçamentária", kwargs.get('updated_by'))
     
+    @transaction.atomic
     def delete(self, *args, **kwargs):
+        """
+        Ao deletar uma linha orçamentária:
+        - O valor deve retornar ao orçamento
+        - Não permitir se houver contratos ativos vinculados
+        """
+        # Verificar se há contratos vinculados
+        if self.contracts.exists():
+            raise BudgetLineOperationException(
+                "Operação não permitida: não é possível excluir uma linha orçamentária "
+                "que possui contratos vinculados. Cancele ou exclua os contratos primeiro."
+            )
+
         budget = self.budget
         super().delete(*args, **kwargs)
+
         # Atualizar valores calculados do orçamento relacionado
+        # O valor da linha retorna automaticamente ao orçamento via recalculate_cached_amounts
         if budget:
             budget.update_calculated_amounts()
+
+    def recalculate_available_amount(self):
+        """
+        Recalcula o valor disponível da linha baseado nos contratos criados
+        available_amount = budgeted_amount - soma(contratos.original_value)
+        """
+        from django.db.models import Sum
+        from contract.models import Contract
+
+        total_contracted = self.contracts.filter(
+            status='ATIVO'
+        ).aggregate(
+            total=Sum('original_value')
+        )['total'] or Decimal('0.00')
+
+        # Recalcular movimentações (entradas e saídas)
+        total_incoming = self.incoming_movements.aggregate(
+            total=Sum('movement_amount')
+        )['total'] or Decimal('0.00')
+
+        total_outgoing = self.outgoing_movements.aggregate(
+            total=Sum('movement_amount')
+        )['total'] or Decimal('0.00')
+
+        # Calcular disponível: valor orçado + entradas - saídas - contratos ativos
+        self.available_amount = (
+            self.budgeted_amount +
+            total_incoming -
+            total_outgoing -
+            total_contracted
+        )
+
+        # Garantir que não fique negativo
+        if self.available_amount < 0:
+            self.available_amount = Decimal('0.00')
+
+        return self.available_amount
+
+    def update_available_amount(self):
+        """Atualiza e salva o valor disponível"""
+        self.recalculate_available_amount()
+        self.save(update_fields=['available_amount', 'updated_at'])
 
     def create_version(self, change_reason, user=None):
         latest_version = self.versions.first()
@@ -280,8 +403,68 @@ class BudgetLineMovement(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_line_movements_created', verbose_name='Criado por')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_line_movements_updated', verbose_name='Atualizado por')
 
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        """
+        Ao criar uma movimentação entre linhas:
+        - Validar que a linha de origem tem saldo suficiente
+        - Subtrair da origem e adicionar ao destino
+        """
+        is_new = self.pk is None
+
+        if is_new:
+            # Validações
+            if not self.source_line or not self.destination_line:
+                raise BudgetLineOperationException(
+                    "Operação não permitida: ambas as linhas (origem e destino) devem ser informadas."
+                )
+
+            if self.source_line.pk == self.destination_line.pk:
+                raise BudgetLineOperationException(
+                    "Operação não permitida: a linha de origem não pode ser igual à linha de destino."
+                )
+
+            # Recarregar linha de origem com lock
+            source = BudgetLine.objects.select_for_update().get(pk=self.source_line.pk)
+
+            # Validar saldo disponível na linha de origem
+            if source.available_amount < self.movement_amount:
+                raise InsufficientBudgetLineException(
+                    source.available_amount,
+                    self.movement_amount,
+                    f"Operação não permitida: o valor da movimentação (R$ {self.movement_amount:.2f}) "
+                    f"excede o saldo disponível da linha de origem (R$ {source.available_amount:.2f})."
+                )
+
+        super().save(*args, **kwargs)
+
+        # Atualizar valores das linhas envolvidas
+        if is_new:
+            self.source_line.update_available_amount()
+            self.destination_line.update_available_amount()
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        """
+        Ao deletar uma movimentação:
+        - Devolver o valor à linha de origem
+        - Subtrair da linha de destino
+        """
+        source = self.source_line
+        destination = self.destination_line
+
+        super().delete(*args, **kwargs)
+
+        # Atualizar valores das linhas
+        if source:
+            source.update_available_amount()
+        if destination:
+            destination.update_available_amount()
+
     def __str__(self):
-        return f'{self.movement_type} - {self.movement_amount}'
+        if self.source_line and self.destination_line:
+            return f'{self.source_line} → {self.destination_line} - R$ {self.movement_amount}'
+        return f'Movimentação - R$ {self.movement_amount}'
 
     class Meta:
         verbose_name = 'Movimentação'
