@@ -47,7 +47,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     clearSession();
     await logout();
     router.replace('/login');
-  }, [logout, router]);
+  }, [logout]);
 
   useEffect(() => {
     const validateAuth = async () => {

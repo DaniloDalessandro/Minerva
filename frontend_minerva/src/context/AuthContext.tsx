@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         const { token, userData } = getAuthData()
-        
+
         if (token && userData) {
           if (isTokenExpired(token)) {
             const refreshed = await refreshAccessToken()
@@ -207,7 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     initializeAuth()
-  }, [getAuthData, isTokenExpired, refreshAccessToken])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Verificação periódica do token
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -117,9 +118,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Senha
                   </Label>
-                  <a href="#" className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors">
+                  <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors">
                     Esqueceu a senha?
-                  </a>
+                  </Link>
                 </div>
                 <Input
                   id="password"

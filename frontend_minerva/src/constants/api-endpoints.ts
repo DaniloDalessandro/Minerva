@@ -137,5 +137,7 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: `${API_BASE}/api/v1/accounts/update-profile/`,
     ME: `${API_BASE}/api/v1/accounts/me/`,
     LOGOUT: `${API_BASE}/api/v1/accounts/logout/`,
+    PASSWORD_RESET: `${API_BASE}/api/v1/accounts/password-reset/`,
+    PASSWORD_RESET_CONFIRM: `${API_BASE}/api/v1/accounts/password-reset-confirm/`,
   },
 } as const;

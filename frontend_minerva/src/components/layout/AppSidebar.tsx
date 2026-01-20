@@ -190,13 +190,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Sidebar normal (com expandir/recolher)
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <div className="flex h-14 items-center px-4">
-          <div className="flex items-center gap-2">
+      <SidebarHeader className="group-data-[collapsible=icon]:p-0">
+        <div className="flex h-14 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <div className="flex items-center gap-2 group-data-[collapsible=icon]:gap-0">
             <div className="bg-blue-700 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
               <Anchor className="size-4" />
             </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-medium">Minerva</span>
               <span className="truncate text-xs">Gestão de Contratos</span>
             </div>

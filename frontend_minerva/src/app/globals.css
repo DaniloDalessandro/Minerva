@@ -250,4 +250,13 @@
   [class*="card"] {
     @apply transition-colors duration-200;
   }
+
+  /* Sidebar collapsed - ajuste do ícone */
+  [data-slot="sidebar-header"][data-sidebar="header"] {
+    @apply relative z-10;
+  }
+
+  [data-collapsible="icon"] [data-slot="sidebar-header"] {
+    @apply border-b-0 pb-2;
+  }
 }

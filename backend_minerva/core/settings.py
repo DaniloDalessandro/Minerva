@@ -214,6 +214,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sistemacontratos.local')
 
+# Frontend URL for password reset links
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
 # Configuração da API do Google Gemini
 # Se não configurada, o assistente de IA ficará desabilitado
 GEMINI_API_KEY = config('GEMINI_API_KEY', default=None)
