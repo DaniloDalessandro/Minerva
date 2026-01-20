@@ -40,10 +40,12 @@ export function middleware(request: NextRequest) {
   
   // Define public routes that don't require authentication
   const publicRoutes = [
-    '/login', 
+    '/login',
     '/register',
     '/password-reset',
-    '/demo-validation', 
+    '/forgot-password',
+    '/reset-password',
+    '/demo-validation',
     '/demo-sector-validation'
   ]
   
@@ -103,7 +105,7 @@ export function middleware(request: NextRequest) {
     }
     
     // Se tem refresh token mas access token inválido/ausente, permitir e deixar o frontend tentar renovar
-    if (refreshToken && !isTokenValidSync(refreshToken)) {
+    if (refreshToken) {
       console.log(`[MIDDLEWARE] Tem refresh token - Permitindo para tentar renovação`)
       return NextResponse.next()
     }

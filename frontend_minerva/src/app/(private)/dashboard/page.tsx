@@ -1,37 +1,33 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from "recharts"
 import {
   Users,
@@ -44,45 +40,54 @@ import {
   CheckCircle,
   Maximize2,
   X,
-  ChevronLeft,
-  ChevronRight
+  AlertTriangle
 } from "lucide-react"
+import { useTheme } from "@/context/ThemeContext"
 
-// Mock data for charts
+// Paleta de cores harmônica e consistente
+const COLORS = {
+  primary: '#3b82f6',      // Azul
+  secondary: '#8b5cf6',    // Roxo
+  success: '#10b981',      // Verde
+  warning: '#f59e0b',      // Amarelo
+  danger: '#ef4444',       // Vermelho
+  muted: '#94a3b8',        // Cinza
+  // Gradientes para gráficos
+  chart: {
+    blue: ['#3b82f6', '#60a5fa'],
+    purple: ['#8b5cf6', '#a78bfa'],
+    green: ['#10b981', '#34d399'],
+    amber: ['#f59e0b', '#fbbf24'],
+    red: ['#ef4444', '#f87171'],
+  }
+}
+
+// Dados dos gráficos
 const contractStatusData = [
-  { name: 'Ativos', value: 45, color: '#10b981' },
-  { name: 'Expirados', value: 12, color: '#ef4444' },
-  { name: 'Em Análise', value: 8, color: '#f59e0b' },
-  { name: 'Suspensos', value: 3, color: '#6b7280' },
+  { name: 'Ativos', value: 45, color: COLORS.success },
+  { name: 'Em Análise', value: 8, color: COLORS.warning },
+  { name: 'Expirados', value: 12, color: COLORS.danger },
+  { name: 'Suspensos', value: 3, color: COLORS.muted },
 ]
 
 const monthlyContractValues = [
-  { month: 'Jan', value: 2450000, contracts: 12 },
-  { month: 'Fev', value: 2800000, contracts: 15 },
-  { month: 'Mar', value: 3200000, contracts: 18 },
-  { month: 'Abr', value: 2900000, contracts: 14 },
-  { month: 'Mai', value: 3500000, contracts: 21 },
-  { month: 'Jun', value: 4200000, contracts: 25 },
+  { month: 'Jan', valor: 2450000, contratos: 12 },
+  { month: 'Fev', valor: 2800000, contratos: 15 },
+  { month: 'Mar', valor: 3200000, contratos: 18 },
+  { month: 'Abr', valor: 2900000, contratos: 14 },
+  { month: 'Mai', valor: 3500000, contratos: 21 },
+  { month: 'Jun', valor: 4200000, contratos: 25 },
 ]
 
 const budgetUtilizationData = [
-  { category: 'Obras', utilizado: 2800000, total: 4000000 },
-  { category: 'Serviços', utilizado: 1500000, total: 2200000 },
-  { category: 'Equipamentos', utilizado: 800000, total: 1200000 },
-  { category: 'Consultoria', utilizado: 600000, total: 1000000 },
-  { category: 'Manutenção', utilizado: 400000, total: 800000 },
+  { categoria: 'Obras', utilizado: 2800000, disponivel: 1200000 },
+  { categoria: 'Serviços', utilizado: 1500000, disponivel: 700000 },
+  { categoria: 'Equipamentos', utilizado: 800000, disponivel: 400000 },
+  { categoria: 'Consultoria', utilizado: 600000, disponivel: 400000 },
+  { categoria: 'Manutenção', utilizado: 400000, disponivel: 400000 },
 ]
 
-const contractTimelineData = [
-  { month: 'Jan', novos: 5, renovados: 3, finalizados: 2 },
-  { month: 'Fev', novos: 8, renovados: 4, finalizados: 1 },
-  { month: 'Mar', novos: 12, renovados: 2, finalizados: 3 },
-  { month: 'Abr', novos: 6, renovados: 5, finalizados: 4 },
-  { month: 'Mai', novos: 10, renovados: 3, finalizados: 2 },
-  { month: 'Jun', novos: 15, renovados: 6, finalizados: 5 },
-]
-
-// Format currency in Brazilian Real
+// Formatar moeda
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -92,503 +97,335 @@ const formatCurrency = (value: number) => {
   }).format(value)
 }
 
-// Format percentage
-const formatPercentage = (value: number, total: number) => {
-  return `${Math.round((value / total) * 100)}%`
+// Formatar moeda abreviada (K, M)
+const formatCurrencyShort = (value: number) => {
+  if (value >= 1000000) {
+    return `R$ ${(value / 1000000).toFixed(1)}M`
+  }
+  if (value >= 1000) {
+    return `R$ ${(value / 1000).toFixed(0)}K`
+  }
+  return formatCurrency(value)
 }
 
-// Interfaces for chart fullscreen state
-interface ChartStates {
-  contractStatus: { fullscreen: boolean }
-  monthlyValues: { fullscreen: boolean }
-  budgetUtilization: { fullscreen: boolean }
-  contractTimeline: { fullscreen: boolean }
-}
+// Tooltip customizado para gráficos
+const CustomTooltip = ({ active, payload, label, type }: any) => {
+  if (!active || !payload || !payload.length) return null
 
-// Chart Card Wrapper Component
-interface ChartCardProps {
-  title: string
-  children: React.ReactNode
-  chartKey: keyof ChartStates
-  chartStates: ChartStates
-  onToggleFullscreen: (chartKey: keyof ChartStates) => void
-}
-
-function ChartCard({ 
-  title, 
-  children, 
-  chartKey, 
-  chartStates, 
-  onToggleFullscreen
-}: ChartCardProps) {
-  const isFullscreen = chartStates[chartKey].fullscreen
-  
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{title}</CardTitle>
-            <Dialog open={isFullscreen} onOpenChange={() => onToggleFullscreen(chartKey)}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Tela cheia"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="!max-w-none !w-screen !h-screen !p-0 !m-0 !rounded-none !border-0 !bg-white !top-0 !left-0 !translate-x-0 !translate-y-0 !fixed !inset-0 !z-50" hideClose>
-                <div className="h-screen w-screen flex flex-col bg-white">
-                  <div className="flex-shrink-0 p-6 pb-4 border-b bg-white shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <DialogTitle className="text-2xl font-semibold text-gray-900">{title}</DialogTitle>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onToggleFullscreen(chartKey)}
-                        className="h-10 w-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                        title="Fechar tela cheia"
-                      >
-                        <X className="h-6 w-6" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex-1 p-8 bg-gray-50 overflow-hidden">
-                    <div className="h-full bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-                      <ResponsiveContainer width="100%" height="100%">
-                        {children}
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+    <div className="bg-white dark:bg-gray-800 px-4 py-3 shadow-lg rounded-lg border border-gray-100 dark:border-gray-700">
+      {label && (
+        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+          {label}
+        </p>
+      )}
+      <div className="space-y-1">
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {entry.name === 'valor' ? 'Valor Total' :
+                 entry.name === 'contratos' ? 'Contratos' :
+                 entry.name === 'utilizado' ? 'Utilizado' :
+                 entry.name === 'disponivel' ? 'Disponível' :
+                 entry.name}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-100">
+              {type === 'currency' || entry.name === 'valor' || entry.name === 'utilizado' || entry.name === 'disponivel'
+                ? formatCurrency(entry.value)
+                : entry.value}
+            </span>
           </div>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            {children}
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </>
+        ))}
+      </div>
+    </div>
   )
 }
 
-export default function Page() {
-  const router = useRouter()
+// Tooltip customizado para o PieChart
+const PieTooltip = ({ active, payload }: any) => {
+  if (!active || !payload || !payload.length) return null
+  const data = payload[0]
+  const total = contractStatusData.reduce((acc, item) => acc + item.value, 0)
+  const percentage = ((data.value / total) * 100).toFixed(1)
+
+  return (
+    <div className="bg-white dark:bg-gray-800 px-4 py-3 shadow-lg rounded-lg border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center gap-2 mb-1">
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{ backgroundColor: data.payload.color }}
+        />
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{data.name}</span>
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-300">
+        <span className="font-medium">{data.value}</span> contratos ({percentage}%)
+      </p>
+    </div>
+  )
+}
+
+// Componente de Card de Métrica
+interface MetricCardProps {
+  title: string
+  value: string | number
+  subtitle: string
+  icon: React.ReactNode
+  trend?: { value: number; positive: boolean }
+  iconColor: string
+}
+
+function MetricCard({ title, value, subtitle, icon, trend, iconColor }: MetricCardProps) {
+  return (
+    <Card className="hover:shadow-md transition-shadow duration-200">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</h3>
+              {trend && (
+                <div className={`flex items-center text-xs font-medium ${trend.positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                  {trend.positive ? <TrendingUp className="h-3 w-3 mr-0.5" /> : <TrendingDown className="h-3 w-3 mr-0.5" />}
+                  {trend.positive ? '+' : ''}{trend.value}%
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{subtitle}</p>
+          </div>
+          <div className={`p-3 rounded-xl ${iconColor}`}>
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Tipo para estado de fullscreen
+type ChartKey = 'status' | 'valores' | 'orcamento'
+
+export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [chartStates, setChartStates] = useState<ChartStates>({
-    contractStatus: { fullscreen: false },
-    monthlyValues: { fullscreen: false },
-    budgetUtilization: { fullscreen: false },
-    contractTimeline: { fullscreen: false },
-  })
+  const [fullscreenChart, setFullscreenChart] = useState<ChartKey | null>(null)
+  const { theme } = useTheme()
 
-  const totalPages = 3
-
-
-  // Toggle fullscreen state for a chart
-  const toggleFullscreen = (chartKey: keyof ChartStates) => {
-    setChartStates(prev => ({
-      ...prev,
-      [chartKey]: {
-        ...prev[chartKey],
-        fullscreen: !prev[chartKey].fullscreen
-      }
-    }))
+  // Cores para os gráficos baseadas no tema
+  const chartColors = {
+    text: theme === 'dark' ? '#e2e8f0' : '#64748b',
+    grid: theme === 'dark' ? '#334155' : '#f1f5f9',
+    background: theme === 'dark' ? '#1e293b' : '#ffffff',
+    border: theme === 'dark' ? '#334155' : '#e2e8f0',
   }
 
-  // Navigation functions
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1)
-    }
-  }
+  // Contratos próximos ao vencimento
+  const expiringContracts = [
+    { id: '2024-001', days: 15, value: 85000 },
+    { id: '2024-003', days: 22, value: 120000 },
+    { id: '2024-007', days: 28, value: 95500 },
+  ]
 
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1)
-    }
-  }
-
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
-    }
-  }
-
-  // Render page content based on current page
-  const renderPageContent = () => {
-    switch (currentPage) {
-      case 1:
-        return (
-          <div className="h-full flex flex-col gap-4">
-            {/* Metrics Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Total de Contratos</p>
-                      <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">68</h3>
-                        <div className="flex items-center ml-2 text-green-600">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">+12%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">vs. mês anterior</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Users className="h-8 w-8 text-purple-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Colaboradores</p>
-                      <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">156</h3>
-                        <div className="flex items-center ml-2 text-green-600">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">+5%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">ativos no sistema</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <DollarSign className="h-8 w-8 text-green-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Orçamentos</p>
-                      <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">{formatCurrency(18750000)}</h3>
-                        <div className="flex items-center ml-2 text-green-600">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">+8%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">valor total disponível</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Heart className="h-8 w-8 text-red-500" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Auxílios Ativos</p>
-                      <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">42</h3>
-                        <div className="flex items-center ml-2 text-red-500">
-                          <TrendingDown className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">-3%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">em andamento</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Main Charts */}
-            <div className="flex-1 grid gap-4 md:grid-cols-2">
-              {/* Contract Status Distribution */}
-              <ChartCard
-                title="Distribuição de Status dos Contratos"
-                chartKey="contractStatus"
-                chartStates={chartStates}
-                onToggleFullscreen={toggleFullscreen}
-              >
-                <PieChart>
-                  <Pie
-                    data={contractStatusData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                  >
-                    {contractStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ChartCard>
-
-              {/* Monthly Contract Values */}
-              <ChartCard
-                title="Valores Mensais de Contratos"
-                chartKey="monthlyValues"
-                chartStates={chartStates}
-                onToggleFullscreen={toggleFullscreen}
-              >
-                <AreaChart data={monthlyContractValues}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      name === 'value' ? formatCurrency(value as number) : value,
-                      name === 'value' ? 'Valor Total' : 'Contratos'
-                    ]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#3b82f6"
-                    fill="#3b82f6"
-                    fillOpacity={0.2}
-                  />
-                </AreaChart>
-              </ChartCard>
-            </div>
-          </div>
-        )
-      
-      case 2:
-        return (
-          <div className="h-full flex flex-col gap-4">
-            {/* Secondary Charts */}
-            <div className="flex-1 grid gap-4 md:grid-cols-2">
-              {/* Budget Utilization */}
-              <ChartCard
-                title="Utilização de Orçamento por Categoria"
-                chartKey="budgetUtilization"
-                chartStates={chartStates}
-                onToggleFullscreen={toggleFullscreen}
-              >
-                <BarChart data={budgetUtilizationData} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                  <YAxis dataKey="category" type="category" width={80} />
-                  <Tooltip
-                    formatter={(value, name) => [
-                      formatCurrency(value as number),
-                      name === 'utilizado' ? 'Utilizado' : 'Total Disponível'
-                    ]}
-                  />
-                  <Bar dataKey="total" fill="#e5e7eb" name="total" />
-                  <Bar dataKey="utilizado" fill="#10b981" name="utilizado" />
-                </BarChart>
-              </ChartCard>
-
-              {/* Contract Timeline Activity */}
-              <ChartCard
-                title="Atividade de Contratos por Mês"
-                chartKey="contractTimeline"
-                chartStates={chartStates}
-                onToggleFullscreen={toggleFullscreen}
-              >
-                <LineChart data={contractTimelineData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="novos" 
-                    stroke="#10b981" 
-                    strokeWidth={2}
-                    name="Novos Contratos"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="renovados" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2}
-                    name="Renovados"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="finalizados" 
-                    stroke="#ef4444" 
-                    strokeWidth={2}
-                    name="Finalizados"
-                  />
-                </LineChart>
-              </ChartCard>
-            </div>
-
-            {/* Expiring Contracts Summary */}
-            <div className="flex-shrink-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-amber-500" />
-                    Contratos Próximos ao Vencimento
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-001</p>
-                        <p className="text-xs text-muted-foreground">Vence em 15 dias</p>
-                      </div>
-                      <span className="text-amber-600 font-semibold">R$ 85.000</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-003</p>
-                        <p className="text-xs text-muted-foreground">Vence em 22 dias</p>
-                      </div>
-                      <span className="text-amber-600 font-semibold">R$ 120.000</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-007</p>
-                        <p className="text-xs text-muted-foreground">Vence em 28 dias</p>
-                      </div>
-                      <span className="text-amber-600 font-semibold">R$ 95.500</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )
-
-      case 3:
-        return (
-          <div className="h-full flex flex-col gap-6 justify-center">
-            {/* Recently Approved Contracts + Performance Summary */}
-            <div className="grid gap-6 md:grid-cols-2 max-w-6xl mx-auto w-full">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    Contratos Recém Aprovados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-015</p>
-                        <p className="text-xs text-muted-foreground">Aprovado hoje</p>
-                      </div>
-                      <span className="text-green-600 font-semibold">R$ 275.000</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-016</p>
-                        <p className="text-xs text-muted-foreground">Aprovado ontem</p>
-                      </div>
-                      <span className="text-green-600 font-semibold">R$ 150.000</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">Contrato #2024-017</p>
-                        <p className="text-xs text-muted-foreground">Aprovado há 2 dias</p>
-                      </div>
-                      <span className="text-green-600 font-semibold">R$ 89.000</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumo de Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Contratos no Prazo</span>
-                        <span className="font-medium">92%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Utilização do Orçamento</span>
-                        <span className="font-medium">78%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '78%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm">
-                        <span>Satisfação Interna</span>
-                        <span className="font-medium">87%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: '87%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }
+  // Contratos recém aprovados
+  const recentContracts = [
+    { id: '2024-015', date: 'Hoje', value: 275000 },
+    { id: '2024-016', date: 'Ontem', value: 150000 },
+    { id: '2024-017', date: 'Há 2 dias', value: 89000 },
+  ]
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token")
-    if (!token) {
-      router.push("dashboard/")
-    }
-    
-    // Simulate loading time
-    const timer = setTimeout(() => setIsLoading(false), 1500)
+    // Simula carregamento inicial
+    const timer = setTimeout(() => setIsLoading(false), 800)
     return () => clearTimeout(timer)
-  }, [router])
+  }, [])
+
+  // Renderizar gráfico em fullscreen
+  const renderFullscreenChart = () => {
+    if (!fullscreenChart) return null
+
+    const charts: Record<ChartKey, { title: string; chart: React.ReactElement }> = {
+      status: {
+        title: 'Distribuição de Status dos Contratos',
+        chart: (
+          <PieChart>
+            <Pie
+              data={contractStatusData}
+              cx="50%"
+              cy="50%"
+              innerRadius="40%"
+              outerRadius="70%"
+              paddingAngle={3}
+              dataKey="value"
+              animationBegin={0}
+              animationDuration={800}
+            >
+              {contractStatusData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.color}
+                  stroke={chartColors.background}
+                  strokeWidth={2}
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<PieTooltip />} />
+            <Legend
+              verticalAlign="bottom"
+              height={36}
+              formatter={(value) => <span className="text-sm text-gray-600 dark:text-gray-300">{value}</span>}
+            />
+          </PieChart>
+        )
+      },
+      valores: {
+        title: 'Evolução Mensal de Contratos',
+        chart: (
+          <AreaChart data={monthlyContractValues}>
+            <defs>
+              <linearGradient id="colorValorFull" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: chartColors.text, fontSize: 12 }}
+            />
+            <YAxis
+              tickFormatter={formatCurrencyShort}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: chartColors.text, fontSize: 12 }}
+              width={80}
+            />
+            <Tooltip content={<CustomTooltip type="currency" />} />
+            <Area
+              type="monotone"
+              dataKey="valor"
+              stroke={COLORS.primary}
+              strokeWidth={3}
+              fill="url(#colorValorFull)"
+              animationBegin={0}
+              animationDuration={800}
+            />
+          </AreaChart>
+        )
+      },
+      orcamento: {
+        title: 'Utilização de Orçamento por Categoria',
+        chart: (
+          <BarChart data={budgetUtilizationData} layout="vertical" barGap={0}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={true} vertical={false} />
+            <XAxis
+              type="number"
+              tickFormatter={formatCurrencyShort}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: chartColors.text, fontSize: 12 }}
+            />
+            <YAxis
+              dataKey="categoria"
+              type="category"
+              width={100}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: chartColors.text, fontSize: 12 }}
+            />
+            <Tooltip content={<CustomTooltip type="currency" />} />
+            <Legend
+              verticalAlign="top"
+              height={36}
+              formatter={(value) => (
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  {value === 'utilizado' ? 'Utilizado' : 'Disponível'}
+                </span>
+              )}
+            />
+            <Bar
+              dataKey="utilizado"
+              stackId="a"
+              fill={COLORS.primary}
+              radius={[0, 0, 0, 0]}
+              animationBegin={0}
+              animationDuration={800}
+            />
+            <Bar
+              dataKey="disponivel"
+              stackId="a"
+              fill={chartColors.border}
+              radius={[0, 4, 4, 0]}
+              animationBegin={0}
+              animationDuration={800}
+            />
+          </BarChart>
+        )
+      }
+    }
+
+    const chart = charts[fullscreenChart]
+
+    return (
+      <Dialog open={!!fullscreenChart} onOpenChange={() => setFullscreenChart(null)}>
+        <DialogContent className="!max-w-none !w-screen !h-screen !p-0 !m-0 !rounded-none !border-0 !bg-white dark:!bg-gray-900 !top-0 !left-0 !translate-x-0 !translate-y-0 !fixed !inset-0 !z-50" hideClose>
+          <div className="h-screen w-screen flex flex-col bg-white dark:bg-gray-900">
+            <div className="flex-shrink-0 px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                  {chart.title}
+                </DialogTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFullscreenChart(null)}
+                  className="h-10 w-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 p-8 bg-gray-50 dark:bg-gray-800">
+              <div className="h-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  {chart.chart}
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        
-        {/* Loading skeletons */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                <div className="animate-pulse space-y-3">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[1, 2].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-                  <div className="h-64 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-6"></div>
+                  <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>
                 </div>
               </CardContent>
             </Card>
@@ -598,65 +435,339 @@ export default function Page() {
     )
   }
 
+  const totalContratos = contractStatusData.reduce((acc, item) => acc + item.value, 0)
+
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] p-4 pt-0">
-      {/* Page Content */}
-      <div className="flex-1 overflow-hidden transition-all duration-300 ease-in-out">
-        {renderPageContent()}
-      </div>
-
-      {/* Navigation */}
-      <div className="flex-shrink-0 mt-4 border-t border-gray-200 pt-4">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          {/* Previous Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToPreviousPage}
-            disabled={currentPage === 1}
-            className="flex items-center gap-2 h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-
-          {/* Page Indicators */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNumber = index + 1
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => goToPage(pageNumber)}
-                  className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-200 ${
-                    currentPage === pageNumber
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="text-sm text-muted-foreground font-medium">
-            {currentPage}/{totalPages}
-          </div>
-
-          {/* Next Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToNextPage}
-            disabled={currentPage === totalPages}
-            className="flex items-center gap-2 h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Próximo
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+    <div className="flex flex-col gap-6 p-6 pb-8">
+      {/* KPIs */}
+      <section>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Total de Contratos"
+            value={totalContratos}
+            subtitle="vs. mês anterior"
+            icon={<FileText className="h-5 w-5 text-blue-600" />}
+            iconColor="bg-blue-50"
+            trend={{ value: 12, positive: true }}
+          />
+          <MetricCard
+            title="Colaboradores"
+            value={156}
+            subtitle="ativos no sistema"
+            icon={<Users className="h-5 w-5 text-purple-600" />}
+            iconColor="bg-purple-50"
+            trend={{ value: 5, positive: true }}
+          />
+          <MetricCard
+            title="Orçamento Total"
+            value={formatCurrencyShort(18750000)}
+            subtitle="valor disponível"
+            icon={<DollarSign className="h-5 w-5 text-emerald-600" />}
+            iconColor="bg-emerald-50"
+            trend={{ value: 8, positive: true }}
+          />
+          <MetricCard
+            title="Auxílios Ativos"
+            value={42}
+            subtitle="em andamento"
+            icon={<Heart className="h-5 w-5 text-rose-600" />}
+            iconColor="bg-rose-50"
+            trend={{ value: 3, positive: false }}
+          />
         </div>
-      </div>
+      </section>
+
+      {/* Gráficos Principais - Linha 1 */}
+      <section>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Status dos Contratos - PieChart */}
+          <Card className="hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Status dos Contratos
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                    Distribuição atual por situação
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFullscreenChart('status')}
+                  className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={contractStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={3}
+                    dataKey="value"
+                    animationBegin={0}
+                    animationDuration={800}
+                  >
+                    {contractStatusData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        stroke={chartColors.background}
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    formatter={(value) => <span className="text-sm text-gray-600 dark:text-gray-300">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Evolução Mensal - AreaChart */}
+          <Card className="hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Evolução Mensal
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                    Valor total de contratos por mês
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFullscreenChart('valores')}
+                  className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={monthlyContractValues}>
+                  <defs>
+                    <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: chartColors.text, fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickFormatter={formatCurrencyShort}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: chartColors.text, fontSize: 12 }}
+                    width={70}
+                  />
+                  <Tooltip content={<CustomTooltip type="currency" />} />
+                  <Area
+                    type="monotone"
+                    dataKey="valor"
+                    stroke={COLORS.primary}
+                    strokeWidth={2}
+                    fill="url(#colorValor)"
+                    animationBegin={0}
+                    animationDuration={800}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Gráfico de Orçamento - Full Width */}
+      <section>
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Utilização de Orçamento
+                </CardTitle>
+                <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                  Comparativo entre valor utilizado e disponível por categoria
+                </CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setFullscreenChart('orcamento')}
+                className="h-8 w-8 text-gray-400 hover:text-gray-600"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={budgetUtilizationData} layout="vertical" barGap={0}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={true} vertical={false} />
+                <XAxis
+                  type="number"
+                  tickFormatter={formatCurrencyShort}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: chartColors.text, fontSize: 12 }}
+                />
+                <YAxis
+                  dataKey="categoria"
+                  type="category"
+                  width={90}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: chartColors.text, fontSize: 12 }}
+                />
+                <Tooltip content={<CustomTooltip type="currency" />} />
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  height={36}
+                  formatter={(value) => (
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {value === 'utilizado' ? 'Utilizado' : 'Disponível'}
+                    </span>
+                  )}
+                />
+                <Bar
+                  dataKey="utilizado"
+                  stackId="a"
+                  fill={COLORS.primary}
+                  radius={[0, 0, 0, 0]}
+                  animationBegin={0}
+                  animationDuration={800}
+                />
+                <Bar
+                  dataKey="disponivel"
+                  stackId="a"
+                  fill={chartColors.border}
+                  radius={[0, 4, 4, 0]}
+                  animationBegin={0}
+                  animationDuration={800}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Cards Informativos */}
+      <section>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Contratos Próximos ao Vencimento */}
+          <Card className="hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Próximos ao Vencimento
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                    Contratos que expiram em breve
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3">
+                {expiringContracts.map((contract) => (
+                  <div
+                    key={contract.id}
+                    className="flex items-center justify-between p-4 bg-amber-50/50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          Contrato #{contract.id}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Vence em {contract.days} dias
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                      {formatCurrency(contract.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contratos Recém Aprovados */}
+          <Card className="hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                  <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Recém Aprovados
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                    Últimos contratos aprovados
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3">
+                {recentContracts.map((contract) => (
+                  <div
+                    key={contract.id}
+                    className="flex items-center justify-between p-4 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          Contrato #{contract.id}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Aprovado {contract.date.toLowerCase()}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                      {formatCurrency(contract.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Fullscreen Chart Modal */}
+      {renderFullscreenChart()}
     </div>
   )
 }
