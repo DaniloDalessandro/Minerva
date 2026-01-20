@@ -274,9 +274,9 @@ export function DataTable({
   return (
     <Card className="shadow-lg pb-0.5">
       <CardHeader className="pb-1">
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50 dark:bg-muted/80">
           <div>
-            <h2 className="text-xl font-bold text-primary">{title}</h2>
+            <h2 className="text-xl font-bold text-primary dark:text-primary">{title}</h2>
             {subtitle && (
               <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
             )}
@@ -418,7 +418,7 @@ export function DataTable({
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-7 w-7 p-0 hover:bg-gray-100"
+                                      className="h-7 w-7 p-0 hover:bg-muted/50 dark:hover:bg-muted/40"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenFilterId(isFilterOpen ? null : columnId);
@@ -428,7 +428,7 @@ export function DataTable({
                                         className={`h-3.5 w-3.5 ${
                                           filterValue
                                             ? "text-primary"
-                                            : "text-gray-400"
+                                            : "text-muted-foreground"
                                         }`}
                                       />
                                     </Button>

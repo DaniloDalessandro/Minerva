@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { InterceptorProvider } from "@/context";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress-bar";
 
 const geistSans = Geist({
@@ -41,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -49,16 +50,31 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Minerva" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme') ||
+                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <InterceptorProvider>
-            <NavigationProgressBar />
-            {children}
-          </InterceptorProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <InterceptorProvider>
+              <NavigationProgressBar />
+              {children}
+            </InterceptorProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

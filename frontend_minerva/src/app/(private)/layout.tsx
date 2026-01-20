@@ -19,6 +19,7 @@ import { NavigationProgressBar } from "@/components/ui/navigation-progress-bar"
 import { DataRefreshProvider } from "@/context"
 import { usePathname } from "next/navigation"
 import { AuthGuard } from "@/components/auth"
+import { ThemeToggle } from "@/components/common/ThemeToggle"
 import React from "react"
 
 const capitalize = (s: string) => {
@@ -79,6 +80,9 @@ export default function Layout({
                   })}
                 </BreadcrumbList>
               </Breadcrumb>
+              <div className="ml-auto">
+                <ThemeToggle />
+              </div>
             </header>
             <main className="flex-1 p-4">{children}</main>
           </SidebarInset>
