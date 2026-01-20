@@ -11,12 +11,34 @@ export default function ContratosPage() {
     window.open(`/contratos/${contract.id}`, "_blank");
   };
 
+  // Custom delete dialog messages based on status
+  const getDeleteDialogTitle = (contract: Contract) => {
+    return contract.status === "ATIVO"
+      ? "Encerrar contrato"
+      : "Ativar contrato";
+  };
+
+  const getDeleteDialogDescription = (contract: Contract) => {
+    return (
+      <>
+        Tem certeza que deseja{" "}
+        {contract.status === "ATIVO" ? "encerrar" : "ativar"} o contrato{" "}
+        <strong>{contract.protocol_number}</strong>?
+        <br />
+        <br />
+        {contract.status === "ATIVO"
+          ? "O contrato será marcado como encerrado."
+          : "O contrato será reativado."}
+      </>
+    );
+  };
+
   // Service adapter to match CrudService interface
   const contractServiceAdapter = {
     fetch: ContractService.fetchContracts,
     create: ContractService.createContract,
     update: ContractService.updateContract,
-    delete: ContractService.deleteContract,
+    toggleStatus: ContractService.toggleStatus,
   };
 
   return (
@@ -27,20 +49,12 @@ export default function ContratosPage() {
       entityNamePlural="contratos"
       title="Contratos"
       FormComponent={ContractForm}
+      initialStatusFilter="ALL"
       onViewDetails={handleViewDetails}
-      deleteDialogTitle="Confirmar exclusão"
-      deleteDialogDescription={(contract) => (
-        <>
-          Tem certeza que deseja excluir o contrato{" "}
-          <strong>{contract.protocol_number}</strong>?
-          <br />
-          <br />
-          Esta ação não pode ser desfeita.
-        </>
-      )}
-      deleteDialogConfirmText="Excluir"
+      deleteDialogTitle={getDeleteDialogTitle}
+      deleteDialogDescription={getDeleteDialogDescription}
+      deleteDialogConfirmText="Confirmar"
       refreshKey="contratos"
-      initialStatusFilter=""
     />
   );
 }

@@ -24,7 +24,8 @@ class ContractListAPIView(generics.ListAPIView):
     def get_queryset(self):
         # Contratos que o fiscal principal ou substituto esteja dentro do escopo
         employee_qs = get_employee_queryset(self.request.user, Employee.objects.all())
-        return (Contract.objects
+
+        queryset = (Contract.objects
                 .select_related(
                     'budget_line__budget__management_center',
                     'main_inspector__direction',
@@ -48,6 +49,13 @@ class ContractListAPIView(generics.ListAPIView):
                 )
                 .prefetch_related('installments', 'amendments')
                 .filter(substitute_inspector__in=employee_qs))
+
+        # Filtro por status
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset
 
 
 class ContractCreateAPIView(generics.CreateAPIView):
@@ -113,6 +121,27 @@ class ContractDestroyAPIView(generics.DestroyAPIView):
         response = super().destroy(request, *args, **kwargs)
         response.data = {'message': CONTRACTS_MESSAGES['DELETE_SUCCESS']}
         return response
+
+
+class ContractToggleStatusAPIView(generics.UpdateAPIView):
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_status = 'ENCERRADO' if instance.status == 'ATIVO' else 'ATIVO'
+
+        instance.status = new_status
+        instance.updated_by = request.user
+        instance.save()
+
+        serializer = ContractSerializer(instance)
+        action = 'ativado' if new_status == 'ATIVO' else 'encerrado'
+
+        return Response({
+            'message': f'Contrato {action} com sucesso.',
+            **serializer.data
+        })
 
 #============================== PARCELAS DO CONTRATO ==============================
 

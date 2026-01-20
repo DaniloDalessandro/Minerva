@@ -156,11 +156,23 @@ class BudgetLine(models.Model, HierarchicalQuerysetMixin):
         ('N/A', 'N/A'),
     ]
     contract_status = models.CharField(
-        max_length=100, 
-        choices=CONTRACT_STATUS_CHOICES, 
-        blank=True, 
+        max_length=100,
+        choices=CONTRACT_STATUS_CHOICES,
+        blank=True,
         null=True,
         verbose_name='Status do Contrato'
+    )
+
+    STATUS_CHOICES = [
+        ('ATIVO', 'ATIVO'),
+        ('INATIVO', 'INATIVO'),
+        ('FINALIZADO', 'FINALIZADO'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='ATIVO',
+        verbose_name='Status'
     )
 
     contract_notes = models.TextField(
@@ -214,6 +226,7 @@ class BudgetLine(models.Model, HierarchicalQuerysetMixin):
             budgeted_amount=self.budgeted_amount,
             process_status=self.process_status,
             contract_status=self.contract_status,
+            status=self.status,
             contract_notes=self.contract_notes,
             change_reason=change_reason,
             created_by=user
@@ -374,19 +387,25 @@ class BudgetLineVersion(models.Model):
         verbose_name='Status do Processo'
     )
     contract_status = models.CharField(
-        max_length=100, 
-        choices=BudgetLine.CONTRACT_STATUS_CHOICES, 
-        blank=True, 
+        max_length=100,
+        choices=BudgetLine.CONTRACT_STATUS_CHOICES,
+        blank=True,
         null=True,
         verbose_name='Status do Contrato'
     )
+    status = models.CharField(
+        max_length=20,
+        choices=BudgetLine.STATUS_CHOICES,
+        default='ATIVO',
+        verbose_name='Status'
+    )
     contract_notes = models.TextField(
-        max_length=400, 
-        blank=True, 
+        max_length=400,
+        blank=True,
         null=True,
         verbose_name='Observações'
     )
-    
+
     change_reason = models.TextField(
         max_length=500,
         verbose_name='Motivo da Alteração'

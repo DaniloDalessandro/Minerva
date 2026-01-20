@@ -4,6 +4,7 @@ import {
   createContractAPI,
   updateContractAPI,
   deleteContractAPI,
+  toggleContractStatusAPI,
   fetchEmployeesAPI,
   fetchBudgetLinesAPI,
 } from '@/lib/api/contratos';
@@ -19,7 +20,8 @@ export class ContractService {
     page: number = PAGINATION_DEFAULTS.PAGE,
     pageSize: number = PAGINATION_DEFAULTS.PAGE_SIZE,
     search: string = "",
-    ordering: string = ""
+    ordering: string = "",
+    statusFilter: string = ""
   ): Promise<ContractsResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -28,6 +30,7 @@ export class ContractService {
 
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    if (statusFilter) params.append('status', statusFilter);
 
     console.log("📄 Buscando contratos:", params.toString());
 
@@ -65,6 +68,13 @@ export class ContractService {
     console.log("🗑️ Deletando contrato:", id);
     await deleteContractAPI(id);
     console.log("✅ Contrato deletado com sucesso");
+  }
+
+  static async toggleStatus(id: number): Promise<Contract> {
+    console.log("🔄 Alternando status do contrato:", id);
+    const result = await toggleContractStatusAPI(id);
+    console.log("✅ Status alterado para:", result.status);
+    return result;
   }
 
   static async fetchEmployees(): Promise<any[]> {

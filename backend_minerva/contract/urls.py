@@ -1,13 +1,13 @@
 from django.urls import path
 
 from .views import (
-    ContractListAPIView, ContractCreateAPIView, ContractRetrieveAPIView, 
-    ContractUpdateAPIView, ContractDestroyAPIView, ContractInstallmentListAPIView, 
-    ContractInstallmentCreateAPIView, ContractInstallmentRetrieveAPIView, 
-    ContractInstallmentUpdateAPIView, ContractInstallmentDestroyAPIView, 
-    ContractAmendmentListAPIView, ContractAmendmentCreateAPIView, 
-    ContractAmendmentRetrieveAPIView, ContractAmendmentUpdateAPIView, 
-    ContractAmendmentDestroyAPIView
+    ContractListAPIView, ContractCreateAPIView, ContractRetrieveAPIView,
+    ContractUpdateAPIView, ContractDestroyAPIView, ContractToggleStatusAPIView,
+    ContractInstallmentListAPIView, ContractInstallmentCreateAPIView,
+    ContractInstallmentRetrieveAPIView, ContractInstallmentUpdateAPIView,
+    ContractInstallmentDestroyAPIView, ContractAmendmentListAPIView,
+    ContractAmendmentCreateAPIView, ContractAmendmentRetrieveAPIView,
+    ContractAmendmentUpdateAPIView, ContractAmendmentDestroyAPIView
 )
 
 urlpatterns = [
@@ -16,7 +16,8 @@ urlpatterns = [
     path('contracts/<int:pk>/', ContractRetrieveAPIView.as_view(), name='contract-detail'),
     path('contracts/<int:pk>/update/', ContractUpdateAPIView.as_view(), name='contract-update'),
     path('contracts/<int:pk>/delete/', ContractDestroyAPIView.as_view(), name='contract-delete'),
-    
+    path('contracts/<int:pk>/toggle-status/', ContractToggleStatusAPIView.as_view(), name='contract-toggle-status'),
+
     path('contract-installments/', ContractInstallmentListAPIView.as_view(), name='contract-installment-list'),
     path('contract-installments/create/', ContractInstallmentCreateAPIView.as_view(), name='contract-installment-create'),
     path('contract-installments/<int:pk>/', ContractInstallmentRetrieveAPIView.as_view(), name='contract-installment-detail'),

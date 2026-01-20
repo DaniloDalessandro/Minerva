@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id: number) => `${API_BASE}/api/v1/contract/contracts/${id}/`,
     UPDATE: (id: number) => `${API_BASE}/api/v1/contract/contracts/${id}/update/`,
     DELETE: (id: number) => `${API_BASE}/api/v1/contract/contracts/${id}/delete/`,
+    TOGGLE_STATUS: (id: number) => `${API_BASE}/api/v1/contract/contracts/${id}/toggle-status/`,
   },
 
   // Budget endpoints

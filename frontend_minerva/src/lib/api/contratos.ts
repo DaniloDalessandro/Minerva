@@ -63,6 +63,18 @@ export async function deleteContractAPI(id: number): Promise<any> {
   return response.json();
 }
 
+export async function toggleContractStatusAPI(id: number): Promise<Contract> {
+  const url = API_ENDPOINTS.CONTRACT.TOGGLE_STATUS(id);
+  const response = await apiClient(url, {
+    method: 'PATCH',
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao alterar status do contrato');
+  }
+  return response.json();
+}
+
 // API de dados para dropdown
 export async function fetchEmployeesAPI(): Promise<any[]> {
   const url = `${API_ENDPOINTS.EMPLOYEE.ALL_EMPLOYEES}?page_size=1000`;

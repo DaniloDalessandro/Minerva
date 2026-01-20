@@ -1,48 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Auxilio } from "@/lib/api/auxilios";
+import {
+  AUXILIO_STATUS_FILTER_OPTIONS,
+  getAuxilioStatusLabel,
+  getAuxilioTypeLabel,
+} from "@/constants/status";
 
-/**
- * Opções de filtro para o status de auxílios
- */
-export const AUXILIO_STATUS_FILTER_OPTIONS = [
-  { value: 'ALL', label: 'Todos' },
-  { value: 'AGUARDANDO', label: 'Aguardando' },
-  { value: 'ATIVO', label: 'Ativo' },
-  { value: 'CONCLUIDO', label: 'Concluído' },
-  { value: 'CANCELADO', label: 'Cancelado' },
-];
-
-const getTypeLabel = (type: string) => {
-  switch (type) {
-    case 'GRADUACAO':
-      return 'Graduação';
-    case 'POS_GRADUACAO':
-      return 'Pós-Graduação';
-    case 'AUXILIO_CRECHE_ESCOLA':
-      return 'Creche/Escola';
-    case 'LINGUA_ESTRANGEIRA':
-      return 'Língua Estrangeira';
-    default:
-      return type;
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'AGUARDANDO':
-      return 'Aguardando';
-    case 'ATIVO':
-      return 'Ativo';
-    case 'CONCLUIDO':
-      return 'Concluído';
-    case 'CANCELADO':
-      return 'Cancelado';
-    default:
-      return status;
-  }
-};
-
-export const defaultColumns: ColumnDef<Auxilio>[] = [
+export const columns: ColumnDef<Auxilio>[] = [
+  // COLUNAS PRINCIPAIS
   {
     accessorKey: "employee.full_name",
     header: "Colaborador",
@@ -61,7 +26,7 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       const type = row.original.type;
-      return <span>{getTypeLabel(type)}</span>;
+      return <span>{getAuxilioTypeLabel(type)}</span>;
     },
     meta: {
       showFilterIcon: true,
@@ -83,23 +48,8 @@ export const defaultColumns: ColumnDef<Auxilio>[] = [
       );
     },
   },
-  {
-    accessorKey: "status",
-    header: "Status",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return <span>{getStatusLabel(status)}</span>;
-    },
-    meta: {
-      showFilterIcon: true,
-      filterType: 'select',
-      filterOptions: AUXILIO_STATUS_FILTER_OPTIONS,
-    },
-  },
-];
 
-export const optionalColumns: ColumnDef<Auxilio>[] = [
+  // COLUNAS SECUNDÁRIAS - DISPONÍVEIS NA ENGRENAGEM
   {
     accessorKey: "id",
     header: "ID",
@@ -196,7 +146,11 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
     cell: ({ row }) => {
       const notes = row.original.notes;
       if (!notes) return <span>-</span>;
-      return <span title={notes}>{notes}</span>;
+      return (
+        <span className="max-w-xs truncate" title={notes}>
+          {notes}
+        </span>
+      );
     },
   },
   {
@@ -235,6 +189,20 @@ export const optionalColumns: ColumnDef<Auxilio>[] = [
       return <span>-</span>;
     },
   },
-];
 
-export const columns = defaultColumns;
+  // STATUS - ÚLTIMO CAMPO VISÍVEL
+  {
+    accessorKey: "status",
+    header: "Status",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return <span>{getAuxilioStatusLabel(status)}</span>;
+    },
+    meta: {
+      showFilterIcon: true,
+      filterType: 'select',
+      filterOptions: AUXILIO_STATUS_FILTER_OPTIONS,
+    },
+  },
+];

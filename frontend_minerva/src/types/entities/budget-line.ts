@@ -40,6 +40,7 @@ export interface BudgetLine extends OptimisticUpdate {
   budgeted_amount: string;
   process_status: 'VENCIDO' | 'DENTRO DO PRAZO' | 'ELABORADO COM ATRASO' | 'ELABORADO NO PRAZO' | null;
   contract_status: 'DENTRO DO PRAZO' | 'CONTRATADO NO PRAZO' | 'CONTRATADO COM ATRASO' | 'PRAZO VENCIDO' | 'LINHA TOTALMENTE REMANEJADA' | 'LINHA TOTALMENTE EXECUTADA' | 'LINHA DE PAGAMENTO' | 'LINHA PARCIALMENTE REMANEJADA' | 'LINHA PARCIALMENTE EXECUTADA' | 'N/A' | null;
+  status: 'ATIVO' | 'INATIVO' | 'FINALIZADO';
   contract_notes?: string;
   created_at: string;
   updated_at: string;
@@ -78,6 +79,7 @@ export interface CreateBudgetLineData {
   budgeted_amount: string;
   process_status?: 'VENCIDO' | 'DENTRO DO PRAZO' | 'ELABORADO COM ATRASO' | 'ELABORADO NO PRAZO' | null;
   contract_status?: 'DENTRO DO PRAZO' | 'CONTRATADO NO PRAZO' | 'CONTRATADO COM ATRASO' | 'PRAZO VENCIDO' | 'LINHA TOTALMENTE REMANEJADA' | 'LINHA TOTALMENTE EXECUTADA' | 'LINHA DE PAGAMENTO' | 'LINHA PARCIALMENTE REMANEJADA' | 'LINHA PARCIALMENTE EXECUTADA' | 'N/A' | null;
+  status?: 'ATIVO' | 'INATIVO' | 'FINALIZADO';
   contract_notes?: string;
 }
 

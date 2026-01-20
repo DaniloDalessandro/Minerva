@@ -28,12 +28,12 @@ class BudgetLineDetailSerializer(serializers.ModelSerializer):
         model = BudgetLine
         fields = [
             'id', 'budget', 'category', 'expense_type', 'management_center', 'requesting_center',
-            'summary_description', 'object', 'budget_classification', 'main_fiscal', 
+            'summary_description', 'object', 'budget_classification', 'main_fiscal',
             'secondary_fiscal', 'contract_type', 'probable_procurement_type', 'budgeted_amount',
-            'process_status', 'contract_status', 'contract_notes', 'created_at', 'updated_at',
+            'process_status', 'contract_status', 'status', 'contract_notes', 'created_at', 'updated_at',
             'created_by', 'updated_by',
             # Campos extras para exibição
-            'management_center_name', 'requesting_center_name', 'main_fiscal_name', 
+            'management_center_name', 'requesting_center_name', 'main_fiscal_name',
             'secondary_fiscal_name', 'created_by_name', 'updated_by_name', 'budget_info',
             'current_version', 'total_versions'
         ]
@@ -67,14 +67,15 @@ class BudgetLineSerializer(serializers.ModelSerializer):
     """
     management_center_name = serializers.CharField(source='management_center.name', read_only=True)
     requesting_center_name = serializers.CharField(source='requesting_center.name', read_only=True)
-    
+    main_fiscal_name = serializers.CharField(source='main_fiscal.full_name', read_only=True)
+
     class Meta:
         model = BudgetLine
         fields = [
             'id', 'budget', 'category', 'expense_type', 'management_center', 'requesting_center',
             'summary_description', 'object', 'budget_classification', 'budgeted_amount',
-            'process_status', 'contract_status', 'created_at', 'updated_at',
-            'management_center_name', 'requesting_center_name'
+            'process_status', 'contract_status', 'status', 'main_fiscal', 'created_at', 'updated_at',
+            'management_center_name', 'requesting_center_name', 'main_fiscal_name'
         ]
         read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']
 
