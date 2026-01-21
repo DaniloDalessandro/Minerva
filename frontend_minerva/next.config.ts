@@ -1,11 +1,31 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Output standalone para Docker
+  output: "standalone",
+
   typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore type errors during migration
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: false, // Keep ESLint warnings
+    ignoreDuringBuilds: false,
+  },
+
+  // Otimizações
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
+  // Configuração para desenvolvimento no Windows
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+        ignored: /node_modules/,
+      };
+    }
+    return config;
   },
 };
 

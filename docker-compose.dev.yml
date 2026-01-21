@@ -1,14 +1,16 @@
+# Docker Compose para DESENVOLVIMENTO
+# Uso: docker-compose -f docker-compose.dev.yml up
+
 services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_DB: minerva_db
       POSTGRES_USER: minerva_user
       POSTGRES_PASSWORD: minerva_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -17,21 +19,23 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend (Django)
+  # Backend (Django) - Desenvolvimento
   backend:
     build:
       context: ./backend_minerva
       dockerfile: Dockerfile
-    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - ./backend_minerva:/app
+      - static_volume_dev:/app/staticfiles
     ports:
       - "8000:8000"
     env_file:
       - ./backend_minerva/.env
     environment:
-      - DEBUG=False
+      - DEBUG=True
       - DATABASE_ENGINE=django.db.backends.postgresql
       - DATABASE_NAME=minerva_db
       - DATABASE_USER=minerva_user
@@ -42,23 +46,24 @@ services:
       db:
         condition: service_healthy
 
-  # Frontend (Next.js)
+  # Frontend (Next.js) - Desenvolvimento
   frontend:
     build:
       context: ./frontend_minerva
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8000
-    restart: unless-stopped
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend_minerva:/app
+      - /app/node_modules
+      - /app/.next
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
+    command: npm run dev
 
 volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
+  postgres_data_dev:
+  static_volume_dev:

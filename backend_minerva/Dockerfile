@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && \
+    pip install gunicorn
 
 # Copy project
 COPY . /app/
@@ -27,9 +28,16 @@ COPY . /app/
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
 
+# Create non-root user
+RUN addgroup --system django && \
+    adduser --system --ingroup django django && \
+    chown -R django:django /app
+
+USER django
+
 # Expose port
 EXPOSE 8000
 
-# Run migrations and start server
+# Run migrations and start server with gunicorn
 CMD python manage.py migrate && \
-    python manage.py runserver 0.0.0.0:8000
+    gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3

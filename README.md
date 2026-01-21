@@ -24,19 +24,21 @@ Minerva/
 ### Stack Tecnológica
 
 **Frontend:**
-- Next.js 15.1.3
+- Next.js 15.3.2
 - React 19
-- TypeScript
-- Tailwind CSS
+- TypeScript 5
+- Tailwind CSS 4
 - Shadcn/ui
+- Recharts 3.1.2 (gráficos)
 - TanStack Query
 - Zod
+- Tema claro/escuro
 
 **Backend:**
-- Django 5.2.7
-- Django REST Framework
+- Django 5.2
+- Django REST Framework 3.16
 - Python 3.13
-- JWT Authentication
+- JWT Authentication (SimpleJWT 5.5)
 - PostgreSQL/SQLite
 - Google Gemini AI
 
@@ -130,20 +132,31 @@ backend_minerva/
 frontend_minerva/
 ├── src/
 │   ├── app/           # App Router do Next.js
+│   │   ├── (auth)/    # Rotas públicas (login, registro)
+│   │   └── (private)/ # Rotas protegidas (dashboard, etc)
 │   ├── components/    # Componentes React reutilizáveis
+│   ├── context/       # Contextos (Auth, Theme)
 │   ├── features/      # Features organizadas por módulo
 │   ├── hooks/         # Custom hooks
 │   ├── lib/           # Utilitários e configurações
 │   ├── services/      # Integração com API
 │   └── types/         # TypeScript types
 ├── public/            # Arquivos estáticos
+├── middleware.ts      # Middleware de autenticação
 └── package.json
 ```
 
 ## 🔑 Funcionalidades Principais
 
+### Dashboard
+- Visão geral com métricas e KPIs
+- Gráficos interativos (status, valores mensais, orçamento)
+- Contratos próximos do vencimento
+- Suporte a tema claro/escuro
+
 ### Autenticação e Autorização
 - Login/Logout com JWT
+- Recuperação de senha por email
 - Controle hierárquico de permissões
 - Rate limiting para segurança
 - Blacklist de tokens
@@ -172,6 +185,12 @@ frontend_minerva/
 - Geração automática de SQL
 - Histórico de conversas
 - Validação de queries
+
+### Central de Ajuda
+- Guias interativos por módulo
+- Níveis de dificuldade (Básico, Intermediário, Avançado)
+- FAQ com perguntas frequentes
+- Dicas e melhores práticas
 
 ## 🔐 Segurança
 
@@ -232,6 +251,8 @@ Presidente (acesso total)
 - Code splitting automático
 - Otimização de imagens
 - Caching de requisições com TanStack Query
+- Sistema de temas (claro/escuro) persistente
+- Gráficos responsivos com animações suaves
 
 ## 🛠️ Comandos Úteis
 
@@ -438,5 +459,5 @@ Desenvolvido pela equipe Minerva.
 
 ---
 
-**Versão:** 2.0
-**Última atualização:** Janeiro 2026
+**Versão:** 2.1
+**Última atualização:** 20 de Janeiro de 2026
