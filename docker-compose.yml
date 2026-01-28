@@ -1,14 +1,16 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database com pgvector
   db:
-    image: postgres:16-alpine
-    restart: unless-stopped
+    image: pgvector/pgvector:pg16
+    restart: always
     environment:
       POSTGRES_DB: minerva_db
       POSTGRES_USER: minerva_user
       POSTGRES_PASSWORD: minerva_password
+      POSTGRES_INITDB_ARGS: "-E UTF8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -16,13 +18,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   # Backend (Django)
   backend:
     build:
       context: ./backend_minerva
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: always
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -38,9 +49,24 @@ services:
       - DATABASE_PASSWORD=minerva_password
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/admin/login/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   # Frontend (Next.js)
   frontend:
@@ -49,14 +75,29 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://localhost:8000
-    restart: unless-stopped
+    restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
 volumes:
   postgres_data:

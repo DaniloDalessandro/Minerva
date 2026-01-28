@@ -8,8 +8,8 @@ class Direction(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='Ativo')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='directions_created',verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='directions_updated',verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='directions_created', verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='directions_updated', verbose_name='Atualizado por')
 
     def save(self, *args, **kwargs):
         if self.name:
@@ -31,8 +31,8 @@ class Management(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='Ativo')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='management_created',verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='management_updated',verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='management_created', verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='management_updated', verbose_name='Atualizado por')
 
     def save(self, *args, **kwargs):
         if self.name:
@@ -56,8 +56,8 @@ class Coordination(models.Model):
     is_active = models.BooleanField(default=True, verbose_name='Ativo')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coordination_created',verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coordination_updated',verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='coordination_created', verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='coordination_updated', verbose_name='Atualizado por')
 
     def save(self, *args, **kwargs):
         if self.name:

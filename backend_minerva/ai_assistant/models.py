@@ -1,6 +1,13 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.contrib.postgres.indexes import GinIndex
+
+try:
+    from pgvector.django import VectorField, HnswIndex
+    PGVECTOR_AVAILABLE = True
+except ImportError:
+    PGVECTOR_AVAILABLE = False
 
 User = get_user_model()
 
@@ -132,3 +139,100 @@ class AliceConfiguration(models.Model):
         verbose_name = 'Configuração do Alice'
         verbose_name_plural = 'Configurações do Alice'
         ordering = ['key']
+
+
+class DocumentEmbedding(models.Model):
+    """
+    Armazena documentos com seus embeddings vetoriais para busca semântica.
+    Usa pgvector para busca por similaridade em produção.
+    """
+    DOCUMENT_TYPES = [
+        ('SCHEMA', 'Schema do Banco'),
+        ('BUSINESS_RULE', 'Regra de Negócio'),
+        ('FAQ', 'Perguntas Frequentes'),
+        ('CONTEXT', 'Contexto do Sistema'),
+        ('QUERY_EXAMPLE', 'Exemplo de Consulta'),
+    ]
+
+    document_type = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_TYPES,
+        verbose_name='Tipo de Documento'
+    )
+    title = models.CharField(max_length=255, verbose_name='Título')
+    content = models.TextField(verbose_name='Conteúdo')
+    metadata = models.JSONField(default=dict, blank=True, verbose_name='Metadados')
+
+    # Campo de embedding - 768 dimensões para modelos Gemini embedding
+    if PGVECTOR_AVAILABLE:
+        embedding = VectorField(dimensions=768, null=True, blank=True, verbose_name='Embedding')
+    else:
+        embedding = models.JSONField(null=True, blank=True, verbose_name='Embedding (JSON fallback)')
+
+    is_active = models.BooleanField(default=True, verbose_name='Ativo')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"[{self.get_document_type_display()}] {self.title}"
+
+    class Meta:
+        verbose_name = 'Embedding de Documento'
+        verbose_name_plural = 'Embeddings de Documentos'
+        ordering = ['-created_at']
+        if PGVECTOR_AVAILABLE:
+            indexes = [
+                HnswIndex(
+                    name='embedding_hnsw_idx',
+                    fields=['embedding'],
+                    m=16,
+                    ef_construction=64,
+                    opclasses=['vector_cosine_ops'],
+                )
+            ]
+
+
+class ConversationEmbedding(models.Model):
+    """
+    Armazena embeddings de conversas anteriores para melhorar contexto.
+    Permite recuperar conversas relevantes para o contexto atual.
+    """
+    session = models.ForeignKey(
+        ConversationSession,
+        on_delete=models.CASCADE,
+        related_name='embeddings'
+    )
+    message = models.ForeignKey(
+        ConversationMessage,
+        on_delete=models.CASCADE,
+        related_name='embeddings',
+        null=True,
+        blank=True
+    )
+    content_summary = models.TextField(verbose_name='Resumo do Conteúdo')
+
+    # Campo de embedding
+    if PGVECTOR_AVAILABLE:
+        embedding = VectorField(dimensions=768, null=True, blank=True, verbose_name='Embedding')
+    else:
+        embedding = models.JSONField(null=True, blank=True, verbose_name='Embedding (JSON fallback)')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Embedding - Sessão {self.session.session_id}"
+
+    class Meta:
+        verbose_name = 'Embedding de Conversa'
+        verbose_name_plural = 'Embeddings de Conversas'
+        ordering = ['-created_at']
+        if PGVECTOR_AVAILABLE:
+            indexes = [
+                HnswIndex(
+                    name='conv_embedding_hnsw_idx',
+                    fields=['embedding'],
+                    m=16,
+                    ef_construction=64,
+                    opclasses=['vector_cosine_ops'],
+                )
+            ]

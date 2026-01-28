@@ -1,31 +1,61 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-ENV/
-.venv/
-*.log
-db.sqlite3
-db.sqlite3-journal
-.env
-.env.local
+# Git
 .git
 .gitignore
-.vscode
-.idea
+
+# Environment
+.env
+.env.local
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
 Thumbs.db
-/staticfiles/
-/media/
-.pytest_cache/
-.coverage
-htmlcov/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
 dist/
 build/
-*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Database
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+.coverage
+htmlcov/
+
+# Static and media (handled by volumes)
+staticfiles/
+media/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/

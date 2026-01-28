@@ -1,10 +1,12 @@
 from django.contrib import admin
 from .models import (
-    ConversationSession, 
-    ConversationMessage, 
-    QueryLog, 
-    DatabaseSchema, 
-    AliceConfiguration
+    ConversationSession,
+    ConversationMessage,
+    QueryLog,
+    DatabaseSchema,
+    AliceConfiguration,
+    DocumentEmbedding,
+    ConversationEmbedding
 )
 
 
@@ -54,7 +56,37 @@ class AliceConfigurationAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'created_at']
     search_fields = ['key', 'value', 'description']
     readonly_fields = ['created_at', 'updated_at']
-    
+
     def value_preview(self, obj):
         return obj.value[:50] + '...' if len(obj.value) > 50 else obj.value
     value_preview.short_description = 'Valor'
+
+
+@admin.register(DocumentEmbedding)
+class DocumentEmbeddingAdmin(admin.ModelAdmin):
+    list_display = ['title', 'document_type', 'is_active', 'has_embedding', 'created_at']
+    list_filter = ['document_type', 'is_active', 'created_at']
+    search_fields = ['title', 'content']
+    readonly_fields = ['created_at', 'updated_at']
+
+    def has_embedding(self, obj):
+        return bool(obj.embedding)
+    has_embedding.boolean = True
+    has_embedding.short_description = 'Embedding'
+
+
+@admin.register(ConversationEmbedding)
+class ConversationEmbeddingAdmin(admin.ModelAdmin):
+    list_display = ['session', 'content_preview', 'has_embedding', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['content_summary']
+    readonly_fields = ['created_at']
+
+    def content_preview(self, obj):
+        return obj.content_summary[:100] + '...' if len(obj.content_summary) > 100 else obj.content_summary
+    content_preview.short_description = 'Resumo'
+
+    def has_embedding(self, obj):
+        return bool(obj.embedding)
+    has_embedding.boolean = True
+    has_embedding.short_description = 'Embedding'

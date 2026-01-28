@@ -5,6 +5,9 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 
+# Install curl for health checks
+RUN apk add --no-cache curl wget
+
 # Copy package files
 COPY package.json package-lock.json* ./
 
@@ -31,6 +34,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Install wget for health checks
+RUN apk add --no-cache wget
+
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -46,6 +52,10 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start the application
 CMD ["node", "server.js"]

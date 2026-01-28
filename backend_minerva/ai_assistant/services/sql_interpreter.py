@@ -1,13 +1,22 @@
-import sqlite3
 import time
 import logging
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Optional
 from django.db import connection
 from django.conf import settings
-from .gemini_service import GeminiService
+from .gemini_service import GeminiService, ALICE_FRIENDLY_ERROR
+from .embedding_service import EmbeddingService
 from ..models import DatabaseSchema, QueryLog, ConversationSession
 
 logger = logging.getLogger(__name__)
+
+# Mensagens amigáveis para o usuário (sem termos técnicos)
+FRIENDLY_MESSAGES = {
+    'interpretation_error': "Desculpe, não consegui entender sua solicitação dessa vez. Pode reformular a pergunta ou me dar mais detalhes? 😊",
+    'validation_error': "Não consegui processar essa informação no momento. Pode tentar de outra forma?",
+    'execution_error': "Tive dificuldade em encontrar essas informações agora. Que tal tentar de outra forma?",
+    'internal_error': "Desculpe, algo não saiu como esperado. Pode tentar novamente em alguns instantes?",
+    'no_results': "Não encontrei informações sobre isso. Pode me dar mais detalhes para que eu possa ajudar melhor?",
+}
 
 
 # Helper function for secure error responses
@@ -23,20 +32,27 @@ def get_error_details(exception):
 
 class SQLInterpreterService:
     """
-    Serviço para interpretar perguntas em linguagem natural e executar consultas SQL
+    Serviço para interpretar perguntas em linguagem natural e executar consultas SQL.
+    Suporta RAG com pgvector para enriquecer respostas.
     """
-    
+
     def __init__(self):
         self.gemini_service = GeminiService()
+        self.embedding_service = EmbeddingService()
         self.safe_tables = {
-            'accounts_user', 'budget_budget', 'budget_budgetmovement', 
+            'accounts_user', 'budget_budget', 'budget_budgetmovement',
             'budgetline_budgetline', 'budgetline_budgetlineversion',
-            'contract_contract', 'contract_contractinstallment', 
+            'contract_contract', 'contract_contractinstallment',
             'contract_contractamendment', 'employee_employee',
             'sector_direction', 'sector_coordination', 'sector_management',
             'center_management_center', 'center_requesting_center',
             'aid_assistance', 'aid_assistanceemployee'
         }
+        self._is_postgresql = self._check_database_type()
+
+    def _check_database_type(self) -> bool:
+        """Verifica se o banco é PostgreSQL"""
+        return 'postgresql' in settings.DATABASES['default']['ENGINE']
         
     def get_database_schema(self) -> str:
         """
@@ -92,56 +108,97 @@ class SQLInterpreterService:
     
     def _generate_schema_info(self) -> str:
         """
-        Gera informações detalhadas do schema do banco
+        Gera informações detalhadas do schema do banco.
+        Suporta SQLite e PostgreSQL.
         """
         with connection.cursor() as cursor:
             schema_info = "ESQUEMA DO BANCO DE DADOS MINERVA:\n\n"
-            
-            # Lista todas as tabelas
-            cursor.execute("""
-                SELECT name FROM sqlite_master 
-                WHERE type='table' AND name NOT LIKE 'sqlite_%' 
-                AND name NOT LIKE 'django_%' 
-                AND name NOT LIKE 'auth_%'
-                ORDER BY name
-            """)
-            
+
+            if self._is_postgresql:
+                # PostgreSQL - usa information_schema
+                cursor.execute("""
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                    AND table_type = 'BASE TABLE'
+                    AND table_name NOT LIKE 'django_%'
+                    AND table_name NOT LIKE 'auth_%'
+                    ORDER BY table_name
+                """)
+            else:
+                # SQLite
+                cursor.execute("""
+                    SELECT name FROM sqlite_master
+                    WHERE type='table' AND name NOT LIKE 'sqlite_%'
+                    AND name NOT LIKE 'django_%'
+                    AND name NOT LIKE 'auth_%'
+                    ORDER BY name
+                """)
+
             tables = cursor.fetchall()
             table_descriptions = self._get_table_descriptions()
-            
+
             for table_row in tables:
                 table_name = table_row[0]
                 if table_name not in self.safe_tables:
                     continue
-                    
+
                 schema_info += f"\nTABELA: {table_name}\n"
                 if table_name in table_descriptions:
                     schema_info += f"Descrição: {table_descriptions[table_name]}\n"
-                
+
                 # Obtém informações das colunas
-                cursor.execute(f"PRAGMA table_info({table_name})")
-                columns = cursor.fetchall()
-                
-                for col in columns:
-                    col_name, col_type, not_null, default_value = col[1], col[2], col[3], col[4]
-                    schema_info += f"  - {col_name} ({col_type})"
-                    if not_null:
-                        schema_info += " NOT NULL"
-                    if default_value:
-                        schema_info += f" DEFAULT {default_value}"
-                    
-                    # Adiciona exemplos de valores se disponível
-                    try:
-                        cursor.execute(f"SELECT DISTINCT {col_name} FROM {table_name} WHERE {col_name} IS NOT NULL LIMIT 3")
-                        samples = cursor.fetchall()
-                        if samples:
-                            sample_values = [str(s[0]) for s in samples]
-                            schema_info += f" - Exemplos: {', '.join(sample_values)}"
-                    except:
-                        pass
-                    
-                    schema_info += "\n"
-            
+                if self._is_postgresql:
+                    cursor.execute("""
+                        SELECT column_name, data_type, is_nullable, column_default
+                        FROM information_schema.columns
+                        WHERE table_name = %s AND table_schema = 'public'
+                        ORDER BY ordinal_position
+                    """, [table_name])
+                    columns = cursor.fetchall()
+
+                    for col in columns:
+                        col_name, col_type, is_nullable, default_value = col
+                        schema_info += f"  - {col_name} ({col_type})"
+                        if is_nullable == 'NO':
+                            schema_info += " NOT NULL"
+                        if default_value:
+                            schema_info += f" DEFAULT {default_value}"
+
+                        # Adiciona exemplos de valores
+                        try:
+                            cursor.execute(f'SELECT DISTINCT "{col_name}" FROM "{table_name}" WHERE "{col_name}" IS NOT NULL LIMIT 3')
+                            samples = cursor.fetchall()
+                            if samples:
+                                sample_values = [str(s[0]) for s in samples]
+                                schema_info += f" - Exemplos: {', '.join(sample_values)}"
+                        except:
+                            pass
+
+                        schema_info += "\n"
+                else:
+                    # SQLite
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    columns = cursor.fetchall()
+
+                    for col in columns:
+                        col_name, col_type, not_null, default_value = col[1], col[2], col[3], col[4]
+                        schema_info += f"  - {col_name} ({col_type})"
+                        if not_null:
+                            schema_info += " NOT NULL"
+                        if default_value:
+                            schema_info += f" DEFAULT {default_value}"
+
+                        try:
+                            cursor.execute(f"SELECT DISTINCT {col_name} FROM {table_name} WHERE {col_name} IS NOT NULL LIMIT 3")
+                            samples = cursor.fetchall()
+                            if samples:
+                                sample_values = [str(s[0]) for s in samples]
+                                schema_info += f" - Exemplos: {', '.join(sample_values)}"
+                        except:
+                            pass
+
+                        schema_info += "\n"
+
             return schema_info
     
     def _get_table_descriptions(self) -> Dict[str, str]:
@@ -200,51 +257,240 @@ class SQLInterpreterService:
         # Por enquanto, apenas registra que foi chamado
         logger.info("Schema info cached")
     
+    # Consultas predefinidas para palavras-chave simples (economiza API e é mais confiável)
+    PREDEFINED_QUERIES = {
+        'auxilios': {
+            'sql': 'SELECT a.id, e.full_name as funcionario, a.type as tipo, a.total_amount as valor, a.status, a.start_date as inicio FROM aid_assistance a JOIN employee_employee e ON a.employee_id = e.id ORDER BY a.start_date DESC LIMIT 20',
+            'intent': 'Listar auxílios cadastrados'
+        },
+        'auxílios': {
+            'sql': 'SELECT a.id, e.full_name as funcionario, a.type as tipo, a.total_amount as valor, a.status, a.start_date as inicio FROM aid_assistance a JOIN employee_employee e ON a.employee_id = e.id ORDER BY a.start_date DESC LIMIT 20',
+            'intent': 'Listar auxílios cadastrados'
+        },
+        'contratos': {
+            'sql': 'SELECT id, protocol_number as protocolo, description as descricao, current_value as valor, status, start_date as inicio, end_date as fim FROM contract_contract ORDER BY created_at DESC LIMIT 20',
+            'intent': 'Listar contratos cadastrados'
+        },
+        'funcionarios': {
+            'sql': 'SELECT id, full_name as nome, email, position as cargo, department as departamento, status FROM employee_employee ORDER BY full_name LIMIT 30',
+            'intent': 'Listar funcionários cadastrados'
+        },
+        'funcionários': {
+            'sql': 'SELECT id, full_name as nome, email, position as cargo, department as departamento, status FROM employee_employee ORDER BY full_name LIMIT 30',
+            'intent': 'Listar funcionários cadastrados'
+        },
+        'colaboradores': {
+            'sql': 'SELECT id, full_name as nome, email, position as cargo, department as departamento, status FROM employee_employee ORDER BY full_name LIMIT 30',
+            'intent': 'Listar colaboradores cadastrados'
+        },
+        'orcamentos': {
+            'sql': 'SELECT id, year as ano, category as categoria, total_amount as valor_total, available_amount as disponivel, status FROM budget_budget ORDER BY year DESC LIMIT 20',
+            'intent': 'Listar orçamentos cadastrados'
+        },
+        'orçamentos': {
+            'sql': 'SELECT id, year as ano, category as categoria, total_amount as valor_total, available_amount as disponivel, status FROM budget_budget ORDER BY year DESC LIMIT 20',
+            'intent': 'Listar orçamentos cadastrados'
+        },
+        'setores': {
+            'sql': 'SELECT id, name as nome, is_active as ativo FROM sector_direction ORDER BY name LIMIT 30',
+            'intent': 'Listar setores/direções cadastrados'
+        },
+        'centros': {
+            'sql': 'SELECT id, name as nome, code as codigo, is_active as ativo FROM center_management_center ORDER BY name LIMIT 30',
+            'intent': 'Listar centros gestores cadastrados'
+        },
+    }
+
+    def _get_predefined_query(self, text: str) -> Optional[Dict[str, str]]:
+        """Retorna consulta predefinida se a palavra-chave for reconhecida."""
+        text_lower = text.lower().strip()
+        return self.PREDEFINED_QUERIES.get(text_lower)
+
+    def _is_greeting_or_casual(self, text: str) -> bool:
+        """Verifica se a mensagem é uma saudação ou conversa casual."""
+        greetings = [
+            'oi', 'olá', 'ola', 'hi', 'hello', 'hey', 'e ai', 'eai',
+            'bom dia', 'boa tarde', 'boa noite', 'tudo bem', 'como vai',
+            'obrigado', 'obrigada', 'valeu', 'tchau', 'até mais', 'ate mais',
+            'ajuda', 'help', 'o que voce faz', 'o que você faz', 'quem é você',
+            'quem e voce', 'quem é voce'
+        ]
+
+        # Palavras que indicam consulta de dados (não são saudações)
+        data_keywords = [
+            'contrato', 'contratos', 'auxilio', 'auxilios', 'auxílio', 'auxílios',
+            'funcionario', 'funcionarios', 'funcionário', 'funcionários',
+            'colaborador', 'colaboradores', 'orcamento', 'orçamento', 'orcamentos', 'orçamentos',
+            'budget', 'valor', 'valores', 'total', 'lista', 'listar', 'mostrar', 'mostra',
+            'buscar', 'busca', 'encontrar', 'pesquisar', 'quantos', 'quantas', 'quanto',
+            'quais', 'qual', 'todos', 'todas', 'ativos', 'ativo', 'vencidos', 'vencido',
+            'setor', 'setores', 'direção', 'direcao', 'gerencia', 'gerência', 'coordenacao',
+            'centro', 'centros', 'gestor', 'gestores', 'solicitante'
+        ]
+
+        text_lower = text.lower().strip()
+
+        # Se contém palavra de dados, NÃO é saudação
+        if any(keyword in text_lower for keyword in data_keywords):
+            return False
+
+        # Verifica se é saudação
+        return any(greeting in text_lower for greeting in greetings) or len(text_lower) < 4
+
+    def _get_greeting_response(self, text: str) -> str:
+        """Retorna uma resposta apropriada para saudações."""
+        text_lower = text.lower().strip()
+
+        if any(g in text_lower for g in ['obrigado', 'obrigada', 'valeu']):
+            return "De nada! 😊 Fico feliz em ajudar. Se precisar de mais alguma coisa, é só perguntar!"
+
+        if any(g in text_lower for g in ['tchau', 'até mais', 'ate mais']):
+            return "Até mais! 😊 Foi um prazer ajudar. Volte sempre que precisar!"
+
+        if any(g in text_lower for g in ['ajuda', 'help', 'o que voce faz', 'o que você faz']):
+            return """Posso ajudar você com várias informações do Sistema Minerva! 😊
+
+Por exemplo, você pode me perguntar:
+• Quantos contratos temos ativos?
+• Qual o valor total dos orçamentos deste ano?
+• Quais funcionários estão cadastrados?
+• Mostre os contratos que vencem este mês
+
+É só perguntar de forma natural que eu busco a informação para você!"""
+
+        # Saudação padrão
+        return """Olá! 😊 Eu sou a Alice, sua assistente virtual do Sistema Minerva.
+
+Posso ajudar você a encontrar informações sobre contratos, orçamentos, funcionários e muito mais.
+
+É só me dizer o que você precisa!"""
+
     def interpret_and_execute(self, user_question: str, session: ConversationSession) -> Dict[str, Any]:
         """
-        Interpreta pergunta e executa consulta SQL
-        
+        Interpreta pergunta e executa consulta SQL.
+        Usa RAG com pgvector para enriquecer o contexto.
+
         Args:
             user_question: Pergunta do usuário
             session: Sessão da conversa
-            
+
         Returns:
             Dict com resultados e metadados
         """
         start_time = time.time()
-        
+
         try:
+            # Verifica se é uma saudação ou conversa casual
+            if self._is_greeting_or_casual(user_question):
+                greeting_response = self._get_greeting_response(user_question)
+                return {
+                    'success': True,
+                    'data': [],
+                    'sql_query': '',
+                    'humanized_response': greeting_response,
+                    'execution_time_ms': int((time.time() - start_time) * 1000),
+                    'result_count': 0,
+                    'is_greeting': True
+                }
+
+            # Verifica se há consulta predefinida para a palavra-chave
+            predefined = self._get_predefined_query(user_question)
+            if predefined:
+                logger.info(f"Usando consulta predefinida para: {user_question}")
+                sql_query = predefined['sql']
+                interpretation = {'intent': predefined['intent'], 'sql': sql_query}
+
+                # Executa a consulta predefinida
+                execution_result = self._execute_sql_query(sql_query)
+                execution_time = int((time.time() - start_time) * 1000)
+
+                if execution_result['success']:
+                    data = execution_result['data']
+                    count = len(data)
+
+                    # Tenta gerar resposta humanizada, com fallback se falhar
+                    try:
+                        humanized_response = self.gemini_service.generate_humanized_response(
+                            query_result=data,
+                            original_question=user_question,
+                            sql_query=sql_query,
+                            context_documents=[]
+                        )
+                        response_text = humanized_response.get('content', '')
+                    except Exception as e:
+                        logger.warning(f"Fallback para resposta simples: {str(e)}")
+                        response_text = ''
+
+                    # Fallback se a humanização falhar
+                    if not response_text:
+                        keyword = user_question.lower().strip()
+                        if count == 0:
+                            response_text = f"Não encontrei nenhum registro de {keyword} no momento."
+                        else:
+                            response_text = f"Encontrei {count} registro(s) de {keyword}. 😊"
+
+                    return {
+                        'success': True,
+                        'data': data,
+                        'sql_query': sql_query,
+                        'interpretation': interpretation,
+                        'humanized_response': response_text,
+                        'execution_time_ms': execution_time,
+                        'result_count': count,
+                        'is_predefined': True
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'error': FRIENDLY_MESSAGES['execution_error'],
+                        'humanized_response': FRIENDLY_MESSAGES['execution_error'],
+                        'details': execution_result.get('error', '')
+                    }
+
             # Obtém schema do banco
             schema_info = self.get_database_schema()
-            
+
+            # Busca contexto relevante via RAG (embeddings)
+            context_documents = self.embedding_service.get_context_for_query(
+                query=user_question,
+                include_schema=True,
+                include_business_rules=True,
+                include_faqs=True,
+                limit_per_type=3
+            )
+
             # Interpreta a pergunta usando Gemini
             interpretation_result = self.gemini_service.interpret_natural_language_query(
                 user_question, schema_info
             )
-            
+
             if not interpretation_result['success']:
+                logger.warning(f"Falha na interpretação: {interpretation_result.get('error', 'Erro desconhecido')}")
                 return {
                     'success': False,
-                    'error': 'Não foi possível interpretar a pergunta',
-                    'details': interpretation_result.get('error', 'Erro desconhecido')
+                    'error': FRIENDLY_MESSAGES['interpretation_error'],
+                    'humanized_response': FRIENDLY_MESSAGES['interpretation_error'],
+                    'details': interpretation_result.get('error', '')
                 }
-            
+
             interpretation = interpretation_result['interpretation']
             sql_query = interpretation.get('sql', '')
-            
+
             # Valida a consulta SQL
             validation_result = self._validate_sql_query(sql_query)
             if not validation_result['valid']:
+                logger.warning(f"SQL inválido: {validation_result['error']}")
                 return {
                     'success': False,
-                    'error': 'Consulta SQL inválida',
+                    'error': FRIENDLY_MESSAGES['validation_error'],
+                    'humanized_response': FRIENDLY_MESSAGES['validation_error'],
                     'details': validation_result['error']
                 }
-            
+
             # Executa a consulta
             execution_result = self._execute_sql_query(sql_query)
             execution_time = int((time.time() - start_time) * 1000)
-            
+
             # Log da consulta
             query_log = QueryLog.objects.create(
                 session=session,
@@ -257,13 +503,16 @@ class SQLInterpreterService:
                 error_message=execution_result.get('error', ''),
                 gemini_response=interpretation_result
             )
-            
+
             if execution_result['success']:
-                # Gera resposta humanizada
+                # Gera resposta humanizada usando RAG
                 humanized_response = self.gemini_service.generate_humanized_response(
-                    execution_result['data'], user_question, sql_query
+                    query_result=execution_result['data'],
+                    original_question=user_question,
+                    sql_query=sql_query,
+                    context_documents=context_documents
                 )
-                
+
                 return {
                     'success': True,
                     'data': execution_result['data'],
@@ -272,23 +521,27 @@ class SQLInterpreterService:
                     'humanized_response': humanized_response.get('content', ''),
                     'execution_time_ms': execution_time,
                     'result_count': len(execution_result['data']),
-                    'query_log_id': query_log.id
+                    'query_log_id': query_log.id,
+                    'context_used': len(context_documents)
                 }
             else:
+                logger.warning(f"Erro na execução: {execution_result['error']}")
                 return {
                     'success': False,
-                    'error': 'Erro na execução da consulta',
+                    'error': FRIENDLY_MESSAGES['execution_error'],
+                    'humanized_response': FRIENDLY_MESSAGES['execution_error'],
                     'details': execution_result['error'],
                     'sql_query': sql_query,
                     'interpretation': interpretation,
                     'query_log_id': query_log.id
                 }
-                
+
         except Exception as e:
             logger.error(f"Erro na interpretação/execução: {str(e)}")
             return {
                 'success': False,
-                'error': 'Erro interno do servidor',
+                'error': FRIENDLY_MESSAGES['internal_error'],
+                'humanized_response': FRIENDLY_MESSAGES['internal_error'],
                 'details': get_error_details(e)
             }
     

@@ -103,7 +103,7 @@ export default function AlicePage() {
       const welcomeMessage: Message = {
         id: "welcome",
         type: "assistant",
-        content: "Olá! Eu sou a Alice, sua assistente virtual do Sistema Minerva. Posso ajudá-lo a consultar dados sobre contratos, orçamentos, funcionários e muito mais. Faça uma pergunta e eu transformarei ela em uma consulta SQL para buscar as informações que você precisa!",
+        content: "Olá! 😊 Eu sou a Alice, sua assistente virtual do Sistema Minerva.\n\nPosso ajudar você a encontrar informações sobre contratos, orçamentos, funcionários e muito mais.\n\nÉ só me dizer o que você precisa!",
         timestamp: new Date()
       }
       setMessages([welcomeMessage])
@@ -198,7 +198,7 @@ export default function AlicePage() {
     setMessages([{
       id: "welcome_new",
       type: "assistant",
-      content: "Nova conversa iniciada! Como posso ajudá-lo?",
+      content: "Nova conversa iniciada! 😊\n\nComo posso ajudar você?",
       timestamp: new Date()
     }])
   }

@@ -14,6 +14,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -37,6 +38,10 @@ USER django
 
 # Expose port
 EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/admin/login/ || exit 1
 
 # Run migrations and start server with gunicorn
 CMD python manage.py migrate && \

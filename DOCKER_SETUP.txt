@@ -1,0 +1,278 @@
+==========================================
+MINERVA DOCKER SETUP GUIDE
+==========================================
+
+This guide explains how to run the Minerva project using Docker.
+
+==========================================
+QUICK START
+==========================================
+
+1. SETUP ENVIRONMENT (First Time Only)
+
+   Windows:
+   --------
+   cd docker
+   setup-env.bat
+
+   Linux/macOS:
+   ------------
+   cd docker
+   chmod +x setup-env.sh
+   ./setup-env.sh
+
+   This will:
+   - Create backend_minerva/.env from .env.example
+   - Generate a secure SECRET_KEY
+   - Configure PostgreSQL database settings for Docker
+
+   IMPORTANT: After running the script, edit backend_minerva/.env and add your GEMINI_API_KEY
+
+2. START DEVELOPMENT ENVIRONMENT
+
+   docker-compose -f docker-compose.dev.yml up --build
+
+   This will start:
+   - PostgreSQL 16 with pgvector extension (port 5432)
+   - Django backend (port 8000)
+   - Next.js frontend (port 3000)
+
+3. CREATE SUPERUSER (First Time Only)
+
+   Open a new terminal and run:
+   docker-compose -f docker-compose.dev.yml exec backend python manage.py createsuperuser
+
+4. ACCESS THE APPLICATION
+
+   - Frontend: http://localhost:3000
+   - Backend Admin: http://localhost:8000/admin
+   - API: http://localhost:8000/api
+
+==========================================
+PRODUCTION DEPLOYMENT
+==========================================
+
+1. Update backend_minerva/.env for production:
+   - Set DEBUG=False
+   - Update ALLOWED_HOSTS with your domain
+   - Set strong SECRET_KEY
+   - Configure email settings
+   - Enable security settings (CSRF_COOKIE_SECURE, etc.)
+
+2. Build and start production environment:
+
+   docker-compose up --build -d
+
+3. The services will be available on the same ports with production optimizations
+
+==========================================
+DOCKER CONFIGURATIONS
+==========================================
+
+Two docker-compose files are provided:
+
+1. docker-compose.yml (PRODUCTION)
+   - Optimized builds
+   - Gunicorn for Django (3 workers)
+   - Next.js standalone mode
+   - Health checks enabled
+   - Resource limits configured
+   - Restart policy: always
+
+2. docker-compose.dev.yml (DEVELOPMENT)
+   - Hot reload enabled
+   - Django development server
+   - Next.js dev mode with fast refresh
+   - Volume mounts for live code changes
+   - Better error messages
+   - Restart policy: unless-stopped
+
+==========================================
+KEY FEATURES
+==========================================
+
+DATABASE:
+- PostgreSQL 16 with pgvector extension
+- Automatic initialization via init-pgvector.sql
+- Health checks to ensure database is ready
+- Separate volumes for dev and production
+
+BACKEND:
+- Python 3.13 slim
+- Automatic migrations on startup
+- Static files handled via volumes
+- Health check: /admin/login/ endpoint
+- curl installed for health checks
+
+FRONTEND:
+- Node.js 20 Alpine
+- Multi-stage build for production
+- Health check: homepage endpoint
+- wget installed for health checks
+
+NETWORKING:
+- Services communicate via service names (backend, db, frontend)
+- NEXT_PUBLIC_API_URL properly configured for Docker networking
+- In development: backend accessible at http://backend:8000
+- In production: same configuration
+
+==========================================
+IMPORTANT NOTES
+==========================================
+
+1. API URL CONFIGURATION:
+   - Docker containers use service names: http://backend:8000
+   - This is different from local development: http://localhost:8000
+   - The docker-compose files handle this automatically
+
+2. DATABASE:
+   - Development and production use separate PostgreSQL volumes
+   - SQLite is NOT used in Docker environments
+   - pgvector extension is required for AI features
+
+3. WINDOWS COMPATIBILITY:
+   - Volume mounts use :delegated flag for better performance
+   - WATCHPACK_POLLING=true for Next.js hot reload on Windows
+   - Webpack poll settings in next.config.ts
+
+4. HEALTH CHECKS:
+   - All services have health checks configured
+   - Backend depends on database health
+   - Frontend depends on backend health
+   - Proper start periods to allow initialization
+
+5. RESOURCE LIMITS (Production):
+   - Database: 1 CPU, 1GB RAM (limit), 0.5 CPU, 512MB RAM (reservation)
+   - Backend: 1 CPU, 1GB RAM (limit), 0.5 CPU, 512MB RAM (reservation)
+   - Frontend: 0.5 CPU, 512MB RAM (limit), 0.25 CPU, 256MB RAM (reservation)
+
+==========================================
+COMMON COMMANDS
+==========================================
+
+See docker/docker-commands.txt for a comprehensive list of commands.
+
+Quick reference:
+
+# Start development
+docker-compose -f docker-compose.dev.yml up
+
+# Start in background
+docker-compose -f docker-compose.dev.yml up -d
+
+# View logs
+docker-compose -f docker-compose.dev.yml logs -f
+
+# Stop
+docker-compose -f docker-compose.dev.yml down
+
+# Stop and remove volumes (clean state)
+docker-compose -f docker-compose.dev.yml down -v
+
+# Rebuild
+docker-compose -f docker-compose.dev.yml up --build
+
+# Run migrations
+docker-compose -f docker-compose.dev.yml exec backend python manage.py migrate
+
+# Access database
+docker-compose -f docker-compose.dev.yml exec db psql -U minerva_user -d minerva_db
+
+==========================================
+TROUBLESHOOTING
+==========================================
+
+1. "Connection refused" errors:
+   - Check if services are healthy: docker-compose ps
+   - Wait for health checks to pass (can take 30-60 seconds)
+   - Check logs: docker-compose logs -f backend
+
+2. Database connection errors:
+   - Ensure DATABASE_HOST=db in .env
+   - Verify database is healthy: docker-compose ps db
+   - Check database logs: docker-compose logs db
+
+3. Frontend can't connect to backend:
+   - Verify NEXT_PUBLIC_API_URL=http://backend:8000
+   - Check backend health: docker-compose exec frontend wget -O- http://backend:8000/admin/login/
+   - Review backend logs: docker-compose logs backend
+
+4. Permission errors on Windows:
+   - Run Docker Desktop as Administrator
+   - Check WSL2 backend is enabled
+   - Verify file sharing in Docker Desktop settings
+
+5. Slow performance on Windows:
+   - Ensure WSL2 backend is enabled (not Hyper-V)
+   - Move project to WSL2 filesystem for better performance
+   - Increase Docker Desktop resource limits
+
+6. Build failures:
+   - Clean build: docker-compose down -v && docker-compose build --no-cache
+   - Remove old images: docker image prune -a
+   - Check disk space: docker system df
+
+==========================================
+FILE STRUCTURE
+==========================================
+
+.
+├── docker-compose.yml              # Production configuration
+├── docker-compose.dev.yml          # Development configuration
+├── docker/
+│   ├── init-pgvector.sql          # PostgreSQL initialization
+│   ├── docker-commands.txt        # Command reference
+│   ├── setup-env.sh               # Environment setup (Linux/macOS)
+│   └── setup-env.bat              # Environment setup (Windows)
+├── backend_minerva/
+│   ├── Dockerfile                 # Backend production build
+│   ├── .dockerignore             # Backend ignore patterns
+│   ├── .env.example              # Environment template
+│   └── .env                      # Your configuration (gitignored)
+└── frontend_minerva/
+    ├── Dockerfile                # Frontend production build
+    ├── Dockerfile.dev            # Frontend development build
+    └── .dockerignore            # Frontend ignore patterns
+
+==========================================
+SECURITY NOTES
+==========================================
+
+1. NEVER commit .env files to git
+2. Use strong SECRET_KEY in production
+3. Set DEBUG=False in production
+4. Change default database passwords in production
+5. Configure ALLOWED_HOSTS properly
+6. Enable HTTPS in production (SECURE_SSL_REDIRECT=True)
+7. Use environment-specific secrets
+8. Regularly update Docker images
+
+==========================================
+NEXT STEPS
+==========================================
+
+After successful setup:
+
+1. Index embeddings (for AI features):
+   docker-compose -f docker-compose.dev.yml exec backend python manage.py index_embeddings
+
+2. Load initial data (if any):
+   docker-compose -f docker-compose.dev.yml exec backend python manage.py loaddata initial_data
+
+3. Run tests:
+   docker-compose -f docker-compose.dev.yml exec backend python manage.py test
+
+4. Access Django shell:
+   docker-compose -f docker-compose.dev.yml exec backend python manage.py shell
+
+==========================================
+SUPPORT
+==========================================
+
+For issues or questions:
+1. Check logs: docker-compose logs -f
+2. Verify health: docker-compose ps
+3. Review this guide
+4. Check docker/docker-commands.txt for reference commands
+
+==========================================

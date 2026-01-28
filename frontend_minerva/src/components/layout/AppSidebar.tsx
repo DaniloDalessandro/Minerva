@@ -98,9 +98,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: BarChart3,
       items: [
         { title: "Visão Geral", url: "/dashboard" },
-        { title: "Contratos", url: "/dashboard/contratos" },
-        { title: "Orçamentos", url: "/dashboard/orcamentos" },
-        { title: "Auxilios", url: "/dashboard/auxilios" },
       ],
     },
     {

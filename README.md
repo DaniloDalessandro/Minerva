@@ -39,8 +39,9 @@ Minerva/
 - Django REST Framework 3.16
 - Python 3.13
 - JWT Authentication (SimpleJWT 5.5)
-- PostgreSQL/SQLite
-- Google Gemini AI
+- PostgreSQL 16 + pgvector (busca vetorial)
+- LangChain + Google Gemini AI
+- RAG (Retrieval-Augmented Generation)
 
 ## 🚀 Quick Start
 
@@ -181,9 +182,13 @@ frontend_minerva/
 - Gestão de auxílios
 
 ### Assistente AI (Alice)
-- Consultas em linguagem natural
-- Geração automática de SQL
-- Histórico de conversas
+- Consultas em linguagem natural com LangChain
+- Geração automática de SQL (PostgreSQL)
+- RAG (Retrieval-Augmented Generation) com pgvector
+- Busca semântica por similaridade vetorial
+- Embeddings com Google Gemini
+- Histórico de conversas vetorizado
+- Base de conhecimento indexada (schema, regras de negócio, FAQs)
 - Validação de queries
 
 ### Central de Ajuda
@@ -191,6 +196,53 @@ frontend_minerva/
 - Níveis de dificuldade (Básico, Intermediário, Avançado)
 - FAQ com perguntas frequentes
 - Dicas e melhores práticas
+
+## 🤖 IA e Busca Vetorial
+
+### LangChain + Gemini
+O sistema utiliza LangChain para orquestrar chamadas à API do Google Gemini, permitindo:
+- Gerenciamento de prompts estruturados
+- Memória de conversação
+- Chains para RAG (Retrieval-Augmented Generation)
+
+### pgvector
+PostgreSQL com extensão pgvector para busca por similaridade:
+- Embeddings de 768 dimensões (Gemini embedding-001)
+- Índice HNSW para busca eficiente
+- Similaridade por cosseno
+
+### Arquitetura RAG
+```
+Pergunta do Usuário
+       ↓
+[Embedding da Pergunta]
+       ↓
+[Busca Vetorial - pgvector]
+       ↓
+[Documentos Relevantes]
+       ↓
+[LangChain + Gemini + Contexto]
+       ↓
+Resposta Enriquecida
+```
+
+### Tipos de Documentos Indexados
+- **SCHEMA**: Estrutura do banco de dados
+- **BUSINESS_RULE**: Regras de negócio
+- **FAQ**: Perguntas frequentes
+- **QUERY_EXAMPLE**: Exemplos de consultas SQL
+- **CONTEXT**: Contexto geral do sistema
+
+### Configuração do pgvector
+O Docker já vem configurado com a imagem `pgvector/pgvector:pg16`. Para ambientes locais sem Docker:
+
+```sql
+-- Instalar extensão
+CREATE EXTENSION vector;
+
+-- Verificar instalação
+SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
+```
 
 ## 🔐 Segurança
 
@@ -277,6 +329,11 @@ python manage.py setup_hierarchy
 python manage.py populate_employees
 python manage.py setup_permissions
 python manage.py recalculate_budget_cache
+
+# Comandos de IA/RAG
+python manage.py index_embeddings           # Indexa todos os documentos
+python manage.py index_embeddings --schema-only  # Apenas schema
+python manage.py index_embeddings --clear   # Limpa e reindexa
 ```
 
 ### Frontend
@@ -340,9 +397,14 @@ DELETE /api/v1/employee/employees/{id}/
 
 ## 🐳 Docker
 
+O projeto utiliza `pgvector/pgvector:pg16` como imagem do PostgreSQL com suporte nativo a busca vetorial.
+
 ```bash
-# Iniciar todos os serviços
+# Iniciar todos os serviços (produção)
 docker-compose up -d
+
+# Iniciar ambiente de desenvolvimento
+docker-compose -f docker-compose.dev.yml up -d
 
 # Ver logs
 docker-compose logs -f
@@ -352,6 +414,15 @@ docker-compose down
 
 # Rebuild
 docker-compose up -d --build
+
+# Verificar pgvector instalado
+docker-compose exec db psql -U minerva_user -d minerva_db -c "SELECT extname FROM pg_extension WHERE extname='vector';"
+```
+
+### Estrutura Docker
+```
+docker/
+└── init-pgvector.sql    # Script de inicialização do pgvector
 ```
 
 ## 🧪 Testes
@@ -386,15 +457,23 @@ DEBUG=True
 SECRET_KEY=sua-chave-secreta-unica
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Database
+# Database (desenvolvimento - SQLite)
 DATABASE_ENGINE=django.db.backends.sqlite3
 DATABASE_NAME=db.sqlite3
+
+# Database (produção - PostgreSQL + pgvector)
+# DATABASE_ENGINE=django.db.backends.postgresql
+# DATABASE_NAME=minerva_db
+# DATABASE_USER=minerva_user
+# DATABASE_PASSWORD=minerva_password
+# DATABASE_HOST=db
+# DATABASE_PORT=5432
 
 # CORS
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 
-# AI (opcional)
-GEMINI_API_KEY=sua-chave-api
+# AI (obrigatório para Alice)
+GEMINI_API_KEY=sua-chave-api-gemini
 
 # Email (opcional)
 DEFAULT_FROM_EMAIL=noreply@minerva.local
@@ -459,5 +538,12 @@ Desenvolvido pela equipe Minerva.
 
 ---
 
-**Versão:** 2.1
-**Última atualização:** 20 de Janeiro de 2026
+**Versão:** 2.2
+**Última atualização:** 23 de Janeiro de 2026
+
+### Changelog v2.2
+- Integração com LangChain para orquestração de IA
+- PostgreSQL + pgvector para busca vetorial
+- Sistema RAG para respostas contextualizadas
+- Embeddings de documentos e conversas
+- Docker atualizado com imagem pgvector/pgvector:pg16

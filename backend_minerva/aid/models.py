@@ -37,8 +37,8 @@ class Assistance(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='AGUARDANDO',verbose_name='Status')
     created_at = models.DateTimeField(auto_now_add=True,verbose_name='Criado em')   
     updated_at = models.DateTimeField(auto_now=True,verbose_name='Atualizado em')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_assistances',verbose_name='Criado por')
-    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='updated_assistances',verbose_name='Atualizado por')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_assistances', verbose_name='Criado por')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_assistances', verbose_name='Atualizado por')
 
     @transaction.atomic
     def save(self, *args, **kwargs):

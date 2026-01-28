@@ -26,7 +26,7 @@ from .serializers import (
     SessionStatsSerializer,
     QuickQuestionSerializer
 )
-from .services.sql_interpreter import SQLInterpreterService
+from .services.sql_interpreter import SQLInterpreterService, FRIENDLY_MESSAGES
 
 logger = logging.getLogger(__name__)
 
@@ -119,52 +119,54 @@ class ConversationSessionViewSet(viewsets.ModelViewSet):
                         }
                     }
                 else:
+                    # Usa mensagem amigável do resultado ou mensagem padrão
+                    friendly_response = result.get('humanized_response', FRIENDLY_MESSAGES['internal_error'])
+
                     # Salva resposta de erro
                     error_message = ConversationMessage.objects.create(
                         session=session,
-                        message_type='ERROR',
-                        content=f"Desculpe, não consegui processar sua pergunta: {result['error']}",
+                        message_type='ASSISTANT',  # Mostra como mensagem normal, não erro
+                        content=friendly_response,
                         metadata={
                             'error_details': result.get('details', ''),
-                            'sql_query': result.get('sql_query', '')
+                            'was_error': True
                         }
                     )
-                    
+
                     response_data = {
-                        'success': False,
+                        'success': True,  # Retorna success para o frontend exibir a mensagem normalmente
                         'session_id': session.session_id,
-                        'response': f"Desculpe, não consegui processar sua pergunta: {result['error']}",
-                        'error': result['error'],
+                        'response': friendly_response,
                         'metadata': {
                             'user_message_id': user_message.id,
-                            'error_message_id': error_message.id,
-                            'error_details': result.get('details', '')
+                            'assistant_message_id': error_message.id
                         }
                     }
-                
+
                 # Atualiza timestamp da sessão
                 session.updated_at = timezone.now()
                 session.save(update_fields=['updated_at'])
-                
+
                 return Response(response_data, status=status.HTTP_200_OK)
-                
+
             except Exception as e:
                 logger.error(f"Erro ao processar mensagem: {str(e)}")
-                
-                # Salva mensagem de erro do sistema
+
+                friendly_response = FRIENDLY_MESSAGES['internal_error']
+
+                # Salva mensagem de erro do sistema como mensagem normal
                 ConversationMessage.objects.create(
                     session=session,
-                    message_type='ERROR',
-                    content="Ocorreu um erro interno. Tente novamente em alguns instantes.",
-                    metadata={'error': str(e)}
+                    message_type='ASSISTANT',
+                    content=friendly_response,
+                    metadata={'was_error': True}
                 )
-                
+
                 return Response({
-                    'success': False,
+                    'success': True,
                     'session_id': session.session_id,
-                    'response': "Ocorreu um erro interno. Tente novamente em alguns instantes.",
-                    'error': 'Erro interno do servidor'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    'response': friendly_response
+                }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -267,45 +269,43 @@ class AliceChatView(APIView):
                     }
                 })
             else:
-                # Salva resposta de erro
-                error_message = ConversationMessage.objects.create(
+                # Usa mensagem amigável do resultado ou mensagem padrão
+                friendly_response = result.get('humanized_response', FRIENDLY_MESSAGES['internal_error'])
+
+                # Salva resposta como mensagem normal (não erro)
+                assistant_message = ConversationMessage.objects.create(
                     session=session,
-                    message_type='ERROR',
-                    content=f"Desculpe, não consegui processar sua pergunta: {result['error']}",
-                    metadata={
-                        'error_details': result.get('details', ''),
-                        'sql_query': result.get('sql_query', '')
-                    }
+                    message_type='ASSISTANT',
+                    content=friendly_response,
+                    metadata={'was_error': True}
                 )
-                
+
                 response_serializer = ChatResponseSerializer(data={
-                    'success': False,
+                    'success': True,
                     'session_id': session.session_id,
-                    'response': f"Desculpe, não consegui processar sua pergunta: {result['error']}",
-                    'error': result['error'],
+                    'response': friendly_response,
                     'metadata': {
                         'user_message_id': user_message.id,
-                        'error_message_id': error_message.id,
-                        'error_details': result.get('details', '')
+                        'assistant_message_id': assistant_message.id
                     }
                 })
-            
+
             # Atualiza sessão
             session.updated_at = timezone.now()
             session.save(update_fields=['updated_at'])
-            
+
             if response_serializer.is_valid():
                 return Response(response_serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(response_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+
         except Exception as e:
             logger.error(f"Erro no chat com Alice: {str(e)}")
+            friendly_response = FRIENDLY_MESSAGES['internal_error']
             return Response({
-                'success': False,
-                'error': 'Erro interno do servidor',
-                'details': get_error_details(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'success': True,
+                'response': friendly_response
+            }, status=status.HTTP_200_OK)
 
 
 class QueryLogViewSet(viewsets.ReadOnlyModelViewSet):
